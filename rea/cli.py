@@ -22,21 +22,24 @@ def init(
         typer.echo(f"Error: {target} is not a directory", err=True)
         raise typer.Exit(1)
 
-    commands_src = TEMPLATES_DIR / ".claude" / "commands"
-    commands_dst = target / ".claude" / "commands"
-    commands_dst.mkdir(parents=True, exist_ok=True)
-
     copied = []
     skipped = []
 
-    for src_file in commands_src.iterdir():
-        dst_file = commands_dst / src_file.name
-        if dst_file.exists():
-            shutil.copy2(src_file, dst_file)
-            skipped.append(src_file.name)
-        else:
-            shutil.copy2(src_file, dst_file)
-            copied.append(src_file.name)
+    claude_dirs = ["commands", "agents"]
+    for dirname in claude_dirs:
+        src_dir = TEMPLATES_DIR / ".claude" / dirname
+        if not src_dir.exists():
+            continue
+        dst_dir = target / ".claude" / dirname
+        dst_dir.mkdir(parents=True, exist_ok=True)
+        for src_file in src_dir.iterdir():
+            dst_file = dst_dir / src_file.name
+            if dst_file.exists():
+                shutil.copy2(src_file, dst_file)
+                skipped.append(f".claude/{dirname}/{src_file.name}")
+            else:
+                shutil.copy2(src_file, dst_file)
+                copied.append(f".claude/{dirname}/{src_file.name}")
 
     rea_dir = target / ".rea"
     (rea_dir / "log").mkdir(parents=True, exist_ok=True)
@@ -47,12 +50,12 @@ def init(
     if copied:
         typer.echo("Copied:")
         for f in copied:
-            typer.echo(f"  [+] .claude/commands/{f}")
+            typer.echo(f"  [+] {f}")
 
     if skipped:
         typer.echo("\nUpdated (already existed):")
         for f in skipped:
-            typer.echo(f"  [~] .claude/commands/{f}")
+            typer.echo(f"  [~] {f}")
 
     typer.echo("\nNext step: open Claude Code and run /rea-init")
 
