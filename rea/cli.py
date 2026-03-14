@@ -61,4 +61,5 @@ def init(
 def version():
     """Show REA version."""
     from rea import __version__
+
     typer.echo(f"rea {__version__}")
