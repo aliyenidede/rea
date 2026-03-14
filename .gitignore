@@ -11,3 +11,6 @@ venv/
 
 # REA runtime
 .rea/log/
+
+# Internal planning notes
+docs/rea-planning-notes.md
