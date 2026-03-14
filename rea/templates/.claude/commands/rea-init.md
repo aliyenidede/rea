@@ -83,6 +83,8 @@ Then write a `CLAUDE.md` with the following sections:
 If the lesson is architectural (e.g. a rule about what can import what, where logic must live), promote it to the relevant section of `CLAUDE.md` instead of lessons.md.
 
 **Verification Standard** — Before marking any task complete, ask: "Would a staff engineer approve this?" Run tests, check logs, prove it works.
+
+**Verification Iron Rule** — NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE. Before saying "done": run the command that proves it, read the full output, check exit code. "Should work" is not evidence.
 ```
 
 ## Step 4 — Install missing files

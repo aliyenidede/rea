@@ -107,7 +107,15 @@ Create `.rea/plans/<NNNN>-<task-name>/`:
 ```
 
 Todo item detail level by risk:
-- **High risk** (DB write, payment, irreversible, cross-system): full algorithm steps + test criteria
+- **High risk** (DB write, payment, irreversible, cross-system): full algorithm steps + TDD format + test criteria
+  ```
+  - [ ] NEXT: Implement X
+        RED: Write test for X — must watch it FAIL before coding
+        GREEN: Minimal implementation to make test pass
+        REFACTOR: Clean up, keep tests green
+        Commit: one commit per RED-GREEN cycle
+        Test: what proves this is correct
+  ```
 - **Low risk** (config, types, simple util): file path + behavior is enough
 
 **`NEXT:` marker rules:**
