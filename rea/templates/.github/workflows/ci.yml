@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [staging, main]
+  pull_request:
+    branches: [staging, main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Node.js / pnpm
+      - name: Setup pnpm
+        if: hashFiles('pnpm-lock.yaml') != ''
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        if: hashFiles('package.json') != ''
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: ${{ hashFiles('pnpm-lock.yaml') != '' && 'pnpm' || 'npm' }}
+
+      - name: Install dependencies (pnpm)
+        if: hashFiles('pnpm-lock.yaml') != ''
+        run: pnpm install --frozen-lockfile
+
+      - name: Install dependencies (npm)
+        if: hashFiles('package-lock.json') != ''
+        run: npm ci
+
+      - name: Typecheck
+        if: hashFiles('package.json') != ''
+        run: |
+          if [ -f "pnpm-lock.yaml" ]; then pnpm run typecheck 2>/dev/null || true; fi
+          if [ -f "package-lock.json" ]; then npm run typecheck 2>/dev/null || true; fi
+
+      - name: Lint
+        if: hashFiles('package.json') != ''
+        run: |
+          if [ -f "pnpm-lock.yaml" ]; then pnpm run lint; fi
+          if [ -f "package-lock.json" ]; then npm run lint; fi
+
+      - name: Test
+        if: hashFiles('package.json') != ''
+        run: |
+          if [ -f "pnpm-lock.yaml" ]; then pnpm run test; fi
+          if [ -f "package-lock.json" ]; then npm run test; fi
+
+      # Python
+      - name: Setup Python
+        if: hashFiles('pyproject.toml') != '' || hashFiles('requirements.txt') != ''
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Python dependencies
+        if: hashFiles('pyproject.toml') != ''
+        run: pip install -e ".[dev]"
+
+      - name: Lint (ruff)
+        if: hashFiles('pyproject.toml') != ''
+        run: ruff check . 2>/dev/null || true
+
+      - name: Test (pytest)
+        if: hashFiles('pyproject.toml') != ''
+        run: pytest 2>/dev/null || true

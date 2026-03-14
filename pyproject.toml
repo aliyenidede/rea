@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rea"
+version = "0.1.0"
+description = "Personal development toolkit — bootstraps Claude Code workflow into any project"
+requires-python = ">=3.11"
+dependencies = [
+    "typer>=0.12",
+]
+
+[project.scripts]
+rea = "rea.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["rea*"]
+
+[tool.setuptools.package-data]
+"rea" = ["templates/**/*", "templates/**/.*/*"]
