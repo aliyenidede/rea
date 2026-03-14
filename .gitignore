@@ -8,6 +8,9 @@ build/
 .venv/
 venv/
 .env
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
 
 # REA runtime
 .rea/log/
