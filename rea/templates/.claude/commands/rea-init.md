@@ -209,7 +209,7 @@ If `false`: run via gh CLI:
 
 ```
 gh api repos/{owner}/{repo}/branches/main/protection --method PUT --input - <<EOF
-{"required_status_checks":{"strict":true,"contexts":["ci"]},"enforce_admins":false,"required_pull_request_reviews":null,"restrictions":null}
+{"required_status_checks":{"strict":true,"contexts":["ci / test"]},"enforce_admins":false,"required_pull_request_reviews":null,"restrictions":null}
 EOF
 ```
 
