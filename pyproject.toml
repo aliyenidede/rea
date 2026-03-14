@@ -11,6 +11,12 @@ dependencies = [
     "typer>=0.12",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "ruff>=0.4",
+]
+
 [project.scripts]
 rea = "rea.cli:app"
 
