@@ -14,8 +14,9 @@ Before starting anything, check for existing `NEXT:` markers:
 Read the user's request carefully. Then:
 - Read `CLAUDE.md` to understand the project
 - Read relevant feature `CLAUDE.md` files if they exist
+- Read `.rea/lessons.md` if it exists — apply any relevant lessons to this plan before proceeding
 - Check `.rea/plans/` to understand what has been built so far
-- Research the actual files and functions that would need to change
+- Research the actual files and functions that would need to change — use the `explorer` agent for codebase exploration to keep the main context clean
 
 If the requirements are unclear after researching the codebase, ask up to 5 clarifying questions before proceeding. Incorporate answers into the plan.
 
@@ -37,6 +38,7 @@ Do NOT skip this. Run through each question and answer it yourself honestly:
 1. "Is this plan 100% correct?" — Look for wrong assumptions, missing edge cases, incorrect architecture
 2. "Am I sure about the problems I found?" — Go deeper, find root causes not symptoms
 3. "Am I sure now?" — Only proceed when genuinely confident
+4. "Does this change touch any rule in CLAUDE.md?" — Re-read CLAUDE.md and any relevant feature CLAUDE.md files. For every file or function in the plan, ask: "Is there a rule about who can call this, where it should live, or how it should behave?" If yes, verify the plan complies.
 
 ## Step 4 — Surface decisions
 
@@ -50,6 +52,9 @@ For each real decision, explain:
 - Recommendation with reasoning
 
 Wait for human to decide before proceeding.
+
+If any real decisions were identified: ask yourself "Is there a more elegant solution?" before moving to Step 5. If a simpler approach exists with the same outcome, present it as an option. If not, proceed.
+If no real decisions were identified: skip this check.
 
 ## Step 5 — Determine task type and structure
 
@@ -110,6 +115,11 @@ Todo item detail level by risk:
 - After completing a step: remove `NEXT:` from done item, add it to the next incomplete item
 - `NEXT:` is the session resume point — at the start of any new session, Step 0 detects it automatically
 - If all items are done: remove `NEXT:` entirely and update the log status to `completed`
+
+**After writing all three files, run a verification pass:**
+- For every requirement in `plan.md`: is there a todo item that implements it?
+- For every todo item: does it trace back to a requirement in `plan.md`?
+- If gaps exist, fix `todo.md` before proceeding.
 
 ## Step 8 — Update project CLAUDE.md
 
