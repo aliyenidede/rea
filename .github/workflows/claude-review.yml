@@ -17,6 +17,50 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
-      - uses: anthropics/claude-code-action@beta
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          fetch-depth: 0
+
+      - name: Get PR diff
+        id: diff
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number || github.event.issue.number }}
+          DIFF=$(gh pr diff $PR_NUMBER --repo ${{ github.repository }} 2>/dev/null | head -c 12000)
+          echo "diff<<EOF" >> $GITHUB_OUTPUT
+          echo "$DIFF" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Review with Claude via OpenRouter
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number || github.event.issue.number }}
+
+          DIFF=$(cat <<'DIFF_EOF'
+          ${{ steps.diff.outputs.diff }}
+          DIFF_EOF
+          )
+
+          RESPONSE=$(curl -s https://openrouter.ai/api/v1/chat/completions \
+            -H "Authorization: Bearer $OPENROUTER_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n \
+              --arg diff "$DIFF" \
+              '{
+                model: "anthropic/claude-opus-4-5",
+                messages: [{
+                  role: "user",
+                  content: ("Review this pull request diff. Be concise. Focus on bugs, security issues, and major design problems. Skip trivial style comments.\n\n" + $diff)
+                }],
+                max_tokens: 1024
+              }'
+            )")
+
+          COMMENT=$(echo "$RESPONSE" | jq -r '.choices[0].message.content // "Claude review failed."')
+          COMMENT="**Claude Review**\n\n$COMMENT"
+
+          gh pr comment $PR_NUMBER \
+            --repo ${{ github.repository }} \
+            --body "$COMMENT"
