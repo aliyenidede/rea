@@ -25,4 +25,4 @@ where = ["."]
 include = ["rea*"]
 
 [tool.setuptools.package-data]
-"rea" = ["templates/**/*", "templates/**/.*/*"]
+"rea" = ["templates/**/*", "templates/**/.claude/**/*", "templates/**/.github/**/*"]
