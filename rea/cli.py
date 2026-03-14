@@ -13,7 +13,7 @@ def init(
     path: Path = typer.Argument(
         default=None,
         help="Project directory (defaults to current directory)",
-    )
+    ),
 ):
     """Copy REA command templates into a project. Run /rea-init in Claude Code after this."""
     target = (path or Path.cwd()).resolve()
