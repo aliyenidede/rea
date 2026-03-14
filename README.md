@@ -13,6 +13,14 @@ rea init <project>          # copies slash commands + creates .rea/ dirs
 
 ---
 
+## The problem
+
+Claude Code is powerful but stateless. Each session starts cold: no memory of past decisions, no consistent workflow, no plan files, no branch discipline. You rebuild context every time.
+
+REA solves this by giving Claude a fixed structure to operate inside — the same commands, the same plan format, the same branch rules — across every project and every session.
+
+---
+
 ## What it does
 
 REA installs four slash commands into your project and a structured plan/log system. The CLI is mechanical — it copies files. All intelligence runs through Claude.
@@ -47,6 +55,7 @@ rea init /path/to/project
 - `.claude/hooks/post-tool-use.sh` — auto-lint on every file write
 - `.github/workflows/ci.yml` — test + lint on every PR
 - `.github/workflows/claude-review.yml` — `@claude` PR review via Anthropic API
+- `.gitattributes` — consistent line endings across platforms
 - `staging` branch + GitHub branch protection
 
 Required GitHub secrets after setup:
@@ -60,18 +69,25 @@ gh secret set COOLIFY_PRODUCTION_WEBHOOK_URL # if using Coolify
 
 ## Plan pipeline
 
+The most important part of REA. Before writing any code, you run:
+
 ```
 /rea-plan "add stripe billing"
 ```
 
-1. Researches relevant files and functions
-2. Drafts a strict technical requirements doc (no code, no PM sections)
-3. Runs interrogation loop — "100% sure?" — until plan is solid
-4. Surfaces real decisions with trade-offs → you decide
-5. Writes `.rea/plans/0001-stripe-billing/spec.md`, `plan.md`, `todo.md`
-6. Creates `.rea/log/<date>-<task>.md`
+Claude doesn't immediately start coding. It:
 
-`todo.md` uses a `NEXT:` marker for session continuity — next time you run `/rea-plan`, it finds the marker and asks to resume.
+1. Researches the relevant files and functions in your project
+2. Drafts a technical requirements doc — no code, no PM sections
+3. Runs an interrogation loop: *"100% sure this plan is right?"* — finds real problems before they hit production
+4. Surfaces decisions with trade-offs and waits for your input
+5. Writes three files to `.rea/plans/0001-stripe-billing/`:
+   - `spec.md` — what and why
+   - `plan.md` — technical requirements
+   - `todo.md` — step-by-step execution with a `NEXT:` marker
+6. Creates a log entry in `.rea/log/`
+
+The `NEXT:` marker in `todo.md` marks the first incomplete step. Next session, `/rea-plan` finds it and asks to resume — no re-reading the full plan.
 
 ---
 
@@ -202,3 +218,9 @@ flowchart TD
     BA --> BC([Next project starts smarter])
     BB --> BC
 ```
+
+---
+
+## License
+
+MIT
