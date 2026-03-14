@@ -1,6 +1,10 @@
 Commit all staged and unstaged changes, push, and open a PR to the correct target branch.
 
-## Step 1 — Detect current branch
+## Step 0 — Confirm working directory
+
+Run: `pwd` and `git remote -v`
+
+This establishes which repo you are operating in. All subsequent steps must run in this directory only. Do NOT switch to another directory or repo during this command — even if you are aware of changes in other projects.
 
 Run: `git branch --show-current`
 

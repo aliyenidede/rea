@@ -29,6 +29,11 @@ Run each check and report ✅ / ⚠️ / ❌:
 - `gh secret list` → COOLIFY_STAGING_WEBHOOK_URL present?
 - `gh secret list` → COOLIFY_PRODUCTION_WEBHOOK_URL present?
 
+**Lessons:**
+- `.rea/lessons.md` exists? If yes, read it and check:
+  - Any lesson that starts with "never import", "always put", "X must live in", "X cannot call" → these are architectural and should be in `CLAUDE.md`, not lessons.md. Flag them.
+  - Any lesson that duplicates an existing rule already in `CLAUDE.md` → flag as stale.
+
 ## Output format
 
 Print a clean report:
@@ -46,7 +51,7 @@ Print a clean report:
 ❌ COOLIFY_PRODUCTION_WEBHOOK_URL — missing
 ```
 
-Then list all issues with exact commands to fix them:
+Then list all issues with exact fix instructions:
 ```
 Issues found (2):
   1. gh secret set COOLIFY_STAGING_WEBHOOK_URL
