@@ -104,7 +104,7 @@ If missing, always create — regardless of stack:
 ```
 
 ### Placeholder test
-If no test files exist anywhere in the project, create one based on stack:
+If no test files exist anywhere in the project (check recursively), create one based on stack:
 
 - **Python**: create `tests/test_placeholder.py`:
 ```python
@@ -121,7 +121,7 @@ test("placeholder", () => {
 ```
 
 ### Python only: dev extras in `pyproject.toml`
-If `pyproject.toml` exists and has no `[project.optional-dependencies]` with dev tools, add:
+If `pyproject.toml` exists and `[project.optional-dependencies]` section is missing, add:
 ```toml
 [project.optional-dependencies]
 dev = [
