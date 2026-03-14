@@ -191,6 +191,10 @@ dev = [
 ```
 Also update `ci.yml` install step to use `pip install -e ".[dev]"` if not already.
 
+### `.claude/agents/`
+If missing, create directory and copy REA agent templates:
+- `explorer.md` — read-only codebase research agent (Read, Glob, Grep, Haiku model)
+
 ### `.rea/log/` and `.rea/plans/`
 Create if missing.
 

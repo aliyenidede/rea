@@ -16,7 +16,7 @@ Read the user's request carefully. Then:
 - Read relevant feature `CLAUDE.md` files if they exist
 - Read `.rea/lessons.md` if it exists — apply any relevant lessons to this plan before proceeding
 - Check `.rea/plans/` to understand what has been built so far
-- Research the actual files and functions that would need to change
+- Research the actual files and functions that would need to change — use the `explorer` agent for codebase exploration to keep the main context clean
 
 If the requirements are unclear after researching the codebase, ask up to 5 clarifying questions before proceeding. Incorporate answers into the plan.
 
