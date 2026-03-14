@@ -88,6 +88,49 @@ jobs:
             Be concise. Skip trivial style comments.
 ```
 
+### `.gitattributes`
+If missing, always create — regardless of stack:
+```
+* text=auto eol=lf
+*.py text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.toml text eol=lf
+*.md text eol=lf
+*.sh text eol=lf
+```
+
+### Placeholder test
+If no test files exist anywhere in the project, create one based on stack:
+
+- **Python**: create `tests/test_placeholder.py`:
+```python
+def test_placeholder():
+    """Remove this once real tests exist."""
+    pass
+```
+
+- **Node/pnpm or Node/npm**: create `src/__tests__/placeholder.test.ts` (or `.js` if no TypeScript):
+```typescript
+test("placeholder", () => {
+  // Remove this once real tests exist.
+});
+```
+
+### Python only: dev extras in `pyproject.toml`
+If `pyproject.toml` exists and has no `[project.optional-dependencies]` with dev tools, add:
+```toml
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "ruff>=0.4",
+]
+```
+Also update `ci.yml` install step to use `pip install -e ".[dev]"` if not already.
+
 ### `.rea/log/` and `.rea/plans/`
 Create if missing.
 
