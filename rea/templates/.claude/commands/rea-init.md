@@ -16,6 +16,46 @@ Check what already exists:
 - Is there `.github/workflows/`?
 - What is the tech stack? Check for `package.json`, `pyproject.toml`, `requirements.txt`, `Cargo.toml` etc.
 
+## Step 2B — Brownfield only: audit CLAUDE.md
+
+If brownfield, read the existing `CLAUDE.md` and check for these sections:
+
+| Section | Why it matters |
+|---|---|
+| `## Architecture Rules` | Without this, Claude makes wrong placement decisions |
+| `## Commands` | Without this, Claude runs wrong build/test/lint commands |
+| `## Workflow Behavior` | Self-improvement loop + verification standard |
+
+For each missing section, report it:
+```
+⚠️  CLAUDE.md is missing these sections:
+  - ## Commands
+  - ## Workflow Behavior
+```
+
+If `## Workflow Behavior` is missing: add it immediately without asking (same content as greenfield). No confirmation needed.
+
+For other missing sections, report them and ask: "Should I add the missing sections? I'll ask you questions for each one."
+
+If user says yes:
+- `## Commands` → ask: "What are the build, test, and lint commands for this project?"
+- `## Architecture Rules` → ask: "What are the main architectural rules I should always follow?"
+
+Append only the missing sections. Never modify existing content.
+
+Also scan for `features/` directory. If it exists, check each subdirectory for a `CLAUDE.md`:
+```
+⚠️  These features are missing a CLAUDE.md:
+  - features/auth/
+  - features/billing/
+```
+Ask: "Should I create CLAUDE.md files for these features? I'll ask 3 questions per feature."
+
+If user says yes, for each feature ask:
+1. What is the scope of this feature? (what's in, what's out)
+2. What are the feature-specific rules and constraints?
+3. What key decisions were made when building this?
+
 ## Step 3 — Greenfield only: generate CLAUDE.md
 
 If no `CLAUDE.md` exists, ask the user these questions one by one:
@@ -24,7 +64,26 @@ If no `CLAUDE.md` exists, ask the user these questions one by one:
 3. What are the main architectural rules I should always follow?
 4. What commands are used to build, test, and lint?
 
-Then write a `CLAUDE.md` with: project description, tech stack, architecture rules, commands.
+Then write a `CLAUDE.md` with the following sections:
+- Project description (from Q1)
+- Tech stack (from Q2)
+- Architecture rules (from Q3)
+- Commands: build, test, lint (from Q4)
+- Always append this section verbatim:
+
+```
+## Workflow Behavior
+
+**Self-Improvement Loop** — After any correction from the user, append the lesson to `.rea/lessons.md`:
+```
+## YYYY-MM-DD
+**Mistake:** what went wrong
+**Rule:** what to do instead
+```
+If the lesson is architectural (e.g. a rule about what can import what, where logic must live), promote it to the relevant section of `CLAUDE.md` instead of lessons.md.
+
+**Verification Standard** — Before marking any task complete, ask: "Would a staff engineer approve this?" Run tests, check logs, prove it works.
+```
 
 ## Step 4 — Install missing files
 
@@ -170,8 +229,18 @@ Print a clear summary:
 
 ⚠️  Add these GitHub secrets (run each command):
   gh secret set ANTHROPIC_API_KEY
+
+If the project deploys to Coolify (check ci.yml for Coolify steps — if present, include this):
   gh secret set COOLIFY_STAGING_WEBHOOK_URL
   gh secret set COOLIFY_PRODUCTION_WEBHOOK_URL
+
+  Coolify setup checklist (do this in order):
+    1. Create a new project in Coolify
+    2. Add application → select GitHub repo
+    3. Copy the deploy key from Coolify → add to GitHub repo Settings → Deploy keys (read-only)
+    4. Set all environment variables (use .env.example as reference)
+    5. Copy webhook URLs from Coolify → set as secrets above
+    6. Trigger first deploy and verify
 
 Run /rea-verify when done.
 ```
