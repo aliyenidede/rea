@@ -120,16 +120,12 @@ If missing, create it with this exact content (uses `claude-code-action` — req
 name: claude-review
 
 on:
-  pull_request:
-    types: [opened, synchronize]
   issue_comment:
     types: [created]
 
 jobs:
   review:
-    if: |
-      (github.event_name == 'pull_request') ||
-      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude'))
+    if: contains(github.event.comment.body, '@claude')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -143,9 +139,6 @@ jobs:
       - uses: anthropics/claude-code-action@beta
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          direct_prompt: |
-            Review this pull request. Focus on bugs, security issues, and major design problems.
-            Be concise. Skip trivial style comments.
 ```
 
 ### `.gitattributes`
