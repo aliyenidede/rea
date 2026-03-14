@@ -3,8 +3,10 @@ You are setting up the REA development toolkit in this project. Follow these ste
 ## Step 1 — Check dependencies
 
 Check that the following are available:
+
 - `gh` CLI: run `gh auth status`. If not authenticated or not installed, stop and tell the user to run `gh auth login` first.
 - `git` remote: run `git remote -v`. If no GitHub remote exists, stop and tell the user to push the repo to GitHub first.
+- `workflow` scope: run `gh auth status` and check for `workflow` in the token scopes. If missing, stop and tell the user to run `gh auth refresh -h github.com -s workflow` first.
 
 ## Step 2 — Detect project state
 
@@ -53,7 +55,81 @@ Also create `.claude/settings.json` hook entry if not present:
 If missing, create based on tech stack. See GitHub workflow templates.
 
 ### `.github/workflows/claude-review.yml`
-If missing, create it. See GitHub workflow templates.
+If missing, create it with this exact content (uses `claude-code-action` — requires `ANTHROPIC_API_KEY` secret):
+
+```yaml
+name: claude-review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  issue_comment:
+    types: [created]
+
+jobs:
+  review:
+    if: |
+      (github.event_name == 'pull_request') ||
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: anthropics/claude-code-action@beta
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          direct_prompt: |
+            Review this pull request. Focus on bugs, security issues, and major design problems.
+            Be concise. Skip trivial style comments.
+```
+
+### `.gitattributes`
+If missing, always create — regardless of stack:
+```
+* text=auto eol=lf
+*.py text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.toml text eol=lf
+*.md text eol=lf
+*.sh text eol=lf
+```
+
+### Placeholder test
+If no test files exist anywhere in the project (check recursively), create one based on stack:
+
+- **Python**: create `tests/test_placeholder.py`:
+```python
+def test_placeholder():
+    """Remove this once real tests exist."""
+    pass
+```
+
+- **Node/pnpm or Node/npm**: create `src/__tests__/placeholder.test.ts` (or `.js` if no TypeScript):
+```typescript
+test("placeholder", () => {
+  // Remove this once real tests exist.
+});
+```
+
+### Python only: dev extras in `pyproject.toml`
+If `pyproject.toml` exists and `[project.optional-dependencies]` section is missing, add:
+```toml
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "ruff>=0.4",
+]
+```
+Also update `ci.yml` install step to use `pip install -e ".[dev]"` if not already.
 
 ### `.rea/log/` and `.rea/plans/`
 Create if missing.
@@ -64,7 +140,14 @@ Run: `git checkout -b staging 2>/dev/null || true && git push origin staging 2>/
 
 ## Step 6 — Set up branch protection
 
-Run via gh CLI:
+First check if the repo is private:
+```bash
+gh api repos/{owner}/{repo} --jq '.private'
+```
+
+If `true`: warn the user that branch protection requires GitHub Pro on private repos, and skip.
+If `false`: run via gh CLI:
+
 ```
 gh api repos/{owner}/{repo}/branches/main/protection --method PUT --input - <<EOF
 {"required_status_checks":{"strict":true,"contexts":["ci"]},"enforce_admins":false,"required_pull_request_reviews":null,"restrictions":null}
@@ -86,7 +169,7 @@ Print a clear summary:
 ✅ branch protection — main + staging
 
 ⚠️  Add these GitHub secrets (run each command):
-  gh secret set OPENROUTER_API_KEY
+  gh secret set ANTHROPIC_API_KEY
   gh secret set COOLIFY_STAGING_WEBHOOK_URL
   gh secret set COOLIFY_PRODUCTION_WEBHOOK_URL
 

@@ -4,11 +4,17 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rea"
-version = "0.1.0"
+version = "0.2.0"
 description = "Personal development toolkit — bootstraps Claude Code workflow into any project"
 requires-python = ">=3.11"
 dependencies = [
     "typer>=0.12",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "ruff>=0.4",
 ]
 
 [project.scripts]

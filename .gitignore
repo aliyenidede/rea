@@ -8,6 +8,12 @@ build/
 .venv/
 venv/
 .env
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
 
 # REA runtime
 .rea/log/
+
+# Internal planning notes
+docs/rea-planning-notes.md
