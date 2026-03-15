@@ -1,3 +1,8 @@
+---
+name: rea-init
+description: "Set up the REA development toolkit in a project — installs config, CI, branch protection."
+---
+
 You are setting up the REA development toolkit in this project. Follow these steps exactly.
 
 ## Step 1 — Check dependencies
@@ -83,6 +88,8 @@ Then write a `CLAUDE.md` with the following sections:
 If the lesson is architectural (e.g. a rule about what can import what, where logic must live), promote it to the relevant section of `CLAUDE.md` instead of lessons.md.
 
 **Verification Standard** — Before marking any task complete, ask: "Would a staff engineer approve this?" Run tests, check logs, prove it works.
+
+**Verification Iron Rule** — NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE. Before saying "done": run the command that proves it, read the full output, check exit code. "Should work" is not evidence.
 ```
 
 ## Step 4 — Install missing files
@@ -109,6 +116,28 @@ Also create `.claude/settings.json` hook entry if not present:
   }
 }
 ```
+
+### SessionStart hook (automatic skill routing)
+If `.claude/settings.json` exists but has no `SessionStart` hook entry, add one:
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat .claude/agents/rea-router.md"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+Merge with existing hooks in settings.json — do not overwrite `PostToolUse` or other existing hooks.
+
+Only add this hook if `.claude/agents/rea-router.md` exists.
 
 ### `.github/workflows/ci.yml`
 If missing, create based on tech stack. See GitHub workflow templates.
@@ -207,7 +236,7 @@ If `false`: run via gh CLI:
 
 ```
 gh api repos/{owner}/{repo}/branches/main/protection --method PUT --input - <<EOF
-{"required_status_checks":{"strict":true,"contexts":["ci"]},"enforce_admins":false,"required_pull_request_reviews":null,"restrictions":null}
+{"required_status_checks":{"strict":true,"contexts":["test"]},"enforce_admins":false,"required_pull_request_reviews":null,"restrictions":null}
 EOF
 ```
 
