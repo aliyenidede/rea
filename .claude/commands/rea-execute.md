@@ -1,3 +1,8 @@
+---
+name: rea-execute
+description: "Execute the current plan using the agent-driven implementation loop with parallel dispatch."
+---
+
 Execute the current plan using the agent-driven implementation loop with parallel dispatch.
 
 ## Step 0 — Find active plan

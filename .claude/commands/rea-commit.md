@@ -1,3 +1,8 @@
+---
+name: rea-commit
+description: "Commit all staged and unstaged changes, push, and open a PR to the correct target branch."
+---
+
 Commit all staged and unstaged changes, push, and open a PR to the correct target branch.
 
 ## Step 0 — Confirm working directory

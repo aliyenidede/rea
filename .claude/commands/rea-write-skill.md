@@ -1,3 +1,8 @@
+---
+name: rea-write-skill
+description: "Create a new agent or command file matching REA conventions."
+---
+
 The user wants to create a new skill (agent or command) for this project.
 
 ## Step 1 — Agent or command?
