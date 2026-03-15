@@ -7,7 +7,7 @@ A portable development toolkit that bootstraps a structured Claude Code workflow
 
 ```bash
 pip install git+https://github.com/aliyenidede/rea.git
-rea init <project>          # copies slash commands + creates .rea/ dirs
+rea init <project>          # copies slash commands + agents + creates .rea/ dirs
 # open Claude Code → /rea-init
 ```
 
@@ -23,15 +23,37 @@ REA solves this by giving Claude a fixed structure to operate inside — the sam
 
 ## What it does
 
-REA installs four slash commands into your project and a structured plan/log system. The CLI is mechanical — it copies files. All intelligence runs through Claude.
+REA installs slash commands, composable agents, and a structured plan/log system into your project. The CLI is mechanical — it copies files. All intelligence runs through Claude.
+
+### Commands
 
 ```
-rea init             → copies .claude/commands/ + creates .rea/
+rea init             → copies .claude/commands/ + .claude/agents/ + creates .rea/
 /rea-init            → scans project, installs missing config, sets up GitHub
-/rea-plan            → full planning pipeline with interrogation loop
+/rea-plan            → full planning pipeline with interrogation + adversarial review
+/rea-execute         → agent-driven implementation with parallel dispatch
 /rea-commit          → detects branch, opens PR to correct target
 /rea-verify          → health check, reports missing pieces with fix commands
+/rea-brainstorm      → collaborative design exploration before planning
+/rea-worktree        → isolated git worktree for parallel work
+/rea-write-skill     → create new agents or commands
 ```
+
+### Agents
+
+Agents are composable building blocks that commands orchestrate. Each agent has a single responsibility and can also be called standalone.
+
+| Agent | Model | Purpose |
+|-------|-------|---------|
+| `explorer` | Haiku | Read-only codebase research |
+| `implementer` | Sonnet | TDD-driven implementation (RED-GREEN-REFACTOR) |
+| `spec-reviewer` | Sonnet | Verifies implementation matches requirements |
+| `code-reviewer` | Sonnet | Code quality assessment (SRP, DRY, testability) |
+| `debugger` | Sonnet | 4-phase root cause debugging |
+| `plan-reviewer` | Sonnet | Adversarial plan review — finds gaps before execution |
+| `dispatcher` | Sonnet | Groups todo items into parallel/sequential batches |
+| `skill-writer` | Sonnet | Creates new agents or commands matching REA conventions |
+| `rea-router` | Haiku | Auto-routes user intent to the right skill at session start |
 
 ---
 
@@ -81,13 +103,39 @@ Claude doesn't immediately start coding. It:
 2. Drafts a technical requirements doc — no code, no PM sections
 3. Runs an interrogation loop: *"100% sure this plan is right?"* — finds real problems before they hit production
 4. Surfaces decisions with trade-offs and waits for your input
-5. Writes three files to `.rea/plans/0001-stripe-billing/`:
+5. Runs **adversarial review** via `plan-reviewer` agent — catches gaps, inconsistencies, and unresolved decisions
+6. Writes three files to `.rea/plans/0001-stripe-billing/`:
    - `spec.md` — what and why
    - `plan.md` — technical requirements
    - `todo.md` — step-by-step execution with a `NEXT:` marker
-6. Creates a log entry in `.rea/log/`
+7. Creates a log entry in `.rea/log/`
 
 The `NEXT:` marker in `todo.md` marks the first incomplete step. Next session, `/rea-plan` finds it and asks to resume — no re-reading the full plan.
+
+---
+
+## Execution pipeline
+
+After planning, run:
+
+```
+/rea-execute
+```
+
+The execution pipeline:
+
+1. Loads the active plan and todo list
+2. Calls `dispatcher` agent to analyze dependencies and group items into parallel/sequential batches
+3. Executes items using `implementer` agent (with TDD: write test → make it pass → refactor)
+4. Runs `spec-reviewer` and `code-reviewer` after each batch
+5. Loops until all items are complete
+6. Detects recurring patterns and suggests new skills via `skill-writer`
+
+---
+
+## Auto-routing
+
+REA includes a session-start hook (`rea-router`) that automatically suggests the right command based on your first message. No need to remember command names — just describe what you want to do.
 
 ---
 
@@ -128,6 +176,29 @@ project/features/x/CLAUDE.md ← feature-specific rules (created by /rea-plan wh
 ```
 
 `/rea-plan` creates a feature-level `CLAUDE.md` when the task opens a new domain (auth, billing, webhooks) or spans multiple sessions.
+
+---
+
+## Architecture
+
+```
+Commands (orchestrators)          Agents (building blocks)
+┌─────────────────────┐          ┌──────────────────────┐
+│ /rea-plan           │───calls──│ explorer             │
+│                     │───calls──│ plan-reviewer         │
+│ /rea-execute        │───calls──│ dispatcher            │
+│                     │───calls──│ implementer           │
+│                     │───calls──│ spec-reviewer         │
+│                     │───calls──│ code-reviewer         │
+│                     │───calls──│ skill-writer          │
+│ /rea-brainstorm     │───calls──│ explorer             │
+│ /rea-write-skill    │───calls──│ skill-writer          │
+└─────────────────────┘          └──────────────────────┘
+
+Session start → rea-router → suggests the right command
+```
+
+Key rule: **agents never call other agents** — only commands orchestrate agent calls.
 
 ---
 
@@ -178,14 +249,23 @@ flowchart TD
     AA -->|Yes| AB["Explain trade-offs, you decide"]
     AB --> AC[Lock plan]
     AA -->|No| AC
-    AC --> AD[".rea/plans/NNNN-task/ spec+plan+todo, update log"]
-    AD --> AE{"New domain? Complex? Multi-session?"}
+    AC --> AD["Adversarial review via plan-reviewer"]
+    AD --> AD2{Review passed?}
+    AD2 -->|No| T
+    AD2 -->|Yes| AE0[".rea/plans/NNNN-task/ spec+plan+todo, update log"]
+    AE0 --> AE{"New domain? Complex? Multi-session?"}
     AE -->|Yes| AF["Create features/x/CLAUDE.md"]
     AE -->|No| AG
-    AF --> AG[Execute]
+    AF --> AG
 
     %% EXECUTE PIPELINE
-    AG --> AH["Follow todo step by step — no questions, no discussion"]
+    AG["/rea-execute"] --> AG1["dispatcher groups todo into batches"]
+    AG1 --> AG2["Parallel batch: run implementers concurrently"]
+    AG2 --> AG3["Sequential batch: run one at a time"]
+    AG3 --> AG4["spec-reviewer + code-reviewer after each batch"]
+    AG4 --> AG5{All items done?}
+    AG5 -->|No| AG2
+    AG5 -->|Yes| AH["Pattern detection → suggest new skills"]
     AH --> AI["/rea-commit"]
     AI --> AJ{Current branch?}
     AJ -->|"feature/*"| AK["Open PR → staging"]
@@ -200,14 +280,14 @@ flowchart TD
     AN -->|Yes| AP["@claude review"]
     AP --> AQ{Review passed?}
     AQ -->|No| AR[Apply feedback]
-    AR --> AH
+    AR --> AG
     AQ -->|Yes| AS{Target branch?}
     AS -->|staging| AT["Merge to staging — deploy to staging"]
     AS -->|main| AU["Merge to main — deploy to production"]
     AT --> AV["Test on staging"]
     AV --> AW{OK?}
     AW -->|No| AX[Bug fix]
-    AX --> AH
+    AX --> AG
     AW -->|Yes| AY["Open PR → main"]
     AY --> AU
 

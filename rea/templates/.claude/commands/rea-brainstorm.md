@@ -1,3 +1,8 @@
+---
+name: rea-brainstorm
+description: "Collaborative design exploration — brainstorm alternatives, write spec, hand off to /rea-plan."
+---
+
 The user wants to brainstorm and design a feature before planning. Run the full brainstorming pipeline.
 
 ## Step 0 — Explore the codebase

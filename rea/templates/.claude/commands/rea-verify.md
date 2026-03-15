@@ -1,3 +1,8 @@
+---
+name: rea-verify
+description: "Health check — verifies all REA components, GitHub config, and branch protection."
+---
+
 Check every REA component in this project and report status. Be thorough.
 
 ## Checks
