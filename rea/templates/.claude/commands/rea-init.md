@@ -112,6 +112,28 @@ Also create `.claude/settings.json` hook entry if not present:
 }
 ```
 
+### SessionStart hook (automatic skill routing)
+If `.claude/settings.json` exists but has no `SessionStart` hook entry, add one:
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat .claude/agents/rea-router.md"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+Merge with existing hooks in settings.json — do not overwrite `PostToolUse` or other existing hooks.
+
+Only add this hook if `.claude/agents/rea-router.md` exists.
+
 ### `.github/workflows/ci.yml`
 If missing, create based on tech stack. See GitHub workflow templates.
 

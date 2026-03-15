@@ -24,6 +24,8 @@ A portable CLI toolkit that bootstraps a structured Claude Code workflow (slash 
 
 5. **Semantic versioning** — Bump `version` in `pyproject.toml` on every release. Format: `MAJOR.MINOR.PATCH`. Minor for new commands/features, patch for template fixes.
 
+6. **Composable agents** — Agents are building blocks, commands are orchestrators. Agents never call other agents directly — only commands orchestrate agent calls. Every agent must work standalone (callable by user directly) and as part of a command workflow.
+
 ## Commands
 
 ```bash
@@ -54,15 +56,20 @@ rea/
 │       │   ├── implementer.md    # TDD-driven implementation (Sonnet)
 │       │   ├── spec-reviewer.md  # Requirement vs. implementation check (Sonnet)
 │       │   ├── code-reviewer.md  # Code quality assessment (Sonnet)
-│       │   └── debugger.md       # Root cause debugging (Sonnet)
+│       │   ├── debugger.md       # Root cause debugging (Sonnet)
+│       │   ├── plan-reviewer.md  # Adversarial plan review (Sonnet)
+│       │   ├── dispatcher.md     # Parallel execution grouping (Sonnet)
+│       │   ├── skill-writer.md   # Creates new agents/commands (Sonnet)
+│       │   └── rea-router.md     # Auto skill routing (Haiku)
 │       └── commands/             # Slash command prompts (the product)
 │           ├── rea-init.md       # Project setup
-│           ├── rea-plan.md       # Planning pipeline
+│           ├── rea-plan.md       # Planning pipeline + adversarial review
 │           ├── rea-commit.md     # Commit + push + PR
 │           ├── rea-verify.md     # Health check
 │           ├── rea-brainstorm.md # Design exploration + spec
-│           ├── rea-execute.md    # Agent-driven execution loop
-│           └── rea-worktree.md   # Git worktree setup
+│           ├── rea-execute.md    # Parallel agent-driven execution
+│           ├── rea-worktree.md   # Git worktree setup
+│           └── rea-write-skill.md # Create new agent or command
 tests/
 docs/
 pyproject.toml
