@@ -49,11 +49,20 @@ rea/
 ├── cli.py                        # Typer app — init, version
 ├── templates/
 │   └── .claude/
+│       ├── agents/               # Agent prompts
+│       │   ├── explorer.md       # Read-only codebase research (Haiku)
+│       │   ├── implementer.md    # TDD-driven implementation (Sonnet)
+│       │   ├── spec-reviewer.md  # Requirement vs. implementation check (Sonnet)
+│       │   ├── code-reviewer.md  # Code quality assessment (Sonnet)
+│       │   └── debugger.md       # Root cause debugging (Sonnet)
 │       └── commands/             # Slash command prompts (the product)
-│           ├── rea-init.md
-│           ├── rea-plan.md
-│           ├── rea-commit.md
-│           └── rea-verify.md
+│           ├── rea-init.md       # Project setup
+│           ├── rea-plan.md       # Planning pipeline
+│           ├── rea-commit.md     # Commit + push + PR
+│           ├── rea-verify.md     # Health check
+│           ├── rea-brainstorm.md # Design exploration + spec
+│           ├── rea-execute.md    # Agent-driven execution loop
+│           └── rea-worktree.md   # Git worktree setup
 tests/
 docs/
 pyproject.toml
