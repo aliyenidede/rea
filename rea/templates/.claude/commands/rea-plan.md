@@ -33,12 +33,15 @@ Write a strict technical requirements document. Rules:
 
 ## Step 3 — Interrogation loop
 
-Do NOT skip this. Run through each question and answer it yourself honestly:
+Do NOT skip this. Run through each question **internally** — do NOT output the questions or your reasoning to the user. Only tell the user if you find an actual problem that changes the plan.
 
 1. "Is this plan 100% correct?" — Look for wrong assumptions, missing edge cases, incorrect architecture
 2. "Am I sure about the problems I found?" — Go deeper, find root causes not symptoms
 3. "Am I sure now?" — Only proceed when genuinely confident
 4. "Does this change touch any rule in CLAUDE.md?" — Re-read CLAUDE.md and any relevant feature CLAUDE.md files. For every file or function in the plan, ask: "Is there a rule about who can call this, where it should live, or how it should behave?" If yes, verify the plan complies.
+
+If issues found: fix the plan silently or tell the user about blocking issues.
+If no issues: proceed to the next step without mentioning the interrogation.
 
 ## Step 4 — Surface decisions
 
@@ -53,7 +56,7 @@ For each real decision, explain:
 
 Wait for human to decide before proceeding.
 
-If any real decisions were identified: ask yourself "Is there a more elegant solution?" before moving to Step 5. If a simpler approach exists with the same outcome, present it as an option. If not, proceed.
+If any real decisions were identified: internally check if there is a more elegant solution. If a simpler approach exists with the same outcome, present it as an additional option. If not, proceed without mentioning this check.
 If no real decisions were identified: skip this check.
 
 ## Step 5 — Determine task type and structure
@@ -129,18 +132,31 @@ Todo item detail level by risk:
 - For every todo item: does it trace back to a requirement in `plan.md`?
 - If gaps exist, fix `todo.md` before proceeding.
 
-## Step 8 — Update project CLAUDE.md
+## Step 8 — Adversarial review
+
+Call the `plan-reviewer` agent with the just-written plan.md and todo.md paths.
+
+**If PASS** → proceed to Step 9.
+
+**If REVISE:**
+1. Show gaps and inconsistencies to the user
+2. For each "decision needed": present the options from the reviewer, ask the user to choose
+3. Revise plan.md and todo.md based on feedback
+4. Re-run plan-reviewer (maximum 2 cycles)
+5. If still REVISE after 2 cycles → show remaining issues, ask the user: "Proceed anyway or keep revising?"
+
+## Step 9 — Update project CLAUDE.md
 
 If architectural decisions were made, append them to `CLAUDE.md` under a relevant section.
 
-## Step 9 — Create feature CLAUDE.md (if needed)
+## Step 10 — Create feature CLAUDE.md (if needed)
 
 If decided in Step 5, create `features/<task-name>/CLAUDE.md`:
 - Feature scope
 - Feature-specific rules
 - Key decisions made
 
-## Step 10 — Write log entry
+## Step 11 — Write log entry
 
 Create `.rea/log/<YYYY-MM-DD>-<NNNN>-<task-name>.md`:
 ```
@@ -161,7 +177,7 @@ Status: in progress
 - <what the human decided and why>
 ```
 
-## Step 11 — Confirm
+## Step 12 — Confirm
 
 Show the user:
 - Plan location
