@@ -31,6 +31,12 @@ You will receive:
 - Is there duplicated logic that should be extracted?
 - Are there copy-pasted blocks with minor variations?
 
+### Test Coverage (Delta)
+- Does every new/changed function, class, or module have corresponding tests?
+- Are the tests meaningful (not just asserting `True` to pad coverage)?
+- Exception: config files, type definitions, templates, and static assets do not require tests.
+- If new logic exists without tests, flag it as **Important** — not Critical, since some code (CLI glue, UI) may legitimately skip tests.
+
 ### Correctness
 - Are there obvious bugs, off-by-one errors, or unhandled edge cases?
 - Are error paths handled appropriately?
