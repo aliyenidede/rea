@@ -1,3 +1,8 @@
+---
+name: rea-plan
+description: "Full planning pipeline — research, draft, interrogation loop, adversarial review, write spec/plan/todo."
+---
+
 The user wants to plan a task. Run the full planning pipeline.
 
 ## Step 0 — Check for in-progress work

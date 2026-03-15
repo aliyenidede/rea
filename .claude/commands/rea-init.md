@@ -1,3 +1,8 @@
+---
+name: rea-init
+description: "Set up the REA development toolkit in a project — installs config, CI, branch protection."
+---
+
 You are setting up the REA development toolkit in this project. Follow these steps exactly.
 
 ## Step 1 — Check dependencies
