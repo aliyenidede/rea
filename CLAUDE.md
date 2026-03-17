@@ -60,6 +60,8 @@ rea/
 │       │   ├── plan-reviewer.md  # Adversarial plan review (Sonnet)
 │       │   ├── plan-validator.md # Mechanical plan checks — rules, placement, coverage (Sonnet)
 │       │   ├── dispatcher.md     # Parallel execution grouping (Sonnet)
+│       │   ├── bug-scanner.md    # Logic bugs, edge cases, error handling gaps (Sonnet)
+│       │   ├── security-scanner.md # Security vulnerabilities, OWASP top 10 (Sonnet)
 │       │   ├── skill-writer.md   # Creates new agents/commands (Sonnet)
 │       │   └── rea-router.md     # Auto skill routing (Haiku)
 │       └── commands/             # Slash command prompts (the product)
