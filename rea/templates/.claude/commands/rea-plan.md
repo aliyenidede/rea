@@ -23,7 +23,9 @@ Read the user's request carefully. Then:
 - Check `.rea/plans/` to understand what has been built so far
 - Research the actual files and functions that would need to change — use the `explorer` agent for codebase exploration to keep the main context clean
 
-If the requirements are unclear after researching the codebase, ask up to 5 clarifying questions before proceeding. Incorporate answers into the plan.
+If the requirements are unclear after researching the codebase, ask **maximum 3** clarifying questions before proceeding. Prioritize by impact: scope > security/privacy > user experience > technical details. For anything beyond 3 questions, make an informed guess and document it in the spec as an **Assumption** — the user can correct it later.
+
+Do NOT ask questions that can be answered by reading the codebase. Use the explorer agent first.
 
 ## Step 2 — Draft a plan
 
@@ -104,7 +106,9 @@ Create `.rea/plans/<NNNN>-<task-name>/`:
 - Architecture decisions made (with reasoning)
 - Phases only if the task is large (data layer first, then parallel phases)
 
-**todo.md** — Soldier-level steps. Every item must be unambiguous:
+**todo.md** — Soldier-level steps. Every item must be unambiguous.
+
+**Task size rule:** Each todo item should result in a single commit touching 1-5 files. If a todo item would touch 6+ files or produce 200+ lines of diff, split it into smaller items.
 
 ```
 ## Todo
