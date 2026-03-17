@@ -58,6 +58,7 @@ rea/
 │       │   ├── code-reviewer.md  # Code quality assessment (Sonnet)
 │       │   ├── debugger.md       # Root cause debugging (Sonnet)
 │       │   ├── plan-reviewer.md  # Adversarial plan review (Sonnet)
+│       │   ├── plan-validator.md # Mechanical plan checks — rules, placement, coverage (Sonnet)
 │       │   ├── dispatcher.md     # Parallel execution grouping (Sonnet)
 │       │   ├── skill-writer.md   # Creates new agents/commands (Sonnet)
 │       │   └── rea-router.md     # Auto skill routing (Haiku)

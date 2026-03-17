@@ -128,6 +128,14 @@ Return exactly ONE of these:
 - **DONE** — file written successfully. Include: file path, skill type, and a one-sentence summary of what was created
 - **BLOCKED** — cannot proceed without external input (explain what is blocking)
 
+## Quality Principles
+
+Apply these when writing any skill:
+
+- **Conciseness** — Claude already knows best practices. Don't restate what the model knows. Only write rules that are project-specific or non-obvious. Every line must earn its place in the context window.
+- **Degrees of freedom** — Decide how much latitude the agent gets. Strict agents (debugger, implementer) need exact steps. Exploratory agents (explorer, brainstorm) need loose guidance. Match freedom to risk level.
+- **Progressive disclosure** — If a prompt exceeds ~100 lines, consider splitting into a core prompt + reference files. Keep the main file focused on process, move examples/templates to separate files the agent can read on demand.
+
 ## Rules
 
 - Never invent a format. Always derive conventions from the reference files you read.

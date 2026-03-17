@@ -179,6 +179,32 @@ project/features/x/CLAUDE.md ← feature-specific rules (created by /rea-plan wh
 
 ---
 
+## REA vs Superpowers
+
+[Superpowers](https://github.com/obra/superpowers) is a popular Claude Code plugin that enforces TDD and structured debugging. REA takes a different approach — modular agents and a full project lifecycle.
+
+| Capability | REA | Superpowers |
+|---|---|---|
+| TDD (red-green-refactor) | Risk-based — mandatory for high-risk, optional for low-risk | Always mandatory |
+| Debugging methodology | 4-phase root cause agent (`debugger`) | 4-phase structured debugging |
+| Brainstorming | `/rea-brainstorm` → spec → handoff to plan | Socratic brainstorming |
+| Planning pipeline | Interrogation loop + adversarial review (`plan-reviewer`) | — |
+| Parallel execution | `dispatcher` groups items → concurrent `implementer` agents | — |
+| Code review | `code-reviewer` agent with delta coverage check | Built-in code review |
+| Spec review | `spec-reviewer` — verifies impl matches requirements | — |
+| Auto-routing | `rea-router` suggests the right command at session start | — |
+| Self-extending | `/rea-write-skill` — creates new agents/commands | Skill authoring |
+| Git worktrees | `/rea-worktree` — isolated parallel branches | — |
+| Branch strategy | `feature/*` → staging → main with auto PR targeting | — |
+| CI/CD setup | `/rea-init` installs workflows, branch protection, hooks | — |
+| Plan persistence | `.rea/plans/` with spec + plan + todo, cross-session resume | — |
+| Installation | `pip install` + `rea init` (CLI) | Plugin marketplace |
+| Test coverage target | Delta coverage — new code must have tests | 85-95% target |
+
+**TL;DR:** Superpowers focuses on coding discipline (TDD, debugging). REA covers the full lifecycle — from brainstorming through planning, execution, review, and deployment.
+
+---
+
 ## Architecture
 
 ```

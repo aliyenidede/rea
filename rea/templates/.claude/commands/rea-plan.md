@@ -36,17 +36,25 @@ Write a strict technical requirements document. Rules:
 - Include specific and verbatim details from the user's prompt
 - If the feature is large enough: break into phases. First phase is always the data layer (types, DB schema). Subsequent phases can run in parallel (e.g. Phase 2A — UI, Phase 2B — API). Only use phases if truly necessary.
 
-## Step 3 — Interrogation loop
+## Step 3 — Plan validation
 
-Do NOT skip this. Run through each question **internally** — do NOT output the questions or your reasoning to the user. Only tell the user if you find an actual problem that changes the plan.
+Do NOT skip this. Call the `plan-validator` agent with the draft plan and todo content.
 
-1. "Is this plan 100% correct?" — Look for wrong assumptions, missing edge cases, incorrect architecture
-2. "Am I sure about the problems I found?" — Go deeper, find root causes not symptoms
-3. "Am I sure now?" — Only proceed when genuinely confident
-4. "Does this change touch any rule in CLAUDE.md?" — Re-read CLAUDE.md and any relevant feature CLAUDE.md files. For every file or function in the plan, ask: "Is there a rule about who can call this, where it should live, or how it should behave?" If yes, verify the plan complies.
+The validator performs mechanical checks that the main model tends to rubber-stamp when self-reviewing:
+- CLAUDE.md rule compliance (every file path checked against project rules)
+- Architecture placement (shared modules in packages/, app-specific in apps/)
+- Plan ↔ todo cross-check (every requirement has a todo item and vice versa)
+- Internal consistency (no contradictions between sections)
 
-If issues found: fix the plan silently or tell the user about blocking issues.
-If no issues: proceed to the next step without mentioning the interrogation.
+**If VALID** → proceed to Step 4 without mentioning the validation.
+
+**If ISSUES FOUND:**
+1. Fix all rule violations and architecture errors silently (these have clear right answers)
+2. Fix all coverage gaps silently (add missing todo items or remove orphans)
+3. If any issue is ambiguous or requires a human decision → surface it to the user
+4. After fixes, re-run the validator once to confirm (maximum 2 cycles)
+
+Important: Do NOT self-review the plan with abstract questions like "is this correct?" — the validator agent exists specifically because self-review is unreliable. Trust the agent's mechanical checks over your own judgment about your output.
 
 ## Step 4 — Surface decisions
 
@@ -163,16 +171,19 @@ If decided in Step 5, create `features/<task-name>/CLAUDE.md`:
 
 ## Step 11 — Write log entry
 
-Create `.rea/log/<YYYY-MM-DD>-<NNNN>-<task-name>.md`:
-```
-# <task-name>
+**File name:** `.rea/log/YYYY-MM-DD-HHmm-plan-<task-name>.md`
 
-Date: <date>
+Use the actual current date and time (24h format, no separators in time). Example: `2026-03-17-1430-plan-stripe-billing.md`
+
+```markdown
+# Plan: <task-name>
+
+Date: YYYY-MM-DD HH:MM:SS
 Plan: .rea/plans/<NNNN>-<task-name>/
 Status: in progress
 
 ## Summary
-<one paragraph>
+<one paragraph describing what was planned>
 
 ## Decisions made
 - <decision 1>
