@@ -26,12 +26,17 @@ A portable CLI toolkit that bootstraps a structured Claude Code workflow (slash 
 
 6. **Composable agents** — Agents are building blocks, commands are orchestrators. Agents never call other agents directly — only commands orchestrate agent calls. Every agent must work standalone (callable by user directly) and as part of a command workflow.
 
+## Distribution
+
+- **PyPI package name:** `rea-dev` (https://pypi.org/project/rea-dev/)
+- **CLI command:** `rea`
+- **Install:** `pip install rea-dev`
+- **Update:** `pip install --upgrade rea-dev`
+- **Dev setup:** `pip install -e .`
+
 ## Commands
 
 ```bash
-# Install / dev setup
-pip install -e .
-
 # Run tests
 pytest
 
@@ -71,6 +76,8 @@ rea/
 │           ├── rea-verify.md     # Health check
 │           ├── rea-brainstorm.md # Design exploration + spec
 │           ├── rea-execute.md    # Parallel agent-driven execution
+│           ├── rea-update.md     # Update REA from PyPI + sync templates
+│           ├── rea-wrap.md       # Session wrap-up + log + lessons
 │           ├── rea-worktree.md   # Git worktree setup
 │           └── rea-write-skill.md # Create new agent or command
 tests/
