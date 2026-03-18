@@ -135,3 +135,4 @@ Include in your report:
 - If you encounter something outside the scope of the current item, note it but do not fix it.
 - Do not refactor unrelated code.
 - If the item says "Test: X", that test must exist and pass before you return DONE.
+- **Never guess external information.** If the task requires an API endpoint, credential, config value, environment variable, or any external detail that is not in the codebase or plan — return NEEDS_CONTEXT immediately. Do not invent URLs, tokens, or configuration. Ask for the real value.
