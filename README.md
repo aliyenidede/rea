@@ -53,7 +53,6 @@ Agents are composable building blocks that commands orchestrate. Each agent has 
 | `plan-reviewer` | Sonnet | Adversarial plan review — finds gaps before execution |
 | `dispatcher` | Sonnet | Groups todo items into parallel/sequential batches |
 | `skill-writer` | Sonnet | Creates new agents or commands matching REA conventions |
-| `rea-router` | Haiku | Auto-routes user intent to the right skill at session start |
 
 ---
 
@@ -133,12 +132,6 @@ The execution pipeline:
 
 ---
 
-## Auto-routing
-
-REA includes a session-start hook (`rea-router`) that automatically suggests the right command based on your first message. No need to remember command names — just describe what you want to do.
-
----
-
 ## Plan file structure
 
 ```
@@ -192,7 +185,6 @@ project/features/x/CLAUDE.md ← feature-specific rules (created by /rea-plan wh
 | Parallel execution | `dispatcher` groups items → concurrent `implementer` agents | — |
 | Code review | `code-reviewer` agent with delta coverage check | Built-in code review |
 | Spec review | `spec-reviewer` — verifies impl matches requirements | — |
-| Auto-routing | `rea-router` suggests the right command at session start | — |
 | Self-extending | `/rea-write-skill` — creates new agents/commands | Skill authoring |
 | Git worktrees | `/rea-worktree` — isolated parallel branches | — |
 | Branch strategy | `feature/*` → staging → main with auto PR targeting | — |
@@ -221,7 +213,6 @@ Commands (orchestrators)          Agents (building blocks)
 │ /rea-write-skill    │───calls──│ skill-writer          │
 └─────────────────────┘          └──────────────────────┘
 
-Session start → rea-router → suggests the right command
 ```
 
 Key rule: **agents never call other agents** — only commands orchestrate agent calls.

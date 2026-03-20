@@ -34,7 +34,6 @@ Run each check and report ✅ / ⚠️ / ❌:
 - `.claude/agents/plan-validator.md` exists?
 - `.claude/agents/dispatcher.md` exists?
 - `.claude/agents/skill-writer.md` exists?
-- `.claude/agents/rea-router.md` exists?
 - `.claude/agents/bug-scanner.md` exists?
 - `.claude/agents/security-scanner.md` exists?
 - `.claude/hooks/post-tool-use.sh` exists?
@@ -43,7 +42,6 @@ Run each check and report ✅ / ⚠️ / ❌:
 - `CLAUDE.md` exists and is non-empty?
 - `.rea/log/` directory exists?
 - `.rea/plans/` directory exists?
-- `.claude/settings.json` has `SessionStart` hook for rea-router?
 
 **GitHub:**
 - `git branch -r | grep staging` → staging branch exists on remote?

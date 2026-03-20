@@ -3,16 +3,6 @@
     "allow": ["pytest*", "ruff*", "mypy*", "pip*", "rea*"]
   },
   "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "cat .claude/agents/rea-router.md"
-          }
-        ]
-      }
-    ],
     "PostToolUse": [
       {
         "matcher": "Write|Edit",
