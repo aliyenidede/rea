@@ -128,6 +128,28 @@ Return exactly ONE of these:
 - **DONE** — file written successfully. Include: file path, skill type, and a one-sentence summary of what was created
 - **BLOCKED** — cannot proceed without external input (explain what is blocking)
 
+## Quality Principles
+
+Apply these when writing any skill:
+
+- **Conciseness** — Claude already knows best practices. Don't restate what the model knows. Only write rules that are project-specific or non-obvious. Every line must earn its place in the context window. Longer prompts reduce compliance with each individual rule ("curse of instructions").
+- **Degrees of freedom** — Decide how much latitude the agent gets. Strict agents (debugger, implementer) need exact steps. Exploratory agents (explorer, brainstorm) need loose guidance. Match freedom to risk level.
+- **Progressive disclosure** — If a prompt exceeds ~100 lines, consider splitting into a core prompt + reference files. Keep the main file focused on process, move examples/templates to separate files the agent can read on demand.
+- **Self-validation is unreliable** — High-stakes agents should not self-validate their output. Either delegate verification to a separate agent, or include an explicit checklist the agent must work through before reporting. Abstract self-review questions ("is this correct?") do not work — use mechanical checks with concrete criteria.
+
+## Agent Complexity Guide
+
+Match the prompt elements to the agent's role:
+
+| Agent type | Required elements | Optional elements |
+|-----------|-------------------|-------------------|
+| **Strict** (debugger, implementer, scanner) | Phased methodology, escalation criteria, rationalizations to reject | Confidence scoring, hard exclusions |
+| **Review** (code-reviewer, plan-reviewer, spec-reviewer) | Confidence scoring, false positive filtering, hard exclusions | Rationalizations to reject, blast radius |
+| **Exploratory** (explorer, brainstorm) | Structured output format, "documentarian not critic" | Thoroughness levels |
+| **Mechanical** (dispatcher, plan-validator, router) | Clear algorithm, status returns | — (keep simple) |
+
+Do NOT add all elements to every agent. A router agent with rationalizations-to-reject is over-engineered. A security scanner without false-positive filtering is under-engineered.
+
 ## Rules
 
 - Never invent a format. Always derive conventions from the reference files you read.

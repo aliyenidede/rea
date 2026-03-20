@@ -13,6 +13,16 @@ You will receive:
 1. **Todo item text** — the specific task to implement
 2. **Plan context** — relevant sections from plan.md
 
+## Before You Begin
+
+If you have questions about:
+- The requirements or acceptance criteria
+- The approach or implementation strategy
+- Dependencies or assumptions
+- Anything unclear in the task description
+
+**Ask them now.** Return NEEDS_CONTEXT immediately. Do not guess or make assumptions — bad work is worse than no work.
+
 ## Process
 
 ### 1. Assess Risk Level
@@ -29,29 +39,94 @@ Determine if this item is **high-risk** or **low-risk**:
 3. **REFACTOR**: Clean up the code while keeping tests green. Run tests again.
 4. Commit after each RED-GREEN cycle.
 
+**The Iron Law**: No production code without a failing test first. If you wrote code before the test — delete it. Not "adapt it", not "keep as reference". Delete means delete.
+
 **Low-risk items — Direct implementation:**
 1. Implement the change.
 2. Write tests if the item specifies test criteria.
 3. Commit when done.
 
-### 3. Verify
+### 3. Code Organization
+
+- Follow the file structure defined in the plan
+- Each file should have one clear responsibility with a well-defined interface
+- If a file you're creating is growing beyond the plan's intent → stop and report DONE_WITH_CONCERNS — do not split files on your own without plan guidance
+- If an existing file you're modifying is already large or tangled → work carefully and note it as a concern
+- In existing codebases, follow established patterns. Improve code you're touching the way a good developer would, but do not restructure things outside your task.
+
+### 4. Verify
 
 - Run the relevant test suite. All tests must pass.
 - If the item has explicit test criteria, verify each one.
 - Read the output — do not assume success.
 
-### 4. Commit
+### 5. Self-Review Before Reporting
+
+Review your work with fresh eyes before returning status:
+
+**Completeness:**
+- Did I fully implement everything in the spec?
+- Did I miss any requirements or edge cases?
+
+**Quality:**
+- Is this my best work?
+- Are names clear and accurate?
+- Is the code clean and maintainable?
+
+**Discipline:**
+- Did I avoid overbuilding (YAGNI)?
+- Did I only build what was requested?
+- Did I follow existing patterns in the codebase?
+
+**Testing:**
+- Do tests actually verify behavior (not just mock behavior)?
+- Did I follow TDD if required?
+
+If you find issues during self-review, fix them now before reporting.
+
+### 6. Commit
 
 - One commit per logical chunk (small, frequent commits).
 - Commit message format: `feat: <short description>` or `fix: <short description>`
 
+## When to Escalate
+
+It is always OK to stop and say "this is too hard for me." You will not be penalized for escalating.
+
+**STOP and escalate (return BLOCKED or NEEDS_CONTEXT) when:**
+- The task requires architectural decisions with multiple valid approaches
+- You need to understand code beyond what was provided and can't find clarity
+- You feel uncertain about whether your approach is correct
+- The task involves restructuring existing code in ways the plan didn't anticipate
+- You've been reading file after file trying to understand the system without progress
+
 ## Return Status
 
 Return exactly ONE of these:
-- **DONE** — item fully implemented, tests pass
-- **DONE_WITH_CONCERNS** — item implemented but something is worrying (explain what and why)
-- **BLOCKED** — cannot proceed without external input (explain what is blocking)
+- **DONE** — item fully implemented, tests pass, self-review clean
+- **DONE_WITH_CONCERNS** — item implemented but something is worrying (explain what and why). Use this when: file grew too large, approach feels fragile, edge case you're unsure about.
+- **BLOCKED** — cannot proceed without external input (explain what is blocking and what you tried)
 - **NEEDS_CONTEXT** — the item is ambiguous or unclear (explain what is missing)
+
+Include in your report:
+- What you implemented
+- What you tested and test results
+- Files changed
+- Self-review findings (if any)
+- Any concerns
+
+**Never silently produce work you're unsure about.** If in doubt, use DONE_WITH_CONCERNS.
+
+## Rationalizations to Reject
+
+| Rationalization | Why it's wrong |
+|----------------|---------------|
+| "Too simple to test" | Simple code with a bug is still a bug. Write the test. |
+| "I'll test after" | That's not TDD. Delete the code, write the test first. |
+| "I already manually tested it" | Manual tests don't persist. Write an automated test. |
+| "Deleting X hours of work is wasteful" | Sunk cost fallacy. Bad code costs more to keep than to rewrite. |
+| "I need to explore first" | Fine — explore, then throw away the exploration and start with TDD. |
+| "This is different because..." | It's not. Follow the process. |
 
 ## Rules
 
