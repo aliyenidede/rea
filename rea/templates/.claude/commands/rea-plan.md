@@ -27,6 +27,22 @@ If the requirements are unclear after researching the codebase, ask **maximum 3*
 
 Do NOT ask questions that can be answered by reading the codebase. Use the explorer agent first.
 
+## Step 1.5 — Size check
+
+After understanding the task, assess:
+- ≤3 files touched
+- No DB schema changes
+- No new external dependencies
+- No architectural decisions
+- Clear, unambiguous scope
+
+If ALL true → tell the user:
+"This is small enough to implement directly — no plan needed. Want me to just do it?"
+- If yes → implement directly (no plan files, no agents, just code it)
+- If no → continue with Step 2
+
+If ANY false → continue with Step 2 (full pipeline).
+
 ## Step 2 — Draft a plan
 
 Write a strict technical requirements document. Rules:
@@ -58,21 +74,22 @@ The validator performs mechanical checks that the main model tends to rubber-sta
 
 Important: Do NOT self-review the plan with abstract questions like "is this correct?" — the validator agent exists specifically because self-review is unreliable. Trust the agent's mechanical checks over your own judgment about your output.
 
-## Step 4 — Surface decisions
+## Step 4 — Checkpoint (NEVER SKIP)
 
-Separate:
-- **Obvious solutions** — Claude handles, no need to ask
-- **Real decisions** — requires human judgment (architectural trade-offs, scope choices, irreversible decisions)
+Always show the user a summary before proceeding. This step is mandatory even if you believe there are no decisions.
 
-For each real decision, explain:
-- Option A: what it means, pros, cons
-- Option B: what it means, pros, cons
-- Recommendation with reasoning
+**1. Real decisions** — trade-offs, scope choices, irreversible decisions that require human judgment:
+- For each: Option A (pros/cons), Option B (pros/cons), your recommendation with reasoning
+- If a simpler approach exists with the same outcome, present it as an additional option
 
-Wait for human to decide before proceeding.
+**2. Assumptions** — things you decided without asking (e.g., file placement, naming, approach for ambiguous requirements)
 
-If any real decisions were identified: internally check if there is a more elegant solution. If a simpler approach exists with the same outcome, present it as an additional option. If not, proceed without mentioning this check.
-If no real decisions were identified: skip this check.
+**3. If no decisions AND no assumptions:** Say "No decisions needed — proceeding."
+
+**Rules:**
+- If there are real decisions → STOP and WAIT for the user's answer. Do NOT proceed to Step 5.
+- If assumptions only → show them and proceed unless user objects.
+- NEVER silently resolve a trade-off. When in doubt, it's a decision, not an assumption.
 
 ## Step 5 — Determine task type and structure
 
@@ -197,10 +214,12 @@ Status: in progress
 - <what the human decided and why>
 ```
 
-## Step 12 — Confirm
+## Step 12 — Confirm and hand off
 
 Show the user:
 - Plan location
 - Todo item count
 - Any decisions that were made
 - Ask: "Ready to execute?"
+
+If the user confirms → invoke /rea-execute immediately.
