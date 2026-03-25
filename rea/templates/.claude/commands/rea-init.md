@@ -1,3 +1,8 @@
+---
+name: rea-init
+description: "Set up the REA development toolkit in a project — installs config, CI, branch protection."
+---
+
 You are setting up the REA development toolkit in this project. Follow these steps exactly.
 
 ## Step 1 — Check dependencies
@@ -11,10 +16,20 @@ Check that the following are available:
 ## Step 2 — Detect project state
 
 Check what already exists:
-- Is there a `CLAUDE.md`? If yes → brownfield. If no → greenfield.
+- Is there a `CLAUDE.md`?
 - Is there `.claude/settings.json`?
 - Is there `.github/workflows/`?
 - What is the tech stack? Check for `package.json`, `pyproject.toml`, `requirements.txt`, `Cargo.toml` etc.
+
+Now classify the project into one of three states:
+
+| State | Condition | Action |
+|-------|-----------|--------|
+| **Brownfield** | `CLAUDE.md` exists | Audit existing CLAUDE.md (Step 2B) |
+| **Undocumented** | No `CLAUDE.md` BUT code files exist (src/, lib/, app/, packages/, etc.) | Auto-generate CLAUDE.md from codebase analysis (Step 2C) |
+| **Greenfield** | No `CLAUDE.md` AND project directory is empty or contains only config files (.git, .gitignore, README.md) | Ask the user questions and write CLAUDE.md from scratch (Step 3) |
+
+To detect code files: glob for `**/*.{ts,tsx,js,jsx,py,rs,go,java,rb,cs}` — if any matches exist, it is NOT greenfield.
 
 ## Step 2B — Brownfield only: audit CLAUDE.md
 
@@ -56,9 +71,42 @@ If user says yes, for each feature ask:
 2. What are the feature-specific rules and constraints?
 3. What key decisions were made when building this?
 
+## Step 2C — Undocumented only: auto-generate CLAUDE.md
+
+If the project has code but no CLAUDE.md, do NOT ask greenfield questions. Instead, analyze the codebase and generate CLAUDE.md automatically.
+
+### 2C.1 — Explore the codebase
+
+Use the `explorer` agent to investigate:
+- Project structure (directory tree, key directories)
+- Tech stack (languages, frameworks, package managers, build tools)
+- Entry points (main files, app directories, worker directories)
+- Architecture patterns (monorepo? microservices? single app? API + frontend?)
+- Build/test/lint commands (read package.json scripts, pyproject.toml, Makefile, etc.)
+- Existing conventions (naming patterns, file organization, import patterns)
+
+### 2C.2 — Generate draft CLAUDE.md
+
+Write a `CLAUDE.md` with these sections, populated entirely from codebase analysis:
+- **Project description** — inferred from README.md, package.json description, or directory structure
+- **Tech stack** — detected from config files and dependencies
+- **Architecture rules** — inferred from actual code organization (e.g., if shared code lives in `packages/`, state that rule)
+- **File structure** — actual directory tree with brief descriptions
+- **Commands** — extracted from package.json scripts, Makefile targets, pyproject.toml, etc.
+
+### 2C.3 — Present to user for confirmation
+
+Show the generated CLAUDE.md to the user:
+```
+I analyzed the codebase and generated a CLAUDE.md draft.
+Please review — is anything wrong or missing?
+```
+
+Wait for confirmation. Apply any corrections the user provides. Then proceed to Step 4.
+
 ## Step 3 — Greenfield only: generate CLAUDE.md
 
-If no `CLAUDE.md` exists, ask the user these questions one by one:
+If the project is truly empty (no code files), ask the user these questions one by one:
 1. What does this project do? (one sentence)
 2. What is the tech stack?
 3. What are the main architectural rules I should always follow?
@@ -111,6 +159,28 @@ Also create `.claude/settings.json` hook entry if not present:
   }
 }
 ```
+
+### SessionStart hook (automatic skill routing)
+If `.claude/settings.json` exists but has no `SessionStart` hook entry, add one:
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat .claude/agents/rea-router.md"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+Merge with existing hooks in settings.json — do not overwrite `PostToolUse` or other existing hooks.
+
+Only add this hook if `.claude/agents/rea-router.md` exists.
 
 ### `.github/workflows/ci.yml`
 If missing, create based on tech stack. See GitHub workflow templates.

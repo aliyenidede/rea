@@ -1,3 +1,8 @@
+---
+name: rea-verify
+description: "Health check — verifies all REA components, GitHub config, and branch protection."
+---
+
 Check every REA component in this project and report status. Be thorough.
 
 ## Checks
@@ -14,12 +19,26 @@ Run each check and report ✅ / ⚠️ / ❌:
 - `.claude/commands/rea-plan.md` exists?
 - `.claude/commands/rea-commit.md` exists?
 - `.claude/commands/rea-verify.md` exists?
+- `.claude/commands/rea-brainstorm.md` exists?
+- `.claude/commands/rea-execute.md` exists?
+- `.claude/commands/rea-worktree.md` exists?
+- `.claude/commands/rea-write-skill.md` exists?
+- `.claude/agents/explorer.md` exists?
+- `.claude/agents/implementer.md` exists?
+- `.claude/agents/spec-reviewer.md` exists?
+- `.claude/agents/code-reviewer.md` exists?
+- `.claude/agents/debugger.md` exists?
+- `.claude/agents/plan-reviewer.md` exists?
+- `.claude/agents/dispatcher.md` exists?
+- `.claude/agents/skill-writer.md` exists?
+- `.claude/agents/rea-router.md` exists?
 - `.claude/hooks/post-tool-use.sh` exists?
 - `.github/workflows/ci.yml` exists?
 - `.github/workflows/claude-review.yml` exists?
 - `CLAUDE.md` exists and is non-empty?
 - `.rea/log/` directory exists?
 - `.rea/plans/` directory exists?
+- `.claude/settings.json` has `SessionStart` hook for rea-router?
 
 **GitHub:**
 - `git branch -r | grep staging` → staging branch exists on remote?

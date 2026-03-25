@@ -1,1 +1,6 @@
-__version__ = "0.4.0"
+from importlib.metadata import version as _pkg_version
+
+try:
+    __version__ = _pkg_version("rea-dev")
+except Exception:
+    __version__ = "0.0.0"
