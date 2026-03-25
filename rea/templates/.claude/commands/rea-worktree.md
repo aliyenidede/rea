@@ -1,3 +1,8 @@
+---
+name: rea-worktree
+description: "Create a git worktree for isolated parallel work on a separate branch."
+---
+
 Create a git worktree for isolated parallel work.
 
 ## Step 1 — Determine branch name

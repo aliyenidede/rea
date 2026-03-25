@@ -29,8 +29,16 @@ You will receive one of the following:
 - Does every plan requirement have a matching todo item?
 - Does every todo item trace back to a plan requirement?
 - Does each todo item have clear acceptance criteria?
+- Are file paths in todo items consistent with file paths in the plan? (same file must not appear at different paths)
+- Does the ordering/phasing in todo.md respect the dependencies described in the plan?
 
 Document plan claims and todo coverage as separate numbered lists before proceeding.
+
+**Plan ↔ Todo Consistency Matrix:**
+Build an explicit mapping table before proceeding to verification:
+| Plan Requirement | Todo Item(s) | Match? |
+|-----------------|-------------|--------|
+If any row has no match in either direction, it is a finding.
 
 ### 2. Verify Each Claim
 
