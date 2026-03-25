@@ -27,3 +27,11 @@
 ## 2026-03-18 06:04:29
 **Lesson:** Agents (implementer, debugger) were guessing external information (API endpoints, credentials, config values) instead of asking the user, causing cascading errors (e.g., 5 failed Coolify API calls).
 **Rule:** All action-taking agents must return NEEDS_CONTEXT/BLOCKED when external information is missing. Never fabricate URLs, tokens, or config values.
+
+## 2026-03-21 02:55:00
+**Lesson:** rea-plan Step 4 "Surface decisions" had "if no decisions: skip this check" — model used this as permission to skip the entire checkpoint, making architectural decisions silently.
+**Rule:** Mandatory checkpoints must never have a skip condition. Always show output to the user, even if it's "No decisions needed — proceeding."
+
+## 2026-03-21 02:55:00
+**Lesson:** rea-router (SessionStart hook) only ran at session start. When user said "commit yap" mid-session, Claude didn't invoke /rea-commit. The router solved the wrong problem.
+**Rule:** Don't build agents for problems the platform should handle. Mid-session intent routing is Claude Code's responsibility, not a custom agent's.
