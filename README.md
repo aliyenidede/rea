@@ -6,7 +6,7 @@ A portable development toolkit that bootstraps a structured Claude Code workflow
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 
 ```bash
-pip install git+https://github.com/aliyenidede/rea.git
+pip install rea-dev
 rea init <project>          # copies slash commands + agents + creates .rea/ dirs
 # open Claude Code → /rea-init
 ```
@@ -35,6 +35,8 @@ rea init             → copies .claude/commands/ + .claude/agents/ + creates .r
 /rea-commit          → detects branch, opens PR to correct target
 /rea-verify          → health check, reports missing pieces with fix commands
 /rea-brainstorm      → collaborative design exploration before planning
+/rea-update          → update REA from PyPI + sync templates
+/rea-wrap            → session wrap-up — log, lessons, context for next session
 /rea-worktree        → isolated git worktree for parallel work
 /rea-write-skill     → create new agents or commands
 ```
@@ -51,9 +53,11 @@ Agents are composable building blocks that commands orchestrate. Each agent has 
 | `code-reviewer` | Sonnet | Code quality assessment (SRP, DRY, testability) |
 | `debugger` | Sonnet | 4-phase root cause debugging |
 | `plan-reviewer` | Sonnet | Adversarial plan review — finds gaps before execution |
+| `plan-validator` | Sonnet | Mechanical plan checks — rules, file placement, coverage |
 | `dispatcher` | Sonnet | Groups todo items into parallel/sequential batches |
+| `bug-scanner` | Sonnet | Logic bugs, edge cases, error handling gaps |
+| `security-scanner` | Sonnet | Security vulnerabilities, OWASP top 10 |
 | `skill-writer` | Sonnet | Creates new agents or commands matching REA conventions |
-| `rea-router` | Haiku | Auto-routes user intent to the right skill at session start |
 
 ---
 
@@ -63,7 +67,7 @@ Agents are composable building blocks that commands orchestrate. Each agent has 
 
 ```bash
 # 1. Install
-pip install git+https://github.com/aliyenidede/rea.git
+pip install rea-dev
 
 # 2. Add REA to your project
 rea init /path/to/project
@@ -133,12 +137,6 @@ The execution pipeline:
 
 ---
 
-## Auto-routing
-
-REA includes a session-start hook (`rea-router`) that automatically suggests the right command based on your first message. No need to remember command names — just describe what you want to do.
-
----
-
 ## Plan file structure
 
 ```
@@ -192,7 +190,6 @@ project/features/x/CLAUDE.md ← feature-specific rules (created by /rea-plan wh
 | Parallel execution | `dispatcher` groups items → concurrent `implementer` agents | — |
 | Code review | `code-reviewer` agent with delta coverage check | Built-in code review |
 | Spec review | `spec-reviewer` — verifies impl matches requirements | — |
-| Auto-routing | `rea-router` suggests the right command at session start | — |
 | Self-extending | `/rea-write-skill` — creates new agents/commands | Skill authoring |
 | Git worktrees | `/rea-worktree` — isolated parallel branches | — |
 | Branch strategy | `feature/*` → staging → main with auto PR targeting | — |
@@ -221,7 +218,6 @@ Commands (orchestrators)          Agents (building blocks)
 │ /rea-write-skill    │───calls──│ skill-writer          │
 └─────────────────────┘          └──────────────────────┘
 
-Session start → rea-router → suggests the right command
 ```
 
 Key rule: **agents never call other agents** — only commands orchestrate agent calls.

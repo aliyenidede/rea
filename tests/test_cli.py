@@ -212,7 +212,6 @@ def test_expected_agents_exist():
         "plan-reviewer.md",
         "dispatcher.md",
         "skill-writer.md",
-        "rea-router.md",
     }
     actual = {f.name for f in agents_dir.iterdir()}
     assert expected.issubset(actual), f"Missing: {expected - actual}"
