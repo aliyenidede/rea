@@ -51,3 +51,11 @@
 ## 2026-03-28 15:00:00
 **Lesson:** Pre-mortem (assume failure, find causes) is more effective than asking "what could go wrong?" because it forces past-tense thinking. Research: prospective hindsight improves failure cause identification by ~30%.
 **Rule:** Add a mandatory pre-mortem step to any review phase before rendering a PASS verdict. Format: identify 3 most likely failure causes + probability (low/medium/high) + whether mitigated. Unmitigated high-probability failure = REVISE regardless of reviewer output.
+
+## 2026-03-28 21:45:00
+**Lesson:** Applied REA's full plan/execute/review pipeline to a 2-file personal tool (pulse). The pipeline (dispatcher, implementer, spec-reviewer, code-reviewer) is designed for multi-file features with real complexity — using it on simple tools adds friction without adding value.
+**Rule:** Before starting REA pipeline, check: is this ≤3 files, no architecture decisions, clear scope? If yes, build it directly in conversation. REA pipeline is for real complexity, not for ceremony.
+
+## 2026-03-28 21:45:00
+**Lesson:** Committed .rea/ and .claude/ scaffold files into the pulse repo by running rea-init on it. These directories belong to REA-managed projects, not to simple personal tools.
+**Rule:** Never run rea init on personal/single-purpose tools. rea init is for projects that will be developed iteratively with the full REA workflow.
