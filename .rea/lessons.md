@@ -43,3 +43,11 @@
 ## 2026-03-25 14:00:00
 **Lesson:** Harness research showed the single highest-leverage reliability improvement is replacing LLM steps with deterministic code (O'Reilly blackjack study: +31pp from one lookup table). But for REA's co-pilot mode, this complexity isn't justified — the user is watching.
 **Rule:** Match reliability investment to the execution mode. Unattended agents need deterministic rails. Co-pilot agents benefit more from better prompts and validation gates than from Python pipeline code.
+
+## 2026-03-28 15:00:00
+**Lesson:** Lifeline project analysis showed that each agent benefits from a role-specific "Rationalizations to Reject" table — a short list of common lazy shortcuts that look reasonable but break the agent's primary job. This pattern is more effective than generic rules because it targets the exact failure modes of that role.
+**Rule:** Every review/verification agent (plan-reviewer, spec-reviewer, code-reviewer, debugger) should have a Rationalizations to Reject table with 5-7 role-specific items. Generic rules say what to do; rationalization tables say what NOT to tell yourself to avoid doing it.
+
+## 2026-03-28 15:00:00
+**Lesson:** Pre-mortem (assume failure, find causes) is more effective than asking "what could go wrong?" because it forces past-tense thinking. Research: prospective hindsight improves failure cause identification by ~30%.
+**Rule:** Add a mandatory pre-mortem step to any review phase before rendering a PASS verdict. Format: identify 3 most likely failure causes + probability (low/medium/high) + whether mitigated. Unmitigated high-probability failure = REVISE regardless of reviewer output.
