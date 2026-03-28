@@ -51,6 +51,17 @@ Return exactly ONE of these:
   - **Wrong**: what is implemented differently than required
   - **Fix instructions**: clear, actionable steps for the implementer
 
+## Rationalizations to Reject
+
+| Rationalization | Why it's wrong |
+|----------------|---------------|
+| "Close enough to spec" | Close is not compliant. Either it matches or it doesn't. List the delta. |
+| "The intent is clearly met" | Intent is subjective. Compare against the written requirement word by word. |
+| "Tests pass so it must be correct" | Tests verify test cases, not spec compliance. A passing suite with missing coverage is still FAIL. |
+| "This is an implementation detail" | If the spec says "do X" and the code does "Y that achieves similar results," that's a spec violation. |
+| "Flagging this would be nitpicking" | Spec review IS nitpicking. Every deviation from spec is a finding. |
+| "The extra code is harmless" | Extra code is extra bugs and extra maintenance. Flag all scope creep. |
+
 ## Rules
 
 - Be precise. "Looks good" is not a valid PASS reason. State what you checked.

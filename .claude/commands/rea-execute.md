@@ -89,7 +89,20 @@ Wait for the agent to return a status:
 - **Critical or Important issues found** → show issues. Call implementer with fix instructions. Re-run code-reviewer. Maximum 3 fix cycles. If still has Critical after 3 → stop and report.
 - **Minor issues only** → note them but proceed (do not fix unless user asks)
 
-### 2d — Mark complete
+### 2d — CI gate (BEFORE marking complete)
+
+Run the project's full test and lint suite yourself — do NOT trust the implementer's self-reported results:
+- Run the test command from CLAUDE.md (e.g., `pytest`, `npm test`)
+- Run the lint command from CLAUDE.md (e.g., `ruff check .`, `eslint`)
+
+If ANY failure:
+- Send the error output back to the implementer agent with fix instructions
+- Maximum 2 fix cycles
+- If still failing after 2 cycles → STOP, show errors to user, keep NEXT: on this item
+
+Only proceed to 2e after CI gate passes.
+
+### 2e — Mark complete
 
 Update `.rea/plans/<folder>/todo.md`:
 1. Change `- [ ] NEXT: <item>` to `- [x] <item>`
@@ -130,6 +143,7 @@ All tasks complete. Run /rea-commit to open a PR.
 ## Rules
 
 - **Never skip the spec-reviewer or code-reviewer.** Every item goes through the full triple loop.
+- **Never delete completed items from todo.md.** Change `- [ ]` to `- [x]`. Todo.md is an audit trail — deletion is data loss.
 - **Maximum 3 fix cycles** per review stage. If still failing, stop and ask the user.
 - **Do not modify plan.md or spec.md** during execution. If something needs to change in the plan, stop and tell the user.
 - **Use the dispatcher agent for parallel grouping.** Items in the same sequential group run in order. Parallel groups run simultaneously.

@@ -38,10 +38,25 @@ Date: YYYY-MM-DD HH:MM:SS
 
 ## Step 3 — Save lessons
 
-Review the conversation for corrections, surprises, or mistakes. If any exist, append each to `.rea/lessons.md`:
+Scan the entire conversation for lessons. Look for BOTH categories with equal priority:
+
+**User corrections and redirections:**
+- User said "no", "don't", "that's wrong", "not like that", or similar
+- User rejected a tool call or approach
+- User redirected you to a different path ("do X instead", "use Y")
+- User repeated an instruction you missed or ignored
+- User expressed frustration or had to re-explain something
+
+**Internal mistakes and surprises:**
+- Approaches that failed or had to be abandoned
+- Unexpected behaviors, gotchas, or edge cases discovered
+- Assumptions that turned out to be wrong
+
+For each lesson found, append to `.rea/lessons.md`:
 
 ```
 ## YYYY-MM-DD HH:MM:SS
+**Source:** user-correction | internal-mistake | discovery
 **Lesson:** what was learned
 **Rule:** what to do in the future
 ```

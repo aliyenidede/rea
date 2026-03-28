@@ -52,7 +52,17 @@ CLAUDE.md Check:
 
 ### 3. Architecture Placement Check
 
-For each file in the inventory, verify it is in the correct package:
+**Step A — Map the actual project structure:**
+Before checking placement, glob the project to understand its real directory layout. Run `Glob` on key patterns (`**/src/**`, `**/lib/**`, `**/packages/**`, `**/apps/**`) and build a picture of where code actually lives. Do NOT rely solely on CLAUDE.md descriptions — the filesystem is the source of truth.
+
+**Step B — Compare planned paths against actual structure:**
+For each file in the inventory:
+- Does the planned path match the project's existing directory conventions?
+- If the plan puts a file in `src/billing/credits.ts` but the project has no `src/billing/` and similar code lives in `lib/billing/` → **[FAIL]**
+- If the plan creates a new directory, is the naming consistent with existing sibling directories?
+- If the file already exists at a different path, flag the conflict
+
+**Step C — Cross-consumer placement:**
 - **Used by multiple apps** (web + worker, or web + any other consumer) → must be in `packages/*/`
 - **Used by single app only** → can be in that app's directory
 - **Shared types or constants** → `packages/shared/`
@@ -65,6 +75,8 @@ Report format:
 Architecture Check:
 - [PASS] packages/shared/src/credits.ts — used by web + worker, correct placement
 - [FAIL] apps/web/lib/s3.ts — plan says worker also uses S3 → should be packages/shared/
+- [FAIL] src/billing/credits.ts — project has no src/billing/, similar code lives in lib/billing/
+- [FAIL] services/auth/handler.ts — file already exists at lib/auth/handler.ts
 ```
 
 ### 4. Plan ↔ Todo Cross-Check
