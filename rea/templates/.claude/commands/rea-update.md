@@ -20,7 +20,7 @@ Run: `rea version`
 
 ## Step 3 — Sync templates
 
-Run: `rea init .`
+Run: `rea setup .`
 
 This copies all commands and agents from the installed package to the project's `.claude/` directory.
 

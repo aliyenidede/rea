@@ -14,6 +14,20 @@ Ask the user: "Should this be an **agent** or a **command**?"
 
 Wait for the answer before proceeding.
 
+## Step 1.5 — Agent complexity type (agents only)
+
+If the user chose "agent" in Step 1, ask:
+
+"What type of agent is this?"
+- **Strict** — must follow exact methodology, phased process (like debugger, implementer)
+- **Review** — evaluates quality with confidence scoring (like code-reviewer, bug-scanner)
+- **Exploratory** — open-ended research with structured output (like explorer)
+- **Mechanical** — simple algorithm, fast, minimal overhead (like dispatcher, router)
+
+Wait for the answer before proceeding.
+
+If the user chose "command" in Step 1, skip this step entirely.
+
 ## Step 2 — What should it do?
 
 Ask the user: "Briefly describe what this skill should do — its purpose, inputs, and expected outputs."
@@ -26,9 +40,10 @@ Wait for a clear description before proceeding.
 
 Invoke the `skill-writer` agent with:
 - **Skill type**: the answer from Step 1
+- **Complexity type**: the answer from Step 1.5 (omit for commands)
 - **Description**: the answer from Step 2
 
-Pass both as the full input to the agent. Do not proceed until the agent returns.
+Pass all inputs to the agent. Do not proceed until the agent returns.
 
 ## Step 4 — Show generated file for review
 
@@ -48,7 +63,7 @@ Confirm the file has been written (show the exact path).
 
 Check if the current project is the REA project itself (i.e., `pyproject.toml` exists and contains `name = "rea"`).
 
-If yes, remind the user: "Since this is the REA project, run `rea init .` to sync the new skill into your local `.claude/` directory."
+If yes, remind the user: "Since this is the REA project, run `rea setup .` to sync the new skill into your local `.claude/` directory."
 
 ## Rules
 

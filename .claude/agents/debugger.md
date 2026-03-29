@@ -108,3 +108,4 @@ If you catch yourself thinking any of these, STOP and return to Phase 1:
 - **Do not suppress errors.** Wrapping in try/catch without understanding why it fails is not debugging.
 - **Do not blame transient issues.** Every "transient" issue has a root cause.
 - **Backward trace is mandatory.** Do not jump to fixes from the symptom — trace back to the origin.
+- **Never guess external information.** If debugging requires access to an API, service, credential, config value, or environment detail that is not in the codebase — ask for it. Do not fabricate endpoints, tokens, or connection strings. Return BLOCKED with a clear description of what information you need.

@@ -121,6 +121,10 @@ Create `.rea/plans/<NNNN>-<task-name>/`:
 - All files and functions to create or modify (with file paths)
 - Algorithms explained step by step (no code)
 - Architecture decisions made (with reasoning)
+- **Decisions table** (include if 2+ significant choices were made during planning):
+  | # | Decision | Choice | Alternatives Rejected | Rationale |
+  |---|----------|--------|-----------------------|-----------|
+  | 1 | Example  | A      | B (too complex), C (missing X) | Fits existing pattern |
 - Phases only if the task is large (data layer first, then parallel phases)
 
 **todo.md** — Soldier-level steps. Every item must be unambiguous.
@@ -170,7 +174,10 @@ Todo item detail level by risk:
 
 Call the `plan-reviewer` agent with the just-written plan.md and todo.md paths.
 
-**If PASS** → proceed to Step 9.
+**Pre-mortem (mandatory — run before evaluating the reviewer's output):**
+Assume this plan was executed and the result was a failure. Identify the 3 most likely causes. For each, state the probability (low/medium/high) and whether the plan already mitigates it. If any high-probability failure mode is unmitigated → treat it as a gap and add it to the REVISE list even if the reviewer returned PASS.
+
+**If PASS (and no unmitigated pre-mortem gaps)** → proceed to Step 9.
 
 **If REVISE:**
 1. Show gaps and inconsistencies to the user

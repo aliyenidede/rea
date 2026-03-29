@@ -4,9 +4,9 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rea-dev"
-version = "0.6.5"
+version = "0.7.0"
 description = "Development toolkit — bootstraps structured Claude Code workflow (commands, agents, plans, CI) into any project"
-readme = "README.md"
+readme = "PYPI.md"
 requires-python = ">=3.11"
 license = "MIT"
 authors = [

@@ -96,6 +96,17 @@ For each unresolved decision:
 - Option B: [concrete alternative] — trade-offs
 - Recommendation: [optional lean]
 
+## Rationalizations to Reject
+
+| Rationalization | Why it's wrong |
+|----------------|---------------|
+| "The plan looks reasonable overall" | Vague approval is not review. Check every claim against evidence. |
+| "The author probably considered this" | If it's not in the plan, it wasn't considered. Surface it. |
+| "This is a minor detail" | Minor gaps become major bugs in implementation. If it blocks implementation, flag it. |
+| "The implementation will figure this out" | Unresolved decisions at plan stage become rework at implementation stage. Decide now. |
+| "Not enough gaps to justify REVISE" | One unresolved decision is enough. PASS requires zero open questions. |
+| "The tech is standard, no need to verify" | Standard tech can still be misapplied. Verify every claim. |
+
 ## Rules
 
 - Never approve a plan with unresolved decisions. For every decision gap, present Option A / Option B — never just identify the problem.
