@@ -26,22 +26,22 @@ def test_version_shows_current_version():
 
 
 def test_init_creates_claude_commands_dir(tmp_path: Path):
-    runner.invoke(app, ["init", str(tmp_path)])
+    runner.invoke(app, ["setup", str(tmp_path)])
     assert (tmp_path / ".claude" / "commands").is_dir()
 
 
 def test_init_creates_claude_agents_dir(tmp_path: Path):
-    runner.invoke(app, ["init", str(tmp_path)])
+    runner.invoke(app, ["setup", str(tmp_path)])
     assert (tmp_path / ".claude" / "agents").is_dir()
 
 
 def test_init_creates_rea_log_dir(tmp_path: Path):
-    runner.invoke(app, ["init", str(tmp_path)])
+    runner.invoke(app, ["setup", str(tmp_path)])
     assert (tmp_path / ".rea" / "log").is_dir()
 
 
 def test_init_creates_rea_plans_dir(tmp_path: Path):
-    runner.invoke(app, ["init", str(tmp_path)])
+    runner.invoke(app, ["setup", str(tmp_path)])
     assert (tmp_path / ".rea" / "plans").is_dir()
 
 
@@ -49,7 +49,7 @@ def test_init_creates_rea_plans_dir(tmp_path: Path):
 
 
 def test_init_copies_all_command_templates(tmp_path: Path):
-    runner.invoke(app, ["init", str(tmp_path)])
+    runner.invoke(app, ["setup", str(tmp_path)])
     src_commands = list((TEMPLATES_DIR / ".claude" / "commands").iterdir())
     dst_commands = list((tmp_path / ".claude" / "commands").iterdir())
     assert len(dst_commands) == len(src_commands)
@@ -59,7 +59,7 @@ def test_init_copies_all_command_templates(tmp_path: Path):
 
 
 def test_init_copies_all_agent_templates(tmp_path: Path):
-    runner.invoke(app, ["init", str(tmp_path)])
+    runner.invoke(app, ["setup", str(tmp_path)])
     src_agents = list((TEMPLATES_DIR / ".claude" / "agents").iterdir())
     dst_agents = list((tmp_path / ".claude" / "agents").iterdir())
     assert len(dst_agents) == len(src_agents)
@@ -69,7 +69,7 @@ def test_init_copies_all_agent_templates(tmp_path: Path):
 
 
 def test_init_copied_files_match_source_content(tmp_path: Path):
-    runner.invoke(app, ["init", str(tmp_path)])
+    runner.invoke(app, ["setup", str(tmp_path)])
     for dirname in ["commands", "agents"]:
         src_dir = TEMPLATES_DIR / ".claude" / dirname
         for src_file in src_dir.iterdir():
@@ -83,8 +83,8 @@ def test_init_copied_files_match_source_content(tmp_path: Path):
 
 
 def test_init_is_idempotent(tmp_path: Path):
-    runner.invoke(app, ["init", str(tmp_path)])
-    result = runner.invoke(app, ["init", str(tmp_path)])
+    runner.invoke(app, ["setup", str(tmp_path)])
+    result = runner.invoke(app, ["setup", str(tmp_path)])
     assert result.exit_code == 0
 
     src_commands = list((TEMPLATES_DIR / ".claude" / "commands").iterdir())
@@ -93,14 +93,14 @@ def test_init_is_idempotent(tmp_path: Path):
 
 
 def test_init_updates_existing_files(tmp_path: Path):
-    runner.invoke(app, ["init", str(tmp_path)])
+    runner.invoke(app, ["setup", str(tmp_path)])
 
     # Modify a copied file
     target_file = tmp_path / ".claude" / "commands" / "rea-plan.md"
     target_file.write_text("modified content")
 
     # Re-run init
-    runner.invoke(app, ["init", str(tmp_path)])
+    runner.invoke(app, ["setup", str(tmp_path)])
 
     # Should be overwritten with source content
     src_file = TEMPLATES_DIR / ".claude" / "commands" / "rea-plan.md"
@@ -108,14 +108,14 @@ def test_init_updates_existing_files(tmp_path: Path):
 
 
 def test_init_preserves_extra_user_files(tmp_path: Path):
-    runner.invoke(app, ["init", str(tmp_path)])
+    runner.invoke(app, ["setup", str(tmp_path)])
 
     # User adds their own command
     user_file = tmp_path / ".claude" / "commands" / "my-custom.md"
     user_file.write_text("custom command")
 
     # Re-run init
-    runner.invoke(app, ["init", str(tmp_path)])
+    runner.invoke(app, ["setup", str(tmp_path)])
 
     # User's file should still be there
     assert user_file.read_text() == "custom command"
@@ -125,20 +125,20 @@ def test_init_preserves_extra_user_files(tmp_path: Path):
 
 
 def test_init_shows_copied_files_on_fresh_init(tmp_path: Path):
-    result = runner.invoke(app, ["init", str(tmp_path)])
-    assert "[+]" in result.output
-    assert "Copied:" in result.output
+    result = runner.invoke(app, ["setup", str(tmp_path)])
+    assert "+" in result.output
+    assert "files synced" in result.output
 
 
 def test_init_shows_updated_files_on_reinit(tmp_path: Path):
-    runner.invoke(app, ["init", str(tmp_path)])
-    result = runner.invoke(app, ["init", str(tmp_path)])
-    assert "[~]" in result.output
-    assert "Updated (already existed):" in result.output
+    runner.invoke(app, ["setup", str(tmp_path)])
+    result = runner.invoke(app, ["setup", str(tmp_path)])
+    assert "~" in result.output
+    assert "files synced" in result.output
 
 
 def test_init_shows_next_step(tmp_path: Path):
-    result = runner.invoke(app, ["init", str(tmp_path)])
+    result = runner.invoke(app, ["setup", str(tmp_path)])
     assert "/rea-init" in result.output
 
 
@@ -147,7 +147,7 @@ def test_init_shows_next_step(tmp_path: Path):
 
 def test_init_fails_on_nonexistent_path(tmp_path: Path):
     bad_path = tmp_path / "does-not-exist"
-    result = runner.invoke(app, ["init", str(bad_path)])
+    result = runner.invoke(app, ["setup", str(bad_path)])
     assert result.exit_code == 1
     assert "Error" in result.output
 

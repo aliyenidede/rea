@@ -16,9 +16,9 @@ A portable CLI toolkit that bootstraps a structured Claude Code workflow (slash 
 
 1. **CLI is dumb, Claude is smart** — `rea` CLI only copies files and creates directories. No logic, no decisions. All workflow intelligence lives in the slash command prompts under `rea/templates/.claude/commands/`.
 
-2. **Templates are the product** — `rea/templates/` is the source of truth. When templates change, existing projects must run `rea init` again to receive updates.
+2. **Templates are the product** — `rea/templates/` is the source of truth. When templates change, existing projects must run `rea setup` again to receive updates.
 
-3. **Idempotent operations** — All CLI commands must be safe to run multiple times. `rea init` always syncs (copies/overwrites) templates.
+3. **Idempotent operations** — All CLI commands must be safe to run multiple times. `rea setup` always syncs (copies/overwrites) templates.
 
 4. **Branch workflow** — `feature/*` → staging → main. Direct push to `main` or `staging` is forbidden. Hotfixes go `hotfix/*` → main.
 
@@ -45,7 +45,7 @@ ruff check .
 ruff format .
 
 # Use the CLI
-rea init <path>
+rea setup <path>
 rea version
 ```
 
@@ -56,6 +56,7 @@ rea/
 ├── cli.py                        # Typer app — init, version
 ├── templates/
 │   └── .claude/
+│       ├── skill-writer-patterns.md # Patterns reference for skill-writer (not an agent)
 │       ├── agents/               # Agent prompts
 │       │   ├── explorer.md       # Read-only codebase research (Haiku)
 │       │   ├── implementer.md    # TDD-driven implementation (Sonnet)
@@ -67,7 +68,8 @@ rea/
 │       │   ├── dispatcher.md     # Parallel execution grouping (Sonnet)
 │       │   ├── bug-scanner.md    # Logic bugs, edge cases, error handling gaps (Sonnet)
 │       │   ├── security-scanner.md # Security vulnerabilities, OWASP top 10 (Sonnet)
-│       │   └── skill-writer.md   # Creates new agents/commands (Sonnet)
+│       │   ├── skill-writer.md   # Creates new agents/commands (Sonnet)
+│       │   └── rea-router.md     # Session-start skill routing (Haiku)
 │       └── commands/             # Slash command prompts (the product)
 │           ├── rea-init.md       # Project setup
 │           ├── rea-plan.md       # Planning pipeline + adversarial review

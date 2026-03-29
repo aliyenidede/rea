@@ -160,6 +160,28 @@ Also create `.claude/settings.json` hook entry if not present:
 }
 ```
 
+### SessionStart hook (automatic skill routing)
+If `.claude/settings.json` exists but has no `SessionStart` hook entry, add one:
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat .claude/agents/rea-router.md"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+Merge with existing hooks in settings.json — do not overwrite `PostToolUse` or other existing hooks.
+
+Only add this hook if `.claude/agents/rea-router.md` exists.
+
 ### `.github/workflows/ci.yml`
 If missing, create based on tech stack. See GitHub workflow templates.
 
@@ -241,6 +263,29 @@ If missing, create directory and copy REA agent templates:
 ### `.rea/log/` and `.rea/plans/`
 Create if missing.
 
+## Step 4.5 — Check global settings for skill leakage
+
+Read the global Claude Code settings file at `~/.claude/settings.json`. Extract the `permissions.additionalDirectories` array (if it exists).
+
+Get the current project root path via `pwd`.
+
+For each entry in `additionalDirectories`:
+1. Normalize both paths: convert backslashes to forward slashes, lowercase, strip trailing slash
+2. Prefix-check: is the normalized project root a prefix of (or equal to) the normalized entry?
+
+If any match found, warn the user:
+```
+⚠️  Skill leakage detected — this project's path appears in global additionalDirectories:
+  <matched entry>
+
+This causes REA skills (commands + agents) from this project to appear in ALL other
+Claude Code projects. This is almost never intentional.
+
+Fix: remove the entry from ~/.claude/settings.json → permissions.additionalDirectories
+```
+
+If no matches found: skip silently.
+
 ## Step 5 — Create staging branch
 
 Run: `git checkout -b staging 2>/dev/null || true && git push origin staging 2>/dev/null || true && git checkout -`
@@ -257,7 +302,7 @@ If `false`: run via gh CLI:
 
 ```
 gh api repos/{owner}/{repo}/branches/main/protection --method PUT --input - <<EOF
-{"required_status_checks":{"strict":true,"contexts":["test"]},"enforce_admins":false,"required_pull_request_reviews":null,"restrictions":null}
+{"required_status_checks":{"strict":true,"contexts":["test"]},"enforce_admins":true,"required_pull_request_reviews":null,"restrictions":null}
 EOF
 ```
 
