@@ -7,7 +7,7 @@ A portable development toolkit that bootstraps a structured Claude Code workflow
 
 ```bash
 pip install rea-dev
-rea init <project>          # copies slash commands + agents + creates .rea/ dirs
+rea setup <project>          # copies slash commands + agents + creates .rea/ dirs
 # open Claude Code → /rea-init
 ```
 
@@ -28,7 +28,7 @@ REA installs slash commands, composable agents, and a structured plan/log system
 ### Commands
 
 ```
-rea init             → copies .claude/commands/ + .claude/agents/ + creates .rea/
+rea setup             → copies .claude/commands/ + .claude/agents/ + creates .rea/
 /rea-init            → scans project, installs missing config, sets up GitHub
 /rea-plan            → full planning pipeline with interrogation + adversarial review
 /rea-execute         → agent-driven implementation with parallel dispatch
@@ -70,7 +70,7 @@ Agents are composable building blocks that commands orchestrate. Each agent has 
 pip install rea-dev
 
 # 2. Add REA to your project
-rea init /path/to/project
+rea setup /path/to/project
 
 # 3. Open Claude Code in that project and run
 /rea-init
@@ -177,28 +177,20 @@ project/features/x/CLAUDE.md ← feature-specific rules (created by /rea-plan wh
 
 ---
 
-## REA vs Superpowers
+## How REA differs
 
-[Superpowers](https://github.com/obra/superpowers) is a popular Claude Code plugin that enforces TDD and structured debugging. REA takes a different approach — modular agents and a full project lifecycle.
+Most AI coding tools focus on a single step — write code, fix bugs, or run tests. REA covers the full development lifecycle:
 
-| Capability | REA | Superpowers |
-|---|---|---|
-| TDD (red-green-refactor) | Risk-based — mandatory for high-risk, optional for low-risk | Always mandatory |
-| Debugging methodology | 4-phase root cause agent (`debugger`) | 4-phase structured debugging |
-| Brainstorming | `/rea-brainstorm` → spec → handoff to plan | Socratic brainstorming |
-| Planning pipeline | Interrogation loop + adversarial review (`plan-reviewer`) | — |
-| Parallel execution | `dispatcher` groups items → concurrent `implementer` agents | — |
-| Code review | `code-reviewer` agent with delta coverage check | Built-in code review |
-| Spec review | `spec-reviewer` — verifies impl matches requirements | — |
-| Self-extending | `/rea-write-skill` — creates new agents/commands | Skill authoring |
-| Git worktrees | `/rea-worktree` — isolated parallel branches | — |
-| Branch strategy | `feature/*` → staging → main with auto PR targeting | — |
-| CI/CD setup | `/rea-init` installs workflows, branch protection, hooks | — |
-| Plan persistence | `.rea/plans/` with spec + plan + todo, cross-session resume | — |
-| Installation | `pip install` + `rea init` (CLI) | Plugin marketplace |
-| Test coverage target | Delta coverage — new code must have tests | 85-95% target |
+| What | How |
+|------|-----|
+| **Before coding** | `/rea-plan` writes a spec, runs adversarial review, waits for your approval |
+| **During coding** | Parallel agents implement, with spec review + code review after every change |
+| **After coding** | `/rea-commit` opens PRs to the right branch, CI gates the merge |
+| **Across sessions** | Plans persist in `.rea/plans/`, resume from `NEXT:` marker |
+| **Project setup** | `/rea-init` installs CI, branch protection, hooks — one command |
+| **Self-extending** | `/rea-write-skill` creates new agents/commands from a description |
 
-**TL;DR:** Superpowers focuses on coding discipline (TDD, debugging). REA covers the full lifecycle — from brainstorming through planning, execution, review, and deployment.
+REA is **co-pilot, not autonomous** — you stay in control. Claude does the heavy lifting, you make the decisions.
 
 ---
 
@@ -229,7 +221,7 @@ Key rule: **agents never call other agents** — only commands orchestrate agent
 ```mermaid
 flowchart TD
     A([Developer]) --> B["pip install rea (one time)"]
-    B --> C["rea init — copies commands + creates .rea/"]
+    B --> C["rea setup — copies commands + creates .rea/"]
     C --> D["Open Claude Code"]
     D --> E["/rea-init"]
 

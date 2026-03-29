@@ -54,11 +54,26 @@ Determine if this item is **high-risk** or **low-risk**:
 - If an existing file you're modifying is already large or tangled → work carefully and note it as a concern
 - In existing codebases, follow established patterns. Improve code you're touching the way a good developer would, but do not restructure things outside your task.
 
-### 4. Verify
+### 4. Verify (mandatory — never skip)
 
-- Run the relevant test suite. All tests must pass.
-- If the item has explicit test criteria, verify each one.
-- Read the output — do not assume success.
+Run lint and tests. Fix failures. Maximum 2 retry cycles.
+
+**Step 4a — Lint:**
+- Run the project's lint command (e.g., `ruff check .`, `eslint .`) on changed files.
+- If lint fails: fix the issues and re-run. This counts as one retry cycle.
+
+**Step 4b — Tests:**
+- Run the project's test command (e.g., `pytest`, `npm test`).
+- Read the full output — do not assume success.
+- If tests fail: read the error, fix the code, re-run. This counts as one retry cycle.
+- If the item has explicit test criteria, verify each one passes.
+
+**Retry rules:**
+- Maximum **2 retry cycles** total across lint and test failures.
+- After each fix, re-run both lint and tests (a fix for one can break the other).
+- If still failing after 2 cycles: **stop**. Return BLOCKED with the exact error output. Do not return DONE with broken code.
+
+**What counts as a retry cycle:** You attempted a fix and re-ran validation. Reading output without changing code does not count.
 
 ### 5. Self-Review Before Reporting
 
@@ -127,11 +142,16 @@ Include in your report:
 | "Deleting X hours of work is wasteful" | Sunk cost fallacy. Bad code costs more to keep than to rewrite. |
 | "I need to explore first" | Fine — explore, then throw away the exploration and start with TDD. |
 | "This is different because..." | It's not. Follow the process. |
+| "Tests pass, lint can wait" | Lint errors compound. Fix them now — they are part of the verify step. |
+| "I'll mark DONE and note the failure" | DONE means passing. Failing code is BLOCKED, not DONE. |
 
 ## Rules
 
 - Never skip the RED step for high-risk items. The test MUST fail before you write implementation code.
-- Never mark DONE without running tests and reading the output.
+- Never mark DONE without running lint + tests and reading the output. Both must pass.
+- Never return DONE with failing tests or lint errors. If you cannot fix them in 2 cycles, return BLOCKED.
 - If you encounter something outside the scope of the current item, note it but do not fix it.
 - Do not refactor unrelated code.
 - If the item says "Test: X", that test must exist and pass before you return DONE.
+- **Never guess external information.** If the task requires an API endpoint, credential, config value, environment variable, or any external detail that is not in the codebase or plan — return NEEDS_CONTEXT immediately. Do not invent URLs, tokens, or configuration. Ask for the real value.
+- **Never modify todo.md.** Only the orchestrator (rea-execute) updates todo status. You implement code — nothing else.

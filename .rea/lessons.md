@@ -35,3 +35,27 @@
 ## 2026-03-21 02:55:00
 **Lesson:** rea-router (SessionStart hook) only ran at session start. When user said "commit yap" mid-session, Claude didn't invoke /rea-commit. The router solved the wrong problem.
 **Rule:** Don't build agents for problems the platform should handle. Mid-session intent routing is Claude Code's responsibility, not a custom agent's.
+
+## 2026-03-25 14:00:00
+**Lesson:** Implementer agent's Step 4 (Verify) was not enforced — "run the relevant test suite" was too vague and optional-sounding. Implementer could return DONE with failing tests, and the CI gate in rea-execute would catch it, causing an unnecessary round-trip.
+**Rule:** Verification must be mandatory and explicit with retry caps. "Run lint + tests, fix failures, max 2 retries, BLOCKED if still failing" — not "run the relevant test suite."
+
+## 2026-03-25 14:00:00
+**Lesson:** Harness research showed the single highest-leverage reliability improvement is replacing LLM steps with deterministic code (O'Reilly blackjack study: +31pp from one lookup table). But for REA's co-pilot mode, this complexity isn't justified — the user is watching.
+**Rule:** Match reliability investment to the execution mode. Unattended agents need deterministic rails. Co-pilot agents benefit more from better prompts and validation gates than from Python pipeline code.
+
+## 2026-03-28 15:00:00
+**Lesson:** Lifeline project analysis showed that each agent benefits from a role-specific "Rationalizations to Reject" table — a short list of common lazy shortcuts that look reasonable but break the agent's primary job. This pattern is more effective than generic rules because it targets the exact failure modes of that role.
+**Rule:** Every review/verification agent (plan-reviewer, spec-reviewer, code-reviewer, debugger) should have a Rationalizations to Reject table with 5-7 role-specific items. Generic rules say what to do; rationalization tables say what NOT to tell yourself to avoid doing it.
+
+## 2026-03-28 15:00:00
+**Lesson:** Pre-mortem (assume failure, find causes) is more effective than asking "what could go wrong?" because it forces past-tense thinking. Research: prospective hindsight improves failure cause identification by ~30%.
+**Rule:** Add a mandatory pre-mortem step to any review phase before rendering a PASS verdict. Format: identify 3 most likely failure causes + probability (low/medium/high) + whether mitigated. Unmitigated high-probability failure = REVISE regardless of reviewer output.
+
+## 2026-03-28 21:45:00
+**Lesson:** Applied REA's full plan/execute/review pipeline to a 2-file personal tool (pulse). The pipeline (dispatcher, implementer, spec-reviewer, code-reviewer) is designed for multi-file features with real complexity — using it on simple tools adds friction without adding value.
+**Rule:** Before starting REA pipeline, check: is this ≤3 files, no architecture decisions, clear scope? If yes, build it directly in conversation. REA pipeline is for real complexity, not for ceremony.
+
+## 2026-03-28 21:45:00
+**Lesson:** Committed .rea/ and .claude/ scaffold files into the pulse repo by running rea-init on it. These directories belong to REA-managed projects, not to simple personal tools.
+**Rule:** Never run rea init on personal/single-purpose tools. rea init is for projects that will be developed iteratively with the full REA workflow.
