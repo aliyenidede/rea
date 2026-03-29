@@ -58,4 +58,29 @@
 
 ## 2026-03-28 21:45:00
 **Lesson:** Committed .rea/ and .claude/ scaffold files into the pulse repo by running rea-init on it. These directories belong to REA-managed projects, not to simple personal tools.
-**Rule:** Never run rea init on personal/single-purpose tools. rea init is for projects that will be developed iteratively with the full REA workflow.
+**Rule:** Never run rea setup on personal/single-purpose tools. rea setup is for projects that will be developed iteratively with the full REA workflow.
+
+## 2026-03-30 02:25:47
+**Source:** user-correction
+**Lesson:** Global additionalDirectories in ~/.claude/settings.json caused REA skills to leak across all projects. caw/.claude was added as additionalDirectory, making all REA commands visible in non-REA projects like aliyenidede.
+**Rule:** Never add project-specific .claude/ paths to global additionalDirectories. Each project's .claude/ is auto-loaded by Claude Code when that project is open. additionalDirectories is only for truly global resources.
+
+## 2026-03-30 02:25:47
+**Source:** user-correction
+**Lesson:** User asked to investigate before dismissing — I initially said "no project needs changes, just remove from global" without deeply verifying why entries were added. User pushed back with "emin misin?" and was right to do so.
+**Rule:** When user questions your conclusion, re-investigate with fresh eyes. Don't defend the first answer — verify it. The "Emin misin?" rule applies to self as much as to external claims.
+
+## 2026-03-30 02:25:47
+**Source:** user-correction
+**Lesson:** Attempted to run `twine upload` when user only asked for the pip install command. User said "ben sana upload et demedim" — I overstepped by assuming the next step.
+**Rule:** Only do what is explicitly asked. Don't auto-escalate from "give me the command" to "run the command." Especially for irreversible operations like PyPI uploads.
+
+## 2026-03-30 02:25:47
+**Source:** discovery
+**Lesson:** `rea init` and `/rea-init` naming collision confused users — they're two different things (CLI file copy vs Claude Code project setup). Renamed CLI command to `rea setup` to eliminate confusion.
+**Rule:** CLI commands and slash commands must have distinct names. If both need "init"-like behavior, differentiate clearly (setup vs init, install vs configure).
+
+## 2026-03-30 02:25:47
+**Source:** user-correction
+**Lesson:** CLI output showed only command names with no explanation of what REA is, how it works, or what to do first. User said "nasıl kullanılacağını yönlendiren birşey yok." Added onboarding guide with "What is REA?", setup steps, and daily workflow.
+**Rule:** First-run output must answer three questions: what is this, how do I start, what's the daily workflow. Don't assume the user read the README.

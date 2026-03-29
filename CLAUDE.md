@@ -53,7 +53,7 @@ rea version
 
 ```
 rea/
-├── cli.py                        # Typer app — init, version
+├── cli.py                        # Typer app — setup, version (Rich output)
 ├── templates/
 │   └── .claude/
 │       ├── skill-writer-patterns.md # Patterns reference for skill-writer (not an agent)
