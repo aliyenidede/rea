@@ -1,6 +1,6 @@
 ---
 name: rea-brainstorm
-description: "Collaborative design exploration — brainstorm alternatives, write spec, hand off to /rea-plan."
+description: "Structured feature design — explore codebase, ask clarifying questions one at a time, present 2-3 alternatives with pros/cons, write spec, hand off to /rea-plan. Use when starting a new feature and the scope/approach is not yet clear."
 ---
 
 The user wants to brainstorm and design a feature before planning. Run the full brainstorming pipeline.

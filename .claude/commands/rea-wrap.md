@@ -38,14 +38,21 @@ Date: YYYY-MM-DD HH:MM:SS
 
 ## Step 3 — Save lessons
 
-Scan the entire conversation for lessons. Look for BOTH categories with equal priority:
+Scan the visible conversation for lessons. Look for BOTH categories with equal priority:
 
 **User corrections and redirections:**
-- User said "no", "don't", "that's wrong", "not like that", or similar
-- User rejected a tool call or approach
-- User redirected you to a different path ("do X instead", "use Y")
-- User repeated an instruction you missed or ignored
-- User expressed frustration or had to re-explain something
+
+Enumerate user messages in order. Skip `tool_result` blocks, system wrappers (`<task-notification>`, `<command-message>`, `<ide_opened_file>`), and empty/whitespace-only messages.
+
+For each remaining user message, apply this per-message judgment: *"Did the user push back, correct, redirect, reject, or disagree with what I just did?"*
+
+**Behavior-change gate:** Only log a correction if the assistant actually changed approach, output, or plan after the message. Skepticism without behavior change is not a lesson. This gate applies uniformly — to direct refusals, short pushbacks, ironic tone, and questions that imply disagreement. If there was no behavior change, skip the message.
+
+**Gate-unverifiable case (partial context):** If the pushback turn is visible but the confirming follow-up turns are outside current context, log as provisional with the exact inline note `(behavior-change unverifiable — context truncated)` appended to the Lesson line.
+
+When logging a correction: include the verbatim user quote in its original language — do not translate. Preserve harsh, profane, or ironic wording exactly as written. Non-English corrections stay in their original language. Also include one line of context describing what the assistant had just done, and what changed afterwards (or the provisional marker if unverifiable).
+
+**Long-session coverage note:** If the session is long and early turns are no longer accessible in current context, explicitly state in the Step 7 final report which portion of the session was scanned (e.g. "Lessons captured from turns 80–200; earlier turns not in context").
 
 **Internal mistakes and surprises:**
 - Approaches that failed or had to be abandoned
