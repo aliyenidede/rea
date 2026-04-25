@@ -84,3 +84,48 @@
 **Source:** user-correction
 **Lesson:** CLI output showed only command names with no explanation of what REA is, how it works, or what to do first. User said "nasıl kullanılacağını yönlendiren birşey yok." Added onboarding guide with "What is REA?", setup steps, and daily workflow.
 **Rule:** First-run output must answer three questions: what is this, how do I start, what's the daily workflow. Don't assume the user read the README.
+
+## 2026-04-25 08:15:30
+**Source:** user-correction
+**Lesson:** When user said "tüm sessionlarımı okuyup reayı kullanımımda neler olmuş" I scoped to the rea project directory only. User had to clarify: "kısmen yanlış anladın sanırım. rea projesinde değil benim tüm projelerimde." After: I expanded the glob from `~/.claude/projects/d--work-v0-6-readevb-rea/` to `~/.claude/projects/*/` and indexed all 15 project folders.
+**Rule:** "Tüm sessionlarım" = all `~/.claude/projects/*` folders, not just the current project's session folder. Default to global scope when the user uses words like "tüm", "bütün", "hepsi" without a qualifier.
+
+## 2026-04-25 08:15:30
+**Source:** user-correction
+**Lesson:** I proposed delegating session-reading to subagents. User pushed back hard: "sen okuyacaksın mesajımdan varsayım yapamazsın. SEN OKUYACAKSIN HİÇ BİR ŞEYİ ATLAMAYACAKSIN." I rebuilt approach: I personally read every extract file, no subagent delegation for content scanning.
+**Rule:** When user explicitly says "sen okuyacaksın" or names me as the actor, sub-agent delegation for that work is forbidden. Sub-agents are for parallel work the user *didn't* assign personally.
+
+## 2026-04-25 08:15:30
+**Source:** user-correction
+**Lesson:** I started writing extraction notes to `memory/` files for persistence. User: "memory kullanmanı da istemiyorum projeyi kirletme lütfen sadece söylediğim şeyi yap çok daha kolay olacak git ve herşeyi oku." After: stopped writing memory files mid-task; only used `/tmp/` for ephemeral extraction artifacts.
+**Rule:** Default to `/tmp/` (or `%TEMP%`) for working files during analysis tasks. Reserve memory writes for facts the user explicitly asks to persist, or for end-of-session memory updates during /rea-wrap.
+
+## 2026-04-25 08:15:30
+**Source:** user-correction
+**Lesson:** My first extraction script captured user messages + assistant text + tool calls but excluded assistant thinking blocks. User: "tool cıktılarını görmen mantıksız olur ancak thinking kısmını okumanı istiyorum kendi düşüncelerini de görmelisin." Added thinking blocks to extraction; rebuilt all 109 extracts.
+**Rule:** Conversation reconstruction for analysis must include assistant thinking blocks alongside text and tool calls. Thinking is the reasoning trail; without it, the conversation is missing context. Tool *outputs* can be omitted (noise), tool *calls* must be included (signal).
+
+## 2026-04-25 08:15:30
+**Source:** user-correction
+**Lesson:** I delivered a REA usage report that allocated only 20-30% of friction to user-side patterns. User: "ben neyi yanlış yapıyorum. sadece toolu suçlayamayız bunu söyleyebilir misin." I rewrote the analysis with concrete user-pattern examples (session hygiene, 15 parallel projects, no success criteria, plan-skip tendency, frustration cycle, LLM-memory expectation, etc.) and revised the split to 60% user / 40% tool.
+**Rule:** Diagnostic reports must apportion blame honestly. Default to balanced or user-leaning attribution unless evidence clearly points elsewhere. Tool-leaning attribution is a sycophancy tell — it spares the user from uncomfortable truths.
+
+## 2026-04-25 08:15:30
+**Source:** user-correction
+**Lesson:** I proposed solving the wrap-correction-detection bug with a hardcoded keyword list. User: "kelimelerden seçerek yapsın tamam ama kelime listesi vermeyelim çok kişisel olur başka bir yolu var mı." Switched to per-message semantic judgment; let the agent itself decide if a message is a correction.
+**Rule:** When detecting user-style signals (corrections, sentiment, intent), prefer semantic agent-judgment over hardcoded keyword/regex lists. Keyword lists encode the prompt-author's vocabulary, not the user's. Adapt to the user; don't force the user to adapt to a list.
+
+## 2026-04-25 08:15:30
+**Source:** internal-mistake
+**Lesson:** First extraction attempt used `Read` directly on raw JSONL files. Single 30-line read returned 34000+ tokens (over 25000 limit). Tool results in JSONL include large embedded file contents and command outputs that bloat each line.
+**Rule:** Never `Read` raw Claude Code session JSONL files directly — they are dense and exceed token limits even at low line counts. Always pre-process with a script that strips tool_result bodies and keeps only signal (user/assistant text + tool_use names + thinking).
+
+## 2026-04-25 08:15:30
+**Source:** discovery
+**Lesson:** Stat across 109 sessions: `/rea-wrap` was used in only 17 of 109 sessions; `/rea-execute` 27, `/rea-commit` 15, `/rea-plan` 12. `/rea-brainstorm`, `/rea-worktree`, `/rea-write-skill` had **zero** invocations across 5 weeks of usage. Conversely, `subagent=implementer` ran 310 times, `subagent=Explore` 153 times (vs custom `subagent=explorer` only 38 times — 4× usage of generic over the REA-specific agent).
+**Rule:** Periodically count actual command/agent usage across user's session corpus. Dead commands warrant either deletion or repositioning; over-used generic agents (Explore vs explorer) signal that the specialized version isn't discoverable or differentiated enough.
+
+## 2026-04-25 08:15:30
+**Source:** discovery
+**Lesson:** Code-reviewer flagged a stale local `.claude/commands/rea-init.md` after template edit — the project-local synced copy stays out of date until `rea setup .` is run. Plan dispatcher correctly identified this dependency without explicit file overlap (template file write → local file consumed by `rea setup`), placed sync as separate Batch 2.
+**Rule:** Any plan editing files under `rea/templates/.claude/` must include a final `rea setup .` todo to sync the project-local working copy. Dispatcher will infer the dependency, but the todo item must exist for it to dispatch on.
