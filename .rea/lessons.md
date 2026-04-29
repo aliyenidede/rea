@@ -129,3 +129,48 @@
 **Source:** discovery
 **Lesson:** Code-reviewer flagged a stale local `.claude/commands/rea-init.md` after template edit — the project-local synced copy stays out of date until `rea setup .` is run. Plan dispatcher correctly identified this dependency without explicit file overlap (template file write → local file consumed by `rea setup`), placed sync as separate Batch 2.
 **Rule:** Any plan editing files under `rea/templates/.claude/` must include a final `rea setup .` todo to sync the project-local working copy. Dispatcher will infer the dependency, but the todo item must exist for it to dispatch on.
+
+## 2026-04-30 02:37:37
+**Source:** user-correction
+**Lesson:** During an opencode-manager smoke test, the browser showed a "Next.js 16.2.4 Turbopack" CSP error. I attributed it to Archon's frontend without verification, even fabricating reasons (production-vs-dev mode, CSP misconfig). User: "götünden element uyduruyorsun gene amk 2 tane container aktif o yüzden olabilir mi bi bak bakim 2 archon var". Verified — Archon was on port 3001, the error came from a separate Next.js dev server (vosvos project) on port 3000. Apologized and gave correct URL.
+**Rule:** When an in-browser error appears during multi-process testing, **verify the source process before interpreting**. Check `docker ps`, `netstat`, framework signature in error UI. Never explain an error from a tool whose process you haven't confirmed is the one serving the affected page.
+
+## 2026-04-30 02:37:37
+**Source:** user-correction
+**Lesson:** While distilling principles for a new project, I kept asking "how does this surface in the UI / workflow steps?" instead of staying at principle level. User: "şuan hala prensip kümesinden konuşuyorum ui veya workflow konularına geçme lütfen". I refocused on principle-only formulation; UI/workflow application deferred to a later session.
+**Rule:** During principle distillation, hold a strict line between "what is the principle?" and "how is it implemented?". When user is in principle-mode, my proposals must be principle-level reformulations only. Application questions belong in a later phase, not interleaved.
+
+## 2026-04-30 02:37:37
+**Source:** user-correction
+**Lesson:** When project-naming and architecture pivoted from REA-style CLI to a workflow platform (readev), I kept framing every decision through REA's primitives (slash command, skill, execute). User: "hala rea mantığıyla düşünüyoruz... yaklaşımımızı değiştirelim mi sence". I dropped REA-specific vocabulary and switched to UX-first / scene-based framing.
+**Rule:** When discussing a new product, audit my own vocabulary. If the current project's name keeps appearing as a metaphor for the new project, that's a paradigm-import warning. New product = new mental model = new vocabulary.
+
+## 2026-04-30 02:37:37
+**Source:** user-correction
+**Lesson:** I generated a "go use Archon for 2-3 days" recommendation as the next step. User: "bunu kullan dedin de öğrenmem lazım sanki :D çok detaylı ve ihtiyacımızı karşılar bence sen benim isteklerimi tamamen karşılıyor mu ona bakar mısın". I produced a concrete 11-criterion needs-vs-Archon comparison table instead of deferring analysis to "use it and find out".
+**Rule:** "Go use it for X days" is a stalling pattern when concrete analysis is possible right now. If the user has already supplied their needs and the tool's surface area is documented, do the comparison directly — don't defer analysis to user labor.
+
+## 2026-04-30 02:37:37
+**Source:** user-correction
+**Lesson:** User asked "videodakiler hariç not almamız gereken bişi var mı" — I returned three items, all from the video. User: "bunlar videodakiler, ben video hariç olanı sormak istedim". I re-scanned the session-internal events (mobile UX failure, missing Claude binary in Docker, document still saying opencode-manager fork) and gave those.
+**Rule:** When user explicitly excludes a source ("X hariç"), re-scan only the residual scope before answering. Don't pattern-match on adjacent topics — the exclusion is the constraint.
+
+## 2026-04-30 02:37:37
+**Source:** internal-mistake
+**Lesson:** A research sub-agent reported "anomalyco/opencode-multiplexer" as the wrapper that solves multi-client server support. I relayed this to the user. Verification with `gh api` returned 404 — the repo doesn't exist at that URL. The actual repo is `millerjes37/opencode-multiplexer`. The agent had hallucinated the org name in its summary while listing the correct name in the inventory body.
+**Rule:** Never relay sub-agent claims about specific repo URLs / star counts / commit dates without spot-verifying at least the most-trusted-sounding ones via `gh api`. Sub-agent narrative summaries can carry hallucinated identifiers even when the underlying inventory is correct.
+
+## 2026-04-30 02:37:37
+**Source:** internal-mistake
+**Lesson:** Twice in one session, user said "ee?" / "alolo bi sorun var çok sürdü" — they thought a tool call was hanging. Reality: I had requested an interactive Bash command, the harness presented a permission prompt, user clicked "no" without realizing what they were rejecting, and I waited silently. The user perceived stalling.
+**Rule:** When a long-running shell command is needed, prefer `run_in_background=true` from the outset. Tell the user "running in background, I'll get a completion notification" so silence reads as expected, not stalled. If a tool gets rejected, I must say so plainly — "permission was denied, here's the same command again, please approve" — instead of silently waiting.
+
+## 2026-04-30 02:37:37
+**Source:** discovery
+**Lesson:** opencode-manager (525★) and OpenChamber (3,470★) both vibe-coded; Archon (19,800★) disciplined. The strong predictors of "vibe-coded" are not star count but: (a) largest single component file size — OpenChamber ChatInput.tsx 3,871 lines, opencode-manager PromptInput 1,272 lines, Archon NodeInspector 793 lines; (b) test/code ratio; (c) direct-URL navigation breaking in SPA (opencode-manager `/settings` returned 404 ErrorBoundary); (d) console error count on landing page.
+**Rule:** When evaluating a candidate tool to fork or build on, run a discipline-metrics audit: clone, find largest component, count tests, test direct-URL nav, count console errors. These signals dominate star count for predicting whether the codebase will be pleasant to live in.
+
+## 2026-04-30 02:37:37
+**Source:** discovery
+**Lesson:** README claims must be runtime-verified. Two surprises this session: (1) Archon README says "The Docker image ships Claude Code pre-installed" — actually does NOT in the default Dockerfile (separate `Dockerfile.user.example` does). (2) Predecessor research described OpenChamber's Cloudflare tunnel deployment as "primary" — actual `docker-compose.yml` shows tunnel env vars as commented-out optional.
+**Rule:** When a README claim materially affects setup or evaluation, verify against the actual artifact (Dockerfile, compose file, code). Do not propagate README claims as facts in research synthesis without runtime check.
