@@ -174,3 +174,28 @@
 **Source:** discovery
 **Lesson:** README claims must be runtime-verified. Two surprises this session: (1) Archon README says "The Docker image ships Claude Code pre-installed" — actually does NOT in the default Dockerfile (separate `Dockerfile.user.example` does). (2) Predecessor research described OpenChamber's Cloudflare tunnel deployment as "primary" — actual `docker-compose.yml` shows tunnel env vars as commented-out optional.
 **Rule:** When a README claim materially affects setup or evaluation, verify against the actual artifact (Dockerfile, compose file, code). Do not propagate README claims as facts in research synthesis without runtime check.
+
+## 2026-05-04 01:13:22
+**Source:** user-correction
+**Lesson:** I asked the user to disambiguate between "code.readev.co = Archon" vs "code.readev.co = code-server" even though north-star.md already says `code.<domain>` is code-server and `agent.<domain>` is Archon. User: "isimleri koyduysak tekrar niye soruyon ki biri editör diğeri archon için idi". I dropped the disambiguation question and applied the existing convention directly.
+**Rule:** Before asking a clarifying question, scan project documents for an existing decision. If north-star.md or a similar canonical document has already named the convention, do not re-litigate it — apply it. Asking again signals I haven't read my own documents.
+
+## 2026-05-04 01:13:22
+**Source:** user-correction
+**Lesson:** The user said "yeni proje açıp REA ile planlayarak ilerlemeliyim demi". I almost said "yes". On reflection, I caught that readev's own architectural decision is to be built with Archon workflows (dogfood), not REA. Reframed the question to "Senaryo A/B/C", recommended deferring repo creation until Archon+Pi setup is verified.
+**Rule:** When user proposes a next step that contradicts a recent architectural decision, do not rubber-stamp it. Re-read the relevant decision, surface the contradiction, ask which one stands. The user explicitly thanked me for catching this: "doğru diyosun ... unuttum ben onu işte". Their architectural memory is shorter than mine in long-running planning sessions — be the memory.
+
+## 2026-05-04 01:13:22
+**Source:** discovery
+**Lesson:** Pi's "missing MCP" gap, which earlier looked like a meaningful disadvantage vs. OpenCode, turns out to be addressed by Pi's own extension ecosystem: 4 distribution mechanisms (Skills/Extensions/Prompt Templates/Themes), npm-distributed Pi Packages, a `pi-resource-center` browser package, and real production packages (`pi-docparser`, `pi-show-diffs`, `pi-yagami-search`, `pi-ask`, etc.). Production adoption ~14 projects (OpenClaw, BasedHardware/omi, Bitterbot-AI, rivet-dev/agent-os, etc.).
+**Rule:** When evaluating a tool's capability gaps, do not stop at "feature X is missing". Always check (a) the tool's own extension story, (b) whether a third-party ecosystem fills the gap, (c) actual production packages. A feature gap with a healthy extension marketplace is not a real gap; a feature gap with no marketplace is. Star count is not a proxy for either.
+
+## 2026-05-04 01:13:22
+**Source:** discovery
+**Lesson:** Pi (`badlogic/pi-mono`) is not a "model gateway" — it is a **standalone coding agent CLI** (Claude Code / OpenCode equivalent) with multi-provider abstraction integrated. The monorepo has 5 packages: `pi-ai` (LLM API), `pi-agent-core` (agent runtime + tool calling), `pi-coding-agent` (interactive CLI), `pi-tui` (terminal UI), `pi-web-ui` (web components). Tagline: "There are many agent harnesses, but this one is yours."
+**Rule:** Before classifying a tool from its tagline or surface description, find its package list / monorepo structure. Pi looked like "just a multi-provider router" until I read the README's "Packages" table. Misclassifying a tool's category leads to bad evaluations and missed options.
+
+## 2026-05-04 01:13:22
+**Source:** internal-mistake
+**Lesson:** Initial Pi research summary missed OpenRouter from the explicit "API keys" provider list. I only spotted OpenRouter on second read, in the "Custom providers & models" section ("OpenRouter, Vercel AI Gateway, ZAI") and via `~/.pi/agent/models.json` mechanism. Almost recommended Pi with a caveat that "OpenRouter not directly supported".
+**Rule:** When a target capability (here: OpenRouter support) is absent from the headline list of a tool, scan the *full* readme — features often live in "Custom providers", "Extensions", "Advanced configuration" sections. Headline lists are curated for marketing brevity, not completeness.
