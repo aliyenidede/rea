@@ -74,7 +74,10 @@ From the first status-check research; reliable but not re-confirmed file-by-file
 6. `docker compose --profile cloud up -d` (drop `--profile with-db` if using SQLite default).
 7. First-run: create admin account → Settings → configure **Pi** assistant manually in `.archon/config.yaml` (wizard won't list it) → add OpenRouter API key.
 8. First end-to-end test: run a workflow from chat, confirm Pi + OpenRouter actually executes a tool call. (Watch for #1731 if using a brand-new model.)
-9. First real workflow: encode Principle A (grilling, codebase-aware) as YAML — copy an Archon default and customize, don't start blank.
+9. First real workflow: **don't start from a blank canvas.** Options (verified 2026-07-01):
+   - Copy one of the **~19 default workflows** shipped in `.archon/workflows/defaults/` (e.g. `archon-idea-to-pr`, `archon-plan-to-pr`, `archon-refactor-safely`) and customize.
+   - Or install from the **Archon workflow marketplace** ([archon.diy/workflows](https://archon.diy/workflows/), ~9 community workflows): `archon workflow install <slug>` (e.g. `archon-piv-loop`). NOTE: the `install` CLI command is not yet in the CLI docs/README (v0.5.0 doc lag) — medium confidence it works end-to-end; the shipped defaults are the reliable fallback.
+   - Or scaffold a new one with `archon-workflow-builder` (a workflow that generates workflow YAML) — a natural fit for encoding Principle A (grilling, codebase-aware).
 
 ---
 
