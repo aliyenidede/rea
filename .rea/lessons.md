@@ -199,3 +199,23 @@
 **Source:** internal-mistake
 **Lesson:** Initial Pi research summary missed OpenRouter from the explicit "API keys" provider list. I only spotted OpenRouter on second read, in the "Custom providers & models" section ("OpenRouter, Vercel AI Gateway, ZAI") and via `~/.pi/agent/models.json` mechanism. Almost recommended Pi with a caveat that "OpenRouter not directly supported".
 **Rule:** When a target capability (here: OpenRouter support) is absent from the headline list of a tool, scan the *full* readme — features often live in "Custom providers", "Extensions", "Advanced configuration" sections. Headline lists are curated for marketing brevity, not completeness.
+
+## 2026-07-01 13:13:00
+**Source:** user-correction
+**Lesson:** In my project recap I listed OpenCode as a "secondary runtime" in the same table as the settled Pi decision, giving a deferred/optional roadmap note equal visual weight to a committed decision. User pushed back: "İkincil runtime diye bişi yok sadece pi kullanmıyor muyuz? ben mi yanlış hatırlıyorum." — their mental model (just Pi) was more accurate than my recap. I then reframed OpenCode as an optional deferred note, and the user later locked Pi-only.
+**Rule:** When recapping project state, structurally separate committed/active decisions from deferred/optional/"maybe later" notes. Never present a deferred item in the same table or with the same weight as a settled decision — it inflates its apparent status and misrepresents the plan.
+
+## 2026-07-01 13:13:00
+**Source:** user-correction
+**Lesson:** After a ~2-month gap I presented the readev stack from stale memory as if current, without flagging staleness or verifying. User had to prompt: "Archonun son durumu kontrol edilmeli, çok zaman geçti." Live verification then found major drift: Pi renamed (`badlogic/pi-mono`→`earendil-works/pi`, `@mariozechner/*`→`@earendil-works/*`), OpenCode PR merged, Archon at v0.5.0, default branch changed to `dev`.
+**Rule:** When resuming a project after a significant time gap (weeks+), proactively flag that cached state may be stale AND verify fast-moving external dependencies (repo versions, PR/issue states, package names, default branches) BEFORE presenting them as current fact — don't wait to be told. The memory system-reminders already warn about this ("point-in-time observations, not live state").
+
+## 2026-07-01 13:13:00
+**Source:** internal-mistake
+**Lesson:** My first status briefing asserted "default port 3000 → 3090" as the new default. Byte-verification against `docker-compose.yml` + `Caddyfile.example` refuted it: the actual default is **3000**; the `.env.example` `# Default: 3090` comment is misleading (it's a commented-out override). I had propagated a first-pass research-agent claim — itself derived from that misleading in-repo comment — as fact.
+**Rule:** Separate first-pass research claims (which may rest on search snippets or misleading in-repo comments) from byte-verified facts. Before asserting a config value (port, env default) as fact, confirm against the authoritative file (docker-compose / Caddyfile), not a code comment — comments can lie. When a later verification pass contradicts an earlier claim, correct it explicitly to the user.
+
+## 2026-07-01 13:13:00
+**Source:** internal-mistake
+**Lesson:** Memory/docs carried stale PR/issue provenance: claimed Pi was "merged into Archon (#965)" and OpenCode was "deferred pending #1372/#1384." Verification showed #965 was a closed proposal *issue* (not the implementing PR), and #1384 had already merged. Both provenance claims were carried forward incorrectly from prior sessions.
+**Rule:** Treat PR/issue numbers stored in memory/docs as unverified pointers, not facts. Re-check their real state (open/closed/merged, issue vs PR) before repeating them as provenance in new docs. Prefer a verifiable source (e.g. the actual provider source dir) over a bare PR number when documenting how a feature landed.
