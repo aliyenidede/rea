@@ -219,3 +219,33 @@
 **Source:** internal-mistake
 **Lesson:** Memory/docs carried stale PR/issue provenance: claimed Pi was "merged into Archon (#965)" and OpenCode was "deferred pending #1372/#1384." Verification showed #965 was a closed proposal *issue* (not the implementing PR), and #1384 had already merged. Both provenance claims were carried forward incorrectly from prior sessions.
 **Rule:** Treat PR/issue numbers stored in memory/docs as unverified pointers, not facts. Re-check their real state (open/closed/merged, issue vs PR) before repeating them as provenance in new docs. Prefer a verifiable source (e.g. the actual provider source dir) over a bare PR number when documenting how a feature landed.
+
+## 2026-07-03 22:03:39
+**Source:** user-correction
+**Lesson:** User strongly rejected the AskUserQuestion tool after I used it to present an auth-method choice: "AskUserQuestion bi daha kullanılmasın git en global memorye not al ben nefret ediyorum o tooldan her projede anlatmaktan yoruldum." Changed: added a permanent rule to global CLAUDE.md and never used it again — plain-text numbered options instead.
+**Rule:** NEVER use AskUserQuestion (global, all projects). Ask via plain-text numbered options + a clear recommendation. See global CLAUDE.md "Tool Preferences".
+
+## 2026-07-03 22:03:39
+**Source:** user-correction
+**Lesson:** After I asked two low-stakes confirm questions (Sonnet 5 vs 4.6 — newer AND cheaper = obvious; qwen-plus vs qwen3-coder — trivial, UI-changeable), user pushed back: "niye böyle bir ek soru sordun ki". Changed: stopped asking, proceeded with sensible defaults and stated the pick.
+**Rule:** Don't ask to confirm low-stakes, reversible choices with an obvious default — pick it, state it in one line, proceed. Reserve questions for genuine, non-obvious, hard-to-reverse forks. (See memory `feedback_dont_over_ask`.)
+
+## 2026-07-03 22:03:39
+**Source:** discovery
+**Lesson:** Docker `env_file` changes do NOT take effect on `docker compose restart` OR plain `docker compose up -d` (container kept old env — GH_TOKEN stayed empty, verified). Only `docker compose up -d --force-recreate <svc>` reloads env vars. (Runtime FILES mounted in — config.yaml, models.json — DO update on a plain restart.)
+**Rule:** After editing `.env`/env_file: `docker compose up -d --force-recreate <svc>`, then verify the var is actually in the container (`docker compose exec svc sh -c 'env | grep -c VAR'`). Don't assume restart loaded it.
+
+## 2026-07-03 22:03:39
+**Source:** internal-mistake
+**Lesson:** Writing a file into a container via `docker compose exec -T app sh -c 'cat > file' <<'EOF'` INSIDE an outer `ssh 'bash -s' <<'REMOTE'` heredoc FAILS SILENTLY — `docker exec -T` grabs stdin and competes with the outer heredoc, nothing gets written, no error. Only caught by `cat`-ing the file back.
+**Rule:** Write files into a container via `docker compose cp <hostfile> svc:/path` or the volume mountpoint (`docker volume inspect <vol> -f '{{.Mountpoint}}'`) + chown. Avoid nested heredoc + `docker exec -T`. Always read the file back to confirm the write landed.
+
+## 2026-07-03 22:03:39
+**Source:** internal-mistake
+**Lesson:** A syntactically VALID JSON config can be silently rejected as a whole. Pi's `models.json` with a partial `cost` object (only input/output, missing cacheRead/cacheWrite) made the ENTIRE custom provider fail to load — `json.tool` said valid, no error logged, models just didn't appear. ~5 rounds to isolate by removing fields.
+**Rule:** JSON-valid ≠ accepted. When a config "loads" but has no effect, bisect fields against the tool's real schema and verify the OBSERVED effect (does the thing actually appear/work?), not just that the file parses.
+
+## 2026-07-03 22:03:39
+**Source:** discovery
+**Lesson:** The AI agent overclaims capabilities it lacks. Archon/Pi's agent told the user "Evet, web araştırması yapabilirim" but base Pi has NO web-search tool — only bash+curl a given URL. LLMs assert tool capabilities from training priors, not their actual runtime tool list.
+**Rule:** Verify an agent's ACTUAL tools (installed extensions/MCP, runtime tool list) before trusting a capability claim. For "can it do X", check the tools, not the model's self-description.
