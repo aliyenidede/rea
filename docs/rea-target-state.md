@@ -451,8 +451,9 @@ earlier sections, this section governs.
   - **rea-tools** — the methodology delivered *into* a host (VS Code, Claude Code, Codex, …). This is
     the design in §1–§8. Methodology-as-guest; steers via `AGENTS.md` + `.rea/`.
   - **rea-cli** (brand: **readev**) — the *same* methodology as its own standalone coding-agent CLI.
-    Engine deferred (fork an OSS agent vs. Claude-backed — *not* Archon/Pi/VPS, out of scope). A
-    **separate greenfield repo with its own plan** — not part of §8.
+    Engine = **oh-my-pi** (a batteries-included MIT fork of Pi), used as a **plugin/config layer, not a
+    hard fork** (see "rea-cli engine" below; Archon/Pi-self-host/VPS remain out of scope). A **separate
+    greenfield repo with its own plan** — not part of §8.
 - **`readev`** = the umbrella/brand over both (optional).
 - **Repos:** the current `rea` repo evolves into **rea-tools** (keeps history); rea-cli is greenfield
   and **vendors Layer 1** (principles + craft-checklist + `.rea/` schema) as a clean one-way
@@ -511,6 +512,32 @@ brand. Resolves the earlier `rea`-means-two-things collision: the mechanical ins
   (`<!-- rea-tools:start … end -->`); re-init replaces only the managed region, preserving user content.
   Gemini `settings.json` is a **structured read-modify-write merge** (add the required key, keep the
   rest). Ownership is tracked via the G1 manifest; `rea-tidy` reconciles later drift.
+
+### rea-cli engine — decided 2026-07-21 (verified)
+- **Engine = `oh-my-pi` (omp)** — a MIT, batteries-included rewrite/fork of Mario Zechner's Pi
+  (`can1357/oh-my-pi`). rea-cli is built as a **layer on omp, not a hard fork** — fork only if a core
+  behaviour the extension system genuinely can't reach appears. Rationale: omp already ships what rea-cli
+  would otherwise build — **web search (25-provider), parallel schema-validated subagents, deterministic
+  multi-subagent workflows**, LSP, debugger, browser, git ops — plus a full extension surface.
+- **How rea's surface ports (verified):** omp reads **markdown slash-commands** from
+  `.omp/commands/<name>.md` (project) / `~/.omp/agent/commands/` (user) — the *same*
+  markdown-prompt-as-command model as Claude Code's `.claude/commands/`, so rea's commands port ~1:1.
+  Behaviour steering ports via omp's **config-inheritance** (auto-reads Cursor/Cline/Copilot-style rule
+  files → the AGENTS.md class) + `system-prompt-customization`; sub-agents via `task-agent-discovery`; TS
+  extensions + MCP for anything tool-shaped. → the parked "command/agent portability" (§2/§6) is
+  **near-free for omp** — the same markdown files, not a re-authoring.
+- **So rea-cli = omp (engine) + rea-tools' methodology files** (AGENTS.md + `.rea/` + craft-checklist +
+  commands rendered to `.omp/commands/`) **+ Claude-sub-via-Agent-SDK provider config + branding.** It is
+  *packaging + config*, not a bespoke agent build — weeks, not months.
+- **Claude auth (verified, volatile):** the sanctioned way to use a Claude **subscription** in a
+  third-party agent is the **Claude Agent SDK** (Anthropic's official bridge; support.claude.com article
+  15036540), *not* a raw subscription OAuth token (that pattern — the OpenClaw case, which omp/Pi's
+  `/login` OAuth path resembles — was ToS-restricted Feb–Apr 2026). Personal/local use is fine. A metered
+  per-plan credit pool for programmatic use ($20/$100/$200) was announced for 2026-06-15 then **paused**;
+  Agent-SDK usage currently still draws on normal subscription limits, but metering may return → keep the
+  provider layer flexible (Agent-SDK-sub + API-key + other providers).
+- **Dependency risk:** omp is single-maintainer (like Orca); mitigated by MIT + Node-SDK-embeddable
+  (`@oh-my-pi/pi-coding-agent`) → fork if it dies.
 
 ### Deferred (per-component, decided when that component is planned)
 `rea-fix` escalation criterion · `rea-ship` solo/team detection · review-agent diff acquisition ·
