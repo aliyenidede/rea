@@ -63,10 +63,14 @@ asset is the product; the wiring is one adapter.
 - **Layer 1 is genuinely cross-tool now.** `AGENTS.md` + `.rea/` are plain files every major tool
   reads (verified — see [`researches/cross-cli-instruction-command-discovery.md`](researches/cross-cli-instruction-command-discovery.md)).
   So the **methodology, memory, and continuity** port.
-- **Layer 2 (the commands/agents) is Claude-only today.** Slash commands don't port; sub-agent
-  definitions differ per tool. Generating them per-tool (codegen vs thin shim) is **parked** until
-  a real cross-tool need appears. Until then, other tools get the discipline via `AGENTS.md`, not
-  the rituals.
+- **Layer 2 (the commands/agents) is more portable than first thought.** The command *content* is
+  tool-agnostic markdown; only *where* it is placed is tool-specific. Verified 2026-07-21: Claude reads
+  `.claude/commands/*.md` and oh-my-pi reads `.omp/commands/*.md` with the **same
+  markdown-prompt-as-command model**, and both read `AGENTS.md`-class rule files (omp via
+  config-inheritance). So for markdown-command tools the rituals port ~1:1 — the same files in a
+  different folder + thin shims, not a per-tool rewrite. Tools *without* a markdown-command mechanism
+  still get the discipline via `AGENTS.md` only. (Supersedes the earlier "Layer 2 is Claude-only,
+  porting parked" framing; see §9's rea-cli-engine note.)
 
 **Cross-tool continuity (the real test of "cross"):** because all durable state lives in Layer-1
 files, you can be mid-work in Claude, open Codex, and *continue* — it reads `AGENTS.md` (behaviour +
