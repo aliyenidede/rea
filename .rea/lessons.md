@@ -249,3 +249,33 @@
 **Source:** discovery
 **Lesson:** The AI agent overclaims capabilities it lacks. Archon/Pi's agent told the user "Evet, web araştırması yapabilirim" but base Pi has NO web-search tool — only bash+curl a given URL. LLMs assert tool capabilities from training priors, not their actual runtime tool list.
 **Rule:** Verify an agent's ACTUAL tools (installed extensions/MCP, runtime tool list) before trusting a capability claim. For "can it do X", check the tools, not the model's self-description.
+
+## 2026-07-22 01:31:24
+**Source:** user-correction
+**Lesson:** I invented extra product/package names (`rea-core`, `@readev/core`, `packages/` scope) and kept surfacing them as decisions; the user was confused and frustrated — verbatim: "arkadaşım ne dediğin anlaşılmıyor ben isimleri sana söyledim. rea-tools ve rea-cli, sen şuan bunun çekirdeğini mi yapıyosun bilmiyorum. benim kafamı yorma". Afterwards I stopped inventing names, used only rea-tools + rea-cli, and demoted `core/` to a plain folder handled silently.
+**Rule:** Use the names the user set. Don't invent product/package names or surface premature structural naming as user decisions — decide mechanical details silently and keep the user on substance.
+
+## 2026-07-22 01:31:24
+**Source:** user-correction
+**Lesson:** I proposed a hook-based capture-reliability mechanism (G4); user rejected it — verbatim: "yok bu olduğu gibi kalsın bu kararı hatırlıyorum, hook vb ekleyince mesela ai durmadan senin planını reaplan ile yapalım diyor yada sormadan plana geçiyor falan gibi sorunlar yaşattı". I reverted; capture stays a pure prompt reflex, no hooks.
+**Rule:** Don't propose loop-injecting hooks (SessionStart/Stop reminders) as a reliability mechanism here — they cause intrusive over-triggering. Prefer prompt reflexes + command-embedded steps.
+
+## 2026-07-22 01:31:24
+**Source:** user-correction
+**Lesson:** Mid gap-closure pass I spun off a broad 2-subagent prior-art research fan-out; the user felt it was a drift — "sorun bu dedin ama biz şuan farklı bir yere yöneldik? neden peki" and "sonrakine geçelim ... kafamız dağılmasın". I stopped the research and returned to the disciplined one-gap-at-a-time present→recommend→confirm rhythm.
+**Rule:** In a structured step-by-step pass, don't spin off tangential research mid-step. Keep the crisp rhythm; research only when the user asks or the step genuinely requires it.
+
+## 2026-07-22 01:31:24
+**Source:** user-correction
+**Lesson:** I reintroduced the superseded "Claude adapter" (Layer-2 Claude-only) framing; user corrected — "claude adapter diye bişi olmayacak diye konuştuk tüm cli lara entegra olsun dedik o konuştuklarımız kayıp mı oldu". I corrected the framing (command content is shared markdown; only placement is tool-specific) and fixed rea-target-state §2.
+**Rule:** Don't reintroduce framings that a later finding superseded. Per the oh-my-pi finding, commands port ~1:1 as shared markdown; there is no fat per-tool adapter, only thin placement. Keep design docs consistent with the latest decisions.
+
+## 2026-07-22 01:31:24
+**Source:** discovery
+**Lesson:** oh-my-pi (can1357/oh-my-pi, MIT Pi fork) already ships web search (25-provider), parallel schema-validated subagents, multi-subagent workflows, AND reads markdown slash-commands (`.omp/commands/*.md`, same model as Claude Code) + config-inheritance for AGENTS.md-class files + a TS plugin system + Node SDK. Detail in docs/rea-roadmap.md §7.
+**Rule:** rea-cli = oh-my-pi as a plugin/config LAYER, not a hard fork. Don't rebuild what omp already provides; the parked command-portability is near-free for omp.
+
+## 2026-07-22 01:31:24
+**Source:** discovery
+**Lesson:** Claude subscription auth for third-party agents is volatile: raw subscription OAuth was ToS-restricted (Feb-Apr 2026); the Agent SDK is the sanctioned path; personal use is fine; a metered credit pool (2026-06-15) was announced then paused. Detail in reference memory + roadmap §7.
+**Rule:** For rea-cli's Claude-subscription support use the Agent SDK, not raw OAuth. Re-verify before relying; keep the provider layer flexible.

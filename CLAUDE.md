@@ -4,6 +4,8 @@
 
 A portable CLI toolkit that bootstraps a structured Claude Code workflow (slash commands, CI, branch strategy, plan system) into any project. The CLI is mechanical — it copies files. All intelligence runs through Claude.
 
+> **Redesign in progress (2026-07):** a full principle-derived, cross-tool redesign is planned — two products (**rea-tools** methodology + **rea-cli** agent). Master plan: [docs/rea-roadmap.md](docs/rea-roadmap.md); rea-tools design: [docs/rea-target-state.md](docs/rea-target-state.md). The shipped v0.7.1 set described below is being superseded phase by phase — **not yet implemented** (work on branch `feature/rea-redesign`).
+
 ## Tech Stack
 
 - Python 3.11+
