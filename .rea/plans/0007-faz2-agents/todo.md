@@ -9,7 +9,7 @@
 
 ## Todo
 
-- [ ] NEXT: Author `templates/agents/code-reviewer.md` (edit-heavy · F, C)
+- [x] Author `templates/agents/code-reviewer.md` (edit-heavy · F, C)
       Files: `templates/agents/code-reviewer.md`
       1. Carry forward legacy `rea/templates/.claude/agents/code-reviewer.md` (frontmatter verbatim: model sonnet).
       2. Add principle tag `F, C` near the top.
@@ -22,7 +22,7 @@
       not inlined); states CC-NN citation is mandatory for craft findings; has a test-quality check; no
       `Claude`/`.claude`/`/rea-` in the body; model still sonnet.
 
-- [ ] Author `templates/agents/plan-reviewer.md` (edit-heavy · A, B, C)
+- [x] Author `templates/agents/plan-reviewer.md` (edit-heavy · A, B, C)
       Files: `templates/agents/plan-reviewer.md`
       1. Carry forward legacy plan-reviewer (frontmatter verbatim: model sonnet).
       2. Add principle tag `A, B, C`.
@@ -35,7 +35,7 @@
       with CC-NN tagging of craft findings; has a mandatory pre-mortem step gating PASS; keeps PASS/REVISE;
       body tool-agnostic; model sonnet.
 
-- [ ] Author `templates/agents/plan-validator.md` (edit-heavy · B, J, L)
+- [x] Author `templates/agents/plan-validator.md` (edit-heavy · B, J, L)
       Files: `templates/agents/plan-validator.md`
       1. Carry forward legacy plan-validator (frontmatter verbatim: model sonnet).
       2. Add principle tag `B, J, L`.
@@ -53,7 +53,7 @@
       generic `AGENTS.md` (no hardcoded Claude filename); NO reliance on a `NEXT:` pointer; still globs the
       real project structure; body tool-agnostic; model sonnet.
 
-- [ ] Author `templates/agents/dispatcher.md` (edit-heavy · I, H)
+- [x] Author `templates/agents/dispatcher.md` (edit-heavy · I, H)
       Files: `templates/agents/dispatcher.md`
       1. Carry forward legacy dispatcher (frontmatter verbatim: model sonnet).
       2. Add principle tag `I, H`.
@@ -70,7 +70,7 @@
       from todo.md `Files:`; groups by physical file conflict; UNKNOWN→serial preserved; no whole-schedule
       language; body tool-agnostic; model sonnet.
 
-- [ ] Author `templates/agents/implementer.md` (edit-heavy · D, E, H)
+- [x] Author `templates/agents/implementer.md` (edit-heavy · D, E, H)
       Files: `templates/agents/implementer.md`
       1. Carry forward legacy implementer (frontmatter verbatim: model sonnet).
       2. Add principle tag `D, E, H`.
@@ -88,7 +88,7 @@
       suite; keeps the max-2-retries/BLOCKED discipline; TDD default-on (low-risk no longer auto-exempt;
       skip only with a stated untestable reason); body tool-agnostic; model sonnet.
 
-- [ ] Author the two light read/spec agents
+- [x] Author the two light read/spec agents
       Files: `templates/agents/explorer.md`, `templates/agents/spec-reviewer.md`
       1. explorer: carry forward (model haiku verbatim); add principle tag `A, J`; keep/strengthen
          "documentarian, not a critic"; keep read-only phases; no other change.
@@ -98,7 +98,7 @@
       Test: both files exist; explorer has `A, J` + "documentarian" framing + model haiku; spec-reviewer
       has `K` + the QA-checkpoint line + model sonnet; bodies tool-agnostic.
 
-- [ ] Author the three light scan/debug agents
+- [x] Author the three light scan/debug agents
       Files: `templates/agents/bug-scanner.md`, `templates/agents/security-scanner.md`,
       `templates/agents/debugger.md`
       1. bug-scanner: carry forward (model sonnet); add principle tag `D`; no methodology change.
@@ -109,7 +109,7 @@
       Test: all three exist with their tags (`D`, `D`, `L`); debugger states the "if testable" reason
       rule; scanners' methodologies unchanged; models sonnet; bodies tool-agnostic.
 
-- [ ] Create `templates/agents/README.md`
+- [x] Create `templates/agents/README.md`
       Files: `templates/agents/README.md`
       1. 2–5 lines: what `templates/agents/` is — the redesigned REA sub-agent building blocks (source of
          truth), tool-agnostic; the Phase-4 npx installer places them into each host tool's agent folder;
@@ -118,7 +118,7 @@
       Test: file exists; explains the dir's purpose + who places it; mentions the parked per-tool-format
       note; links roadmap §4.
 
-- [ ] Doc-sync: templates README + project CLAUDE.md + roadmap status
+- [x] Doc-sync: templates README + project CLAUDE.md + roadmap status
       Files: `templates/README.md`, `CLAUDE.md`, `docs/rea-roadmap.md`
       1. `templates/README.md`: add the `agents/` subdir (redesigned agent set) to the tree description.
       2. `CLAUDE.md`: one line under File Structure for `templates/agents/` (redesign-era agent sources);

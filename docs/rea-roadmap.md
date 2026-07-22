@@ -102,7 +102,9 @@ CI green (22 passed, ruff clean). **Plan:** `.rea/plans/0006-faz1-agents-shims/`
 **Carries:** G4, §4 write-filter behaviour, the AGENTS.md-standards cross-tool win. **Behaviour side of
 cross-platform.**
 
-### Phase 2 — Agents (edit + partial delete) ⬜
+### Phase 2 — Agents (edit + partial delete) ✅
+**Status:** done 2026-07-22 — executed via `/rea-execute`; all agent files authored into `templates/agents/`;
+spec reviews PASS; CI green (22 passed, ruff clean). **Plan:** `.rea/plans/0007-faz2-agents/`.
 **Delivers** (sub-agent building blocks):
 - `explorer` (read-only fact-finder), `implementer` (TDD + scoped feedback-gate)
 - review — 4 focused parallel agents: `spec-reviewer` (intent → feeds human K), `code-reviewer`
@@ -167,10 +169,10 @@ _All 2026-07-21 closures (rea-target-state §9). "Where" = which phase implement
 | D1 | Distribution = `npx`, drop PyPI | Phase 4 |
 | D2 | Names: rea-tools + rea-cli (readev umbrella) | all / naming |
 | G1 | Manifest-based obsolete-file prune + retired list | Phase 4 |
-| G2 | plan.md/todo.md schema (unit-id join, single-location fields) | Phase 0 ✅ (spec, `core/rea-schema.md`) → Phase 3 (used) |
-| G3 | Retire scalar NEXT → computed frontier + status re-verify | Phase 0 ✅ (spec, `core/rea-schema.md`) → Phase 3 (used) |
+| G2 | plan.md/todo.md schema (unit-id join, single-location fields) | Phase 0 ✅ (spec, `core/rea-schema.md`) → Phase 2 ✅ (plan-validator / dispatcher / implementer reference it) → Phase 3 (used) |
+| G3 | Retire scalar NEXT → computed frontier + status re-verify | Phase 0 ✅ (spec, `core/rea-schema.md`) → Phase 2 ✅ (plan-validator / dispatcher / implementer reference it) → Phase 3 (used) |
 | G4 | capture = pure `AGENTS.md` reflex, **no hooks** (deliberate) | Phase 1 |
-| G5 | single short craft-checklist + mandatory citation | Phase 0 ✅ (written, `core/craft-checklist.md`) → Phase 2 (wire) |
+| G5 | single short craft-checklist + mandatory citation | Phase 0 ✅ (written, `core/craft-checklist.md`) → Phase 2 ✅ (wired into code-reviewer / plan-reviewer) |
 | G6a | `NNNN-slug` numbering, slug-unique, no central index | Phase 0 ✅ (spec, `core/rea-schema.md`) |
 | G6b | shim managed-markers + JSON merge, never blind-overwrite | Phase 0 ✅ (spec, `core/rea-schema.md`) → Phase 4 (impl) |
 
