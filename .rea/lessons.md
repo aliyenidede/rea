@@ -309,3 +309,28 @@
 **Source:** discovery
 **Lesson:** The content-vs-code `rea-execute` mismatch (first logged 2026-07-22 03:40:33 during Faz 0) RECURRED in Faz 1 — the same repeated per-implementer guardrail boilerplate ("content/docs, no TDD, no code-tests, don't commit, tool-agnostic, don't invent names"). Two confirmed occurrences; the guardrail set is now stable.
 **Rule:** Confirmed recurring: until a content-authoring execute mode exists, every redesign content phase reuses the SAME implementer framing block — pass it verbatim. This is a concrete candidate for the roadmap's deferred "prompt-level testing/eval strategy" gap; worth a dedicated content-execute path when Phase 3 rewrites the commands.
+
+## 2026-07-22 06:33:20
+**Source:** user-correction
+**Lesson:** Planning Faz 2, I recommended writing the redesigned agents to `templates/.claude/agents/`. The user pushed back, frustrated at repeating themselves — verbatim: "niye claude agents yazıyoruz? cross platform olucak dedik ben niye kendimi tekrarlıyorum sana durmadan?". I reversed to a neutral `templates/agents/` source and captured a memory.
+**Rule:** In the REA redesign, agent/command SOURCE files are tool-agnostic content under `core/`/`templates/`; per-tool placement (`.claude/`, `.omp/`) is the Phase-4 installer's job. Never recommend a `.claude/` path as a source location — it conflates content with placement, the exact anti-pattern the redesign corrects. (See memory `feedback_cross_platform_placement`.)
+
+## 2026-07-22 06:33:20
+**Source:** user-correction
+**Lesson:** I described the redesign as "full uyumlu / cross-platform" flatly; the user challenged it — "gemini ve codex ile ilgili olan sorun ne tam olarak? hani full uyumluydu herşey?". I had to scope the claim: the METHODOLOGY layer (AGENTS.md + `.rea/`) is genuinely cross-tool, but the executable skill-files are not — Gemini commands are TOML-only, Codex subagents are TOML, and per-tool skill-file porting is parked (roadmap §6).
+**Rule:** Don't claim "full cross-platform" flatly. State it per layer: methodology/instructions port to every tool now; command/agent skill-FILES are first-class only on the markdown tools (Claude + oh-my-pi) and parked for TOML tools (Gemini/Codex). Precision here is anti-sycophantic, not pedantic.
+
+## 2026-07-22 06:33:20
+**Source:** internal-mistake
+**Lesson:** In the Faz 2 plan I used `NNNN-slug` as the per-unit plan↔todo join key. plan-validator caught it: `core/rea-schema.md` defines the per-unit join key as `U<n>` (heading `### U<n> — <title>`); `NNNN-slug` is the `plans/`/`decisions/` DIRECTORY numbering (G6a), a different level. I verified against the schema and fixed all six occurrences.
+**Rule:** Two distinct ids in `core/rea-schema.md`: `U<n>` = the per-unit join key between one plan's `plan.md` and `todo.md`; `NNNN-slug` = the plan/decision DIRECTORY name. Don't conflate them when writing anything that references the schema.
+
+## 2026-07-22 06:33:20
+**Source:** discovery
+**Lesson:** plan-reviewer found that under the new schema `plan.md` is dependency-graph only (`Unit | Title | Depends on`) — it carries NO file paths; every unit's `Files:` lives in `todo.md`. The legacy `plan-validator` and `dispatcher` both extract their file inventory "from plan.md", which is now permanently empty. Two schema-critical agents would have been authored against a dead source.
+**Rule:** When redesigning agents for the new `.rea/` schema, file paths come from `todo.md`'s `Files:` field, not `plan.md`. Any agent that needs a per-unit file list (placement checks, file-conflict grouping) must read `todo.md`, and grep only as a fallback.
+
+## 2026-07-22 06:33:20
+**Source:** discovery
+**Lesson:** The user's question about Decision 9 ("bu bir ihtimalde olsa bazı şeylerde test yazılmayacağı anlamına mı geliyor") surfaced a real tension: making implementer TDD unconditional collides with code-reviewer's new no-tautological-test check — a genuinely untestable change (pure type/rename/comment) would be forced to grow a fake test. I refined Decision 9 to a "default-on with a stated-reason escape" (mirroring debugger's "(if testable)").
+**Rule:** "Always write a test" and "no tautological tests" must be reconciled: default is a real test; skipping is allowed ONLY when genuinely untestable AND with an explicit stated reason (never silently, never a fake test). A user's clarifying question can expose a plan inconsistency the review agents missed — treat it as a review signal.
