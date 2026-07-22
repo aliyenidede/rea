@@ -149,7 +149,7 @@
       Test: file exists; writes only to `.rea/sessions/` in the timestamped format; does NOT commit (suggests
       only); no `lessons.md`/`CLAUDE.md`/native-memory writes; suggests-not-forces; body tool-agnostic.
 
-- [ ] NEXT: Author `templates/commands/rea-tidy.md` (new · F)
+- [x] Author `templates/commands/rea-tidy.md` (new · F)
       Files: `templates/commands/rea-tidy.md`
       1. New command; add principle tag `F`; minimal frontmatter. User-invoked; dry-run report (`--check`) →
          human approval → fix. Reconciliation is done INLINE in the command's own agent — no dedicated
@@ -166,7 +166,7 @@
       rules) done inline (no new sub-agent); respects managed markers (never blind-overwrite); states the
       `rea verify` CLI-verb boundary; body tool-agnostic.
 
-- [ ] Author `templates/commands/rea-init.md` (edit — tiered · L)
+- [x] Author `templates/commands/rea-init.md` (edit — tiered · L)
       Files: `templates/commands/rea-init.md`
       1. Carry forward legacy `rea/templates/.claude/commands/rea-init.md`; add principle tag `L`; minimal
          frontmatter. The intelligent, tiered bootstrap ritual.
@@ -188,7 +188,7 @@
       shims written inside managed markers; no SessionStart-hook/`rea-router`; no PyPI; states the Phase-4
       installer boundary; body tool-agnostic.
 
-- [ ] Author `templates/commands/rea-write-skill.md` + move `templates/agents/skill-writer.md` (utility · C, L)
+- [x] Author `templates/commands/rea-write-skill.md` + move `templates/agents/skill-writer.md` (utility · C, L)
       Files: `templates/commands/rea-write-skill.md`, `templates/agents/skill-writer.md`,
       `templates/agents/skill-writer-patterns.md` (if skill-writer references it)
       1. rea-write-skill command: carry forward legacy `rea/templates/.claude/commands/rea-write-skill.md`;
@@ -209,7 +209,7 @@
       keeps `model: sonnet`; the patterns doc (if referenced) is carried to `templates/agents/skill-writer-patterns.md`
       (not the legacy `.claude/` path); bodies have no `.claude`/`/rea-` strings.
 
-- [ ] Create `templates/commands/README.md`
+- [x] Create `templates/commands/README.md`
       Files: `templates/commands/README.md`
       1. 2–5 lines: what `templates/commands/` is — the redesigned REA command set (source of truth),
          tool-agnostic; the Phase-4 npx installer places them into each host tool's command folder
@@ -219,7 +219,7 @@
       Test: file exists; explains the dir's purpose + who places it (Phase 4) + the parked per-tool-format
       note; links roadmap §4; no host-tool-specific source-path claim.
 
-- [ ] Doc-sync: templates README + project CLAUDE.md + roadmap status
+- [x] Doc-sync: templates README + project CLAUDE.md + roadmap status
       Files: `templates/README.md`, `CLAUDE.md`, `docs/rea-roadmap.md`
       1. `templates/README.md`: add the `commands/` subdir (redesigned command set) + a `commands/README.md`
          note, mirroring the `agents/` entry.

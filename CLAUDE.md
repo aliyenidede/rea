@@ -89,4 +89,5 @@ pyproject.toml
 core/                            # tool-agnostic shared foundation (principles, craft-checklist, rea-schema) — full CLAUDE.md rewrite deferred to a later phase
 templates/                       # redesign-era install artifacts (AGENTS.md + per-tool shims + .rea/ scaffold) the future npx installer places into a host project — legacy rea/templates/ (Python-CLI Claude templates) is unchanged
 templates/agents/                # redesign-era agent sources (tool-agnostic; Phase-4 installer places them per-tool) — legacy rea/templates/.claude/agents/ tree is unchanged
+templates/commands/              # redesign-era command sources (tool-agnostic; Phase-4 installer places them per-tool) — legacy rea/templates/.claude/commands/ tree is unchanged
 ```

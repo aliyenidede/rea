@@ -114,7 +114,10 @@ spec reviews PASS; CI green (22 passed, ruff clean). **Plan:** `.rea/plans/0007-
   (physical file-conflict grouping for parallel fan-out)
 - **Drop `rea-router`.** Wire the craft-checklist into `code-reviewer` / `plan-reviewer`.
 
-### Phase 3 — Commands (the main skill delete + rewrite) ⬜
+### Phase 3 — Commands (the main skill delete + rewrite) ✅
+**Status:** done 2026-07-22 — executed via `/rea-execute`; all 9 command files + moved `skill-writer`
+agent + `templates/commands/README.md` authored, spec + code reviews PASS, CI green (22 passed, ruff
+clean). **Plan:** `.rea/plans/0008-faz3-commands/`.
 Pipeline: `talk` (behaviour, not a command) → `rea-grill` → `rea-plan` → `rea-execute` → `rea-ship` →
 `rea-wrap`; bypass `rea-fix`; reconcile `rea-tidy`; bootstrap `rea-init`.
 - `rea-init` — tiered (quick = no GitHub, ~1–2 min; `--full` adds CI + branch protection)
@@ -131,9 +134,12 @@ Pipeline: `talk` (behaviour, not a command) → `rea-grill` → `rea-plan` → `
   review → ship → capture; **escalates** to the full path if scope grows
 - `rea-wrap` — light `.rea/`-only session summary; does not commit, no heavy dedup
 - `rea-tidy` — reconcile memory + shims + rules; dry-run report → human approval → fix
+- `rea-write-skill` — utility: author a new agent/command via the `skill-writer` agent (moved into
+  `templates/agents/`)
 
 **Replaces the old set:** `rea-brainstorm` → `talk` + `rea-grill` · `rea-commit` → `rea-ship` · drop
-`rea-worktree` · `rea-verify` → CLI verb.
+`rea-worktree` · `rea-verify` → CLI verb · `rea-update` → utility, pip/PyPI path obsolete under npx
+(D1), out of the Phase-3 nine.
 
 ### Phase 4 — npx installer + cross-platform placement + tests ⬜
 **Delivers:**
@@ -169,8 +175,8 @@ _All 2026-07-21 closures (rea-target-state §9). "Where" = which phase implement
 | D1 | Distribution = `npx`, drop PyPI | Phase 4 |
 | D2 | Names: rea-tools + rea-cli (readev umbrella) | all / naming |
 | G1 | Manifest-based obsolete-file prune + retired list | Phase 4 |
-| G2 | plan.md/todo.md schema (unit-id join, single-location fields) | Phase 0 ✅ (spec, `core/rea-schema.md`) → Phase 2 ✅ (plan-validator / dispatcher / implementer reference it) → Phase 3 (used) |
-| G3 | Retire scalar NEXT → computed frontier + status re-verify | Phase 0 ✅ (spec, `core/rea-schema.md`) → Phase 2 ✅ (plan-validator / dispatcher / implementer reference it) → Phase 3 (used) |
+| G2 | plan.md/todo.md schema (unit-id join, single-location fields) | Phase 0 ✅ (spec, `core/rea-schema.md`) → Phase 2 ✅ (plan-validator / dispatcher / implementer reference it) → Phase 3 ✅ (used by `rea-plan`'s spec/plan/todo authoring and `rea-execute`'s frontier computation) |
+| G3 | Retire scalar NEXT → computed frontier + status re-verify | Phase 0 ✅ (spec, `core/rea-schema.md`) → Phase 2 ✅ (plan-validator / dispatcher / implementer reference it) → Phase 3 ✅ (used — `rea-execute` computes the frontier from `Status:`/`Depends on`, retiring the `NEXT:` scan) |
 | G4 | capture = pure `AGENTS.md` reflex, **no hooks** (deliberate) | Phase 1 |
 | G5 | single short craft-checklist + mandatory citation | Phase 0 ✅ (written, `core/craft-checklist.md`) → Phase 2 ✅ (wired into code-reviewer / plan-reviewer) |
 | G6a | `NNNN-slug` numbering, slug-unique, no central index | Phase 0 ✅ (spec, `core/rea-schema.md`) |
@@ -275,13 +281,34 @@ _From `open-source-roadmap.md`. Goal: a stranger can **find it, get why it matte
 ## 9. Deferred / per-component decisions
 
 Resolved when their component is built (not blocking):
-- `rea-fix` escalation criterion (when a "small fix" becomes real work)
-- `rea-ship` solo/team detection method
-- review-agent diff acquisition (which commit range each review sees)
-- tiered-test tooling for non-Python projects (pytest-testmon is Python-only)
-- a prompt-level testing / eval strategy (the whole redesign is prompt content)
+- `rea-fix` escalation criterion (when a "small fix" becomes real work) — **decided in 0008** (Phase 3):
+  stop + return to the normal path on ANY of {>~3 files; an arch/design (J/K) decision; >1 vertical
+  slice/module; `debugger` 3-attempt escalation; >1 smart-zone}
+- `rea-ship` solo/team detection method — **decided in 0008** (Phase 3): mechanical — team if >1 distinct
+  committer over a defined window (`git shortlog -sne`, last ~50 commits / ~90 days) OR branch
+  protection requires reviews OR `CODEOWNERS` exists; else solo
+- review-agent diff acquisition (which commit range each review sees) — **decided in 0008** (Phase 3):
+  record `HEAD` before a batch; pass each fresh review agent `<pre-batch-sha>..HEAD` + the union of the
+  batch `Files:`
+- tiered-test tooling for non-Python projects (pytest-testmon is Python-only) — **decided in 0008**
+  (Phase 3): read test + lint commands generically from `AGENTS.md`/project rules; language-appropriate
+  affected-test selector where one exists, else full-suite fallback
+- a prompt-level testing / eval strategy (the whole redesign is prompt content) — **decided in 0008**
+  (Phase 3): documentation-style structural acceptance checks (each todo `Test:` line reads an assertion
+  off the authored file); a real command-eval harness stays deferred
 - a redesign success metric + rollback plan
 - Obsidian frontmatter (Properties/Dataview) — after the plain wikilink graph
+
+**Carry-forward debt (from P1/P2 — Phase 4 must address):**
+- **`core/` placement assumption (Faz 1)** — the host-project `core/` location that `AGENTS.md` and the
+  agents' `core/…` pointers rest on is a *provisional* Phase-1 assumption
+  (`.rea/plans/0006-faz1-agents-shims/spec.md` "Placement contract for Phase 4"). Phase 4's installer must
+  vendor the `core/` trio at the host root, or rewrite every root-relative `core/…` reference if it
+  relocates them.
+- **Long-agent prompt-length refactor (Faz 2)** — several carried-forward agents exceed the ~100-line
+  "curse of instructions" guideline; Faz 2 kept them verbatim to preserve battle-tested content
+  (`.rea/plans/0007-faz2-agents/plan.md` Decision 6, out of scope). Revisit as a dedicated trim pass, not
+  during a carry-forward.
 
 ---
 
