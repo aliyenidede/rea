@@ -279,3 +279,18 @@
 **Source:** discovery
 **Lesson:** Claude subscription auth for third-party agents is volatile: raw subscription OAuth was ToS-restricted (Feb-Apr 2026); the Agent SDK is the sanctioned path; personal use is fine; a metered credit pool (2026-06-15) was announced then paused. Detail in reference memory + roadmap §7.
 **Rule:** For rea-cli's Claude-subscription support use the Agent SDK, not raw OAuth. Re-verify before relying; keep the provider layer flexible.
+
+## 2026-07-22 03:40:33
+**Source:** user-correction
+**Lesson:** After the user said "sanırım planı exec edebiliriz" I started hand-authoring the Faz 0 `core/` files directly. The user interrupted, reverted my files, and invoked the `/rea-execute` slash command: verbatim — "sana yap demedim kodu geri aldım şimdi rea execute ile yapacaksın." I switched from manual authoring to the `/rea-execute` command flow (dispatcher → implementer → spec/code review → CI gate) and completed all 6 items that way.
+**Rule:** In a REA project that has an approved plan AND a `/rea-execute` command, "exec/execute the plan" means run `/rea-execute` — do NOT substitute hand-authoring the files yourself. The pipeline (parallel dispatch + fresh-context review) is the point; my authoring the artifacts inline bypasses it.
+
+## 2026-07-22 03:40:33
+**Source:** discovery
+**Lesson:** During `/rea-execute` a parallel batch, the `implementer` agent's own prompt ends with a "Commit" step — but launching several implementers concurrently would race on the single `.git/index`, and the rea-execute command itself defers version control to Step 4 (`/rea-commit`). I instructed each implementer explicitly NOT to run git / commit; the orchestrator handled commits later.
+**Rule:** When fanning out parallel `implementer` sub-agents in one working tree, tell them not to commit (defer all version control to the orchestrator / `/rea-commit`). Concurrent sub-agent commits corrupt/interleave the git index.
+
+## 2026-07-22 03:40:33
+**Source:** discovery
+**Lesson:** Faz 0 was pure content authoring (markdown docs), but `rea-execute` is code-oriented: `implementer` is TDD-framed and the CI gate runs `pytest`+`ruff`, which are irrelevant to markdown changes (they only confirmed the Python CLI still passed). The implementer's low-risk path handled docs fine, but I had to repeat the same guardrails ("this is content, no TDD, don't commit, tool-agnostic, don't invent names") to every sub-agent.
+**Rule:** The redesign is mostly prose/prompt content, and `rea-execute`'s TDD+pytest/ruff assumptions don't fit it — this is the roadmap's deferred "prompt-level testing/eval strategy" gap. Until a content-authoring execute mode / doc-review lens exists, pass content-authoring implementers explicit "docs, no TDD/code-tests" framing and treat the CI gate as a "didn't break the repo" safety net, not a content check.
