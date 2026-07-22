@@ -86,4 +86,5 @@ rea/
 tests/
 docs/
 pyproject.toml
+core/                            # tool-agnostic shared foundation (principles, craft-checklist, rea-schema) — full CLAUDE.md rewrite deferred to a later phase
 ```

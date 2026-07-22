@@ -5,6 +5,8 @@ A portable development toolkit that bootstraps a structured Claude Code workflow
 ![CI](https://github.com/aliyenidede/rea/actions/workflows/ci.yml/badge.svg)
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 
+> **Shared foundation (`core/`):** a redesign is underway — `core/` holds the tool-agnostic foundation (principles, craft checklist, schema) shared by both the future rea-tools and rea-cli products. See [docs/rea-target-state.md](docs/rea-target-state.md) §9.
+
 ```bash
 pip install rea-dev
 rea setup <project>          # copies slash commands + agents + creates .rea/ dirs

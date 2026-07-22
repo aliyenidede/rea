@@ -2,13 +2,13 @@
 
 ## Todo
 
-- [ ] NEXT: Create `core/README.md`
+- [x] Create `core/README.md`
       1. State: `core/` is the shared, tool-agnostic foundation used by BOTH rea-tools and rea-cli.
       2. List the three files and what each is (principles, craft-checklist, rea-schema).
       3. Note: npm/publishing wrapper + version pinning come in a later phase.
       Test: README names all three files and states the "shared by both, one source of truth" purpose.
 
-- [ ] Create `core/principles.md` + truncate `docs/principles.md` to a pointer
+- [x] Create `core/principles.md` + truncate `docs/principles.md` to a pointer
       1. Copy the 12 principles (A–L) as **pure principle statements** — strip the stale `→ REA:`
          skill-mapping lines and the now-false "Gap" note (tool-agnostic, no dropped-command refs).
       2. Truncate `docs/principles.md` to a short pointer note ("Canonical: core/principles.md;
@@ -16,14 +16,14 @@
       Test: A–L all present in `core/principles.md`, no `→ REA:`/Gap lines; `docs/principles.md` is
       just the pointer.
 
-- [ ] Create `core/craft-checklist.md`
+- [x] Create `core/craft-checklist.md`
       1. Short curated checklist: deep-vs-shallow module, code smells, naming, real error handling,
          right abstraction.
       2. Each item gets a stable tag id `CC-01`, `CC-02`, … so review agents cite it.
       3. Keep it short (grow later if too thin).
       Test: every item has a unique `CC-NN` tag; ≤ ~12 items.
 
-- [ ] Create `core/rea-schema.md` part 1 — layout, notes, plan/todo, status
+- [x] Create `core/rea-schema.md` part 1 — layout, notes, plan/todo, status
       1. Directory layout (knowledge / decisions / sessions / plans).
       2. Per-note-type naming/collision (§4): knowledge update-in-place + collision-guard; decisions
          numbered append-only; sessions timestamped.
@@ -36,7 +36,7 @@
       Test: contains layout + plan.md template + todo.md unit template + status list + frontier rule +
       schema-version.
 
-- [ ] Create `core/rea-schema.md` part 2 — numbering, shims, capture, wikilinks, versioning
+- [x] Create `core/rea-schema.md` part 2 — numbering, shims, capture, wikilinks, versioning
       1. Numbering (G6a): NNNN-slug, slug-unique, no central index, duplicates cosmetic.
       2. Shim write semantics (G6b): markdown managed-markers; JSON structured merge; never blind-overwrite.
          (Note in the doc's intro that it also covers this root-file shim contract, not just `.rea/`.)
@@ -48,7 +48,7 @@
       5. Version bump policy: minor on field/rule additions, major on breaking rename/removal.
       Test: all sections present; capture shows fields but forward-points the filter; bump policy stated.
 
-- [ ] Doc-sync: repo `README.md` + `CLAUDE.md`
+- [x] Doc-sync: repo `README.md` + `CLAUDE.md`
       1. `README.md`: short note that `core/` is the shared foundation; pointer to `rea-target-state.md` §9.
       2. `CLAUDE.md`: one line under File Structure noting `core/` holds the tool-agnostic foundation
          (full rewrite later).
