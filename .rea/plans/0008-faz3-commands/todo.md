@@ -91,7 +91,7 @@
       writes `brief.md` under `.rea/plans/<NNNN>-<slug>/` (mints number by listing, no central index) with
       the five fixed sections (Goal / Context / Decisions resolved / Open questions / Scope); body tool-agnostic.
 
-- [ ] NEXT: Author `templates/commands/rea-plan.md` (edit-heavy · B, H)
+- [x] Author `templates/commands/rea-plan.md` (edit-heavy · B, H)
       Files: `templates/commands/rea-plan.md`
       1. Carry forward legacy `rea/templates/.claude/commands/rea-plan.md`; add principle tag `B, H`;
          minimal frontmatter. Reads the fixed `brief.md` sections (`## Goal` / `## Context` /
@@ -114,7 +114,7 @@
       `NEXT:`; wires `plan-validator` + `plan-reviewer` with the mandatory pre-mortem; keeps the Checkpoint
       gate; decisions → `.rea/decisions/`; references `core/rea-schema.md` root-relative; body tool-agnostic.
 
-- [ ] Author `templates/commands/rea-fix.md` (new · G)
+- [x] Author `templates/commands/rea-fix.md` (new · G)
       Files: `templates/commands/rea-fix.md`
       1. New command (no direct legacy base — composes `rea-execute` + `rea-ship` shapes); add principle tag
          `G`; minimal frontmatter. Interactive / human-supervised; everything execute enforces except the plan.
@@ -133,7 +133,7 @@
       the ship step handing off to the `rea-ship` ritual (not duplicated); the 5-item escalation list is
       explicit and returns to the normal path; references `rea-execute`/`rea-ship` by bare name; body tool-agnostic.
 
-- [ ] Author `templates/commands/rea-wrap.md` (edit — radical slim · —)
+- [x] Author `templates/commands/rea-wrap.md` (edit — radical slim · —)
       Files: `templates/commands/rea-wrap.md`
       1. Carry forward legacy `rea/templates/.claude/commands/rea-wrap.md`; minimal frontmatter; note it serves
          no single principle (a clean-close ritual).
@@ -149,7 +149,7 @@
       Test: file exists; writes only to `.rea/sessions/` in the timestamped format; does NOT commit (suggests
       only); no `lessons.md`/`CLAUDE.md`/native-memory writes; suggests-not-forces; body tool-agnostic.
 
-- [ ] Author `templates/commands/rea-tidy.md` (new · F)
+- [ ] NEXT: Author `templates/commands/rea-tidy.md` (new · F)
       Files: `templates/commands/rea-tidy.md`
       1. New command; add principle tag `F`; minimal frontmatter. User-invoked; dry-run report (`--check`) →
          human approval → fix. Reconciliation is done INLINE in the command's own agent — no dedicated
