@@ -58,7 +58,7 @@ Refer to principles by letter in skills/plans/reviews. Homes below reflect the *
 |---|---|---|
 | A | Grilling starts planning, codebase-aware | `talk` → `rea-grill` → `explorer` |
 | B | A plan is layered (destination/journey/detail) | `rea-plan` → spec / plan / todo |
-| C | SE knowledge is injected, not passive | **craft-checklist** (Faz 0) → `code-reviewer` / `plan-reviewer` _(the old "no reference" Gap is closed by Faz 0)_ |
+| C | SE knowledge is injected, not passive | **craft-checklist** (Faz 0 ✅ `core/craft-checklist.md`) → `code-reviewer` / `plan-reviewer` _(the old "no reference" Gap is now closed — checklist shipped)_ |
 | D | Feedback loops are mandatory | `implementer` scoped gate + tiered tests + `rea verify` |
 | E | Test first, code second (TDD) | `implementer` (a test before every commit) |
 | F | Prefer deep modules (deep ≠ bloated) | `code-reviewer` (via craft-checklist) |
@@ -73,8 +73,9 @@ Refer to principles by letter in skills/plans/reviews. Homes below reflect the *
 
 ## 4. rea-tools — the phases
 
-### Phase 0 — Shared core content 🔵
-**Plan:** `.rea/plans/0005-faz0-core/` · **Delivers** (in `core/`, content only):
+### Phase 0 — Shared core content ✅
+**Status:** done 2026-07-22 (commit `02509db`) — executed via `/rea-execute`; all 6 todos complete, CI green (22 passed, ruff clean), all spec+code reviews PASS.
+**Plan:** `.rea/plans/0005-faz0-core/` · **Delivered** (in `core/`, content only):
 - `core/principles.md` — the 12 principles, pure statements (strip stale `→ REA:`/Gap lines)
 - `core/craft-checklist.md` — short tagged (`CC-NN`) code-quality checklist (deep modules, code smells,
   naming, real error handling, right abstraction). **Closes Principle C's gap.**
@@ -164,12 +165,12 @@ _All 2026-07-21 closures (rea-target-state §9). "Where" = which phase implement
 | D1 | Distribution = `npx`, drop PyPI | Phase 4 |
 | D2 | Names: rea-tools + rea-cli (readev umbrella) | all / naming |
 | G1 | Manifest-based obsolete-file prune + retired list | Phase 4 |
-| G2 | plan.md/todo.md schema (unit-id join, single-location fields) | Phase 0 (spec) → Phase 3 (used) |
-| G3 | Retire scalar NEXT → computed frontier + status re-verify | Phase 0 (spec) → Phase 3 (used) |
+| G2 | plan.md/todo.md schema (unit-id join, single-location fields) | Phase 0 ✅ (spec, `core/rea-schema.md`) → Phase 3 (used) |
+| G3 | Retire scalar NEXT → computed frontier + status re-verify | Phase 0 ✅ (spec, `core/rea-schema.md`) → Phase 3 (used) |
 | G4 | capture = pure `AGENTS.md` reflex, **no hooks** (deliberate) | Phase 1 |
-| G5 | single short craft-checklist + mandatory citation | Phase 0 (write) → Phase 2 (wire) |
-| G6a | `NNNN-slug` numbering, slug-unique, no central index | Phase 0 (spec) |
-| G6b | shim managed-markers + JSON merge, never blind-overwrite | Phase 0 (spec) → Phase 4 (impl) |
+| G5 | single short craft-checklist + mandatory citation | Phase 0 ✅ (written, `core/craft-checklist.md`) → Phase 2 (wire) |
+| G6a | `NNNN-slug` numbering, slug-unique, no central index | Phase 0 ✅ (spec, `core/rea-schema.md`) |
+| G6b | shim managed-markers + JSON merge, never blind-overwrite | Phase 0 ✅ (spec, `core/rea-schema.md`) → Phase 4 (impl) |
 
 ---
 
