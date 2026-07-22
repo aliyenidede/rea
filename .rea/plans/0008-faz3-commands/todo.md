@@ -11,7 +11,7 @@
 
 ## Todo
 
-- [ ] NEXT: Author `templates/commands/rea-execute.md` (edit-heavy · D, E, G, I, C — reference unit)
+- [x] Author `templates/commands/rea-execute.md` (edit-heavy · D, E, G, I, C — reference unit)
       Files: `templates/commands/rea-execute.md`
       1. Carry forward legacy `rea/templates/.claude/commands/rea-execute.md`; add principle tag `D, E, G, I, C`;
          minimal `name`/`description` frontmatter.
@@ -47,7 +47,7 @@
       tooling; content authoring imposes no mode — gates on `Done when:` and runs bug/security only when the
       batch diff includes code files; body tool-agnostic; refs `core/rea-schema.md` root-relative.
 
-- [ ] Author `templates/commands/rea-ship.md` (edit-heavy · L, K)
+- [x] Author `templates/commands/rea-ship.md` (edit-heavy · L, K)
       Files: `templates/commands/rea-ship.md`
       1. Carry forward legacy `rea/templates/.claude/commands/rea-commit.md`; add principle tag `L, K`;
          minimal frontmatter. Merges commit + deploy.
@@ -69,7 +69,7 @@
       `CODEOWNERS` rule with solo→diff-checkpoint, team→PR; deploy is generic (not hardcoded Coolify);
       body tool-agnostic (no `.claude`/`/rea-`).
 
-- [ ] Author `templates/commands/rea-grill.md` (new-heavy · A)
+- [x] Author `templates/commands/rea-grill.md` (new-heavy · A)
       Files: `templates/commands/rea-grill.md`
       1. Carry forward legacy `rea/templates/.claude/commands/rea-brainstorm.md`; add principle tag `A`;
          minimal frontmatter.
@@ -91,7 +91,7 @@
       writes `brief.md` under `.rea/plans/<NNNN>-<slug>/` (mints number by listing, no central index) with
       the five fixed sections (Goal / Context / Decisions resolved / Open questions / Scope); body tool-agnostic.
 
-- [ ] Author `templates/commands/rea-plan.md` (edit-heavy · B, H)
+- [ ] NEXT: Author `templates/commands/rea-plan.md` (edit-heavy · B, H)
       Files: `templates/commands/rea-plan.md`
       1. Carry forward legacy `rea/templates/.claude/commands/rea-plan.md`; add principle tag `B, H`;
          minimal frontmatter. Reads the fixed `brief.md` sections (`## Goal` / `## Context` /
