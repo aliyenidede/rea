@@ -294,3 +294,18 @@
 **Source:** discovery
 **Lesson:** Faz 0 was pure content authoring (markdown docs), but `rea-execute` is code-oriented: `implementer` is TDD-framed and the CI gate runs `pytest`+`ruff`, which are irrelevant to markdown changes (they only confirmed the Python CLI still passed). The implementer's low-risk path handled docs fine, but I had to repeat the same guardrails ("this is content, no TDD, don't commit, tool-agnostic, don't invent names") to every sub-agent.
 **Rule:** The redesign is mostly prose/prompt content, and `rea-execute`'s TDD+pytest/ruff assumptions don't fit it — this is the roadmap's deferred "prompt-level testing/eval strategy" gap. Until a content-authoring execute mode / doc-review lens exists, pass content-authoring implementers explicit "docs, no TDD/code-tests" framing and treat the CI gate as a "didn't break the repo" safety net, not a content check.
+
+## 2026-07-22 04:48:00
+**Source:** discovery
+**Lesson:** During Faz 1, implementers authored install-template files (`templates/shims/CLAUDE.md`, `templates/.rea/*/README.md`) with links relative to their SOURCE position in the repo (`../AGENTS.md`, `../../../core/rea-schema.md`). Because the Phase-4 installer does a mechanical dumb copy into a host project (no path rewriting — "CLI is dumb"), those links would be DEAD in every install; the correct host-destination depths are `AGENTS.md` (sibling) and `../../core/rea-schema.md` (two `..`). `AGENTS.md`'s own map was already correct. Caught by code-reviewer, not spec-reviewer.
+**Rule:** Author relative links inside install-template files for their HOST DESTINATION depth, not their source-tree location — template files are written for where they land, not where they live. Re-check in Phase 4 and any template authoring; a code-review link-resolution pass should assume the installed layout. (The two meta-README files that document the source tree itself, e.g. `templates/README.md`, correctly stay source-relative — they are not copied out.)
+
+## 2026-07-22 04:48:00
+**Source:** discovery
+**Lesson:** `.gitignore` ignores `.rea/log/` (line 16), so session/plan log files are LOCAL-only — never committed. Historical logs (pre-rule) stay tracked, which masks the rule. `.rea/lessons.md` and `.rea/plans/` ARE tracked. During wrap I spent two tool calls diagnosing why a freshly-written log file wasn't in `git status`.
+**Rule:** In this repo `.rea/log/*` is intentionally local (gitignored) — don't expect session/plan logs in commits or `git status`. The tracked, shareable session artifacts are `.rea/lessons.md` + `.rea/plans/`; the wrap commit carries lessons/plans, not logs.
+
+## 2026-07-22 04:48:00
+**Source:** discovery
+**Lesson:** The content-vs-code `rea-execute` mismatch (first logged 2026-07-22 03:40:33 during Faz 0) RECURRED in Faz 1 — the same repeated per-implementer guardrail boilerplate ("content/docs, no TDD, no code-tests, don't commit, tool-agnostic, don't invent names"). Two confirmed occurrences; the guardrail set is now stable.
+**Rule:** Confirmed recurring: until a content-authoring execute mode exists, every redesign content phase reuses the SAME implementer framing block — pass it verbatim. This is a concrete candidate for the roadmap's deferred "prompt-level testing/eval strategy" gap; worth a dedicated content-execute path when Phase 3 rewrites the commands.
