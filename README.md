@@ -7,6 +7,8 @@ A portable development toolkit that bootstraps a structured Claude Code workflow
 
 > **Shared foundation (`core/`):** a redesign is underway — `core/` holds the tool-agnostic foundation (principles, craft checklist, schema) shared by both the future rea-tools and rea-cli products. See [docs/rea-target-state.md](docs/rea-target-state.md) §9.
 
+> **Install artifacts (`templates/`):** a new top-level `templates/` holds the redesign-era files the future installer places into a host project — `AGENTS.md`, per-tool shims (`CLAUDE.md` = `@AGENTS.md`, Gemini `settings.json`), and the `.rea/` typed scaffold. See [docs/rea-roadmap.md](docs/rea-roadmap.md) §4 (Phase 1).
+
 ```bash
 pip install rea-dev
 rea setup <project>          # copies slash commands + agents + creates .rea/ dirs

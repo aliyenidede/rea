@@ -88,7 +88,9 @@ Refer to principles by letter in skills/plans/reviews. Homes below reflect the *
 **Carries:** G2, G3, G5, G6, §4. **Foundation of cross-platform** (tool-agnostic files). **Out:**
 packaging/npm, installer, AGENTS.md, commands. Python CLI untouched.
 
-### Phase 1 — AGENTS.md + shims + `.rea/` structure ⬜
+### Phase 1 — AGENTS.md + shims + `.rea/` structure ✅
+**Status:** done 2026-07-22 — executed via `/rea-execute`; all 4 todos complete; spec+code reviews PASS;
+CI green (22 passed, ruff clean). **Plan:** `.rea/plans/0006-faz1-agents-shims/`.
 **Delivers:**
 - `AGENTS.md` (thin, always-on): behaviour steering (`talk` default — thinking engineer + curious
   researcher, **anti-sycophantic**) + the **`capture` reflex** (3 triggers: correction/lesson,
@@ -288,3 +290,8 @@ _Anything raised that isn't yet placed lands here, then moves into a phase._
   installer → npx; entire skill set replaced). The retired-file list handles *pruning*; the full
   transition path (auto-detect the old install? clean re-init? a `rea migrate` step?) → **decide when
   Phase 4 is detailed.**
+- **`core/` host-project placement** — a provisional Phase-1 assumption Phase 4 must honour: the
+  installer must vendor the full `core/` trio (`principles.md`, `craft-checklist.md`, `rea-schema.md`)
+  into every host project at a `core/` path so `AGENTS.md`'s map pointers resolve. Recorded in
+  `.rea/plans/0006-faz1-agents-shims/` `spec.md`/`plan.md`; **decide the mechanism when Phase 4 is
+  detailed.**

@@ -87,4 +87,5 @@ tests/
 docs/
 pyproject.toml
 core/                            # tool-agnostic shared foundation (principles, craft-checklist, rea-schema) — full CLAUDE.md rewrite deferred to a later phase
+templates/                       # redesign-era install artifacts (AGENTS.md + per-tool shims + .rea/ scaffold) the future npx installer places into a host project — legacy rea/templates/ (Python-CLI Claude templates) is unchanged
 ```
