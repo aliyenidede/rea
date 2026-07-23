@@ -114,6 +114,25 @@
  *   target does not exist yet is now refused too, not just one whose target
  *   already exists.
  *
+ *   FIX F (HIGH, CWE-59, source side / INTERMEDIATE component) — FIX B's
+ *   `lstatSync` only refuses to FOLLOW the FINAL source component (`log` /
+ *   `lessons.md`); it still resolves an escaping INTERMEDIATE component. A
+ *   junction planted at `.rea` itself — the parent BOTH sources share —
+ *   makes `path.join(targetRoot, '.rea/log')` resolve, through that junction,
+ *   to a real directory OUTSIDE the project root; `lstatSync` on the final
+ *   `log` then reports a genuine dir, so FIX B passes and FIX D's
+ *   `removeEmptyDirsBottomUp` would `rmdir` empty directories outside root
+ *   (and `listFilesRecursive` would enumerate them). Fix: route each fixed
+ *   source through the SAME non-throwing `isRealpathInsideRoot` FIX E uses on
+ *   the destination, FIRST — so a `.rea`-parent escape is refused on the
+ *   source side too, closing the last unguarded FS mutation in the installer.
+ *   A source that fails containment is treated as absent (never enumerated,
+ *   moved, nor cleaned up), exactly like a FIX-B-linked source. Ordering
+ *   matters: the realpath check runs BEFORE the `lstat`, so an escaping
+ *   `.rea` is never `lstat`-walked through in the first place; the FIX-B
+ *   `lstat` still runs second to catch an IN-ROOT junction (`.rea/log ->
+ *   .rea/knowledge`) that realpath containment alone would allow.
+ *
  * On `dryRun`, `{moved, failed, skipped}` are computed identically to a real
  * run (every check involved — existence, realpath containment — is
  * read-only), but no write of any kind happens — `.rea/_archive/` (and any
@@ -285,15 +304,25 @@ function archiveLegacyRea(targetRoot, { dryRun = false } = {}) {
   const legacyLogAbs = path.join(targetRoot, ...LEGACY_LOG_REL_DIR.split('/'));
   const legacyLessonsAbs = path.join(targetRoot, ...LEGACY_LESSONS_REL_FILE.split('/'));
 
-  // FIX B: lstatSync — NEVER statSync — for both top-level source checks.
-  // statSync follows a symlink/junction; a `.rea/log` or `.rea/lessons.md`
-  // planted as a link (to the real .rea/knowledge/, or to somewhere outside
-  // the project entirely) would then be walked/read straight through it.
-  // lstatSync reports the link's own type (neither a directory nor a file),
-  // so a linked source is treated as absent and skipped in its entirety.
-  const legacyLogIsRealDir = fs.existsSync(legacyLogAbs) && fs.lstatSync(legacyLogAbs).isDirectory();
+  // FIX F (realpath containment, source side) THEN FIX B (lstat, no-follow).
+  // FIX F runs FIRST: isRealpathInsideRoot refuses a source whose path
+  // escapes the project root via an INTERMEDIATE junction (e.g. a `.rea`
+  // parent linked outside root — which FIX B's final-component lstat cannot
+  // see), so an escaping source is never lstat-walked, enumerated, or
+  // FIX-D-cleaned. It is non-throwing (a realpath failure/race resolves to
+  // "not contained" → treated as absent), mirroring FIX E on the destination.
+  // FIX B runs SECOND (lstatSync — NEVER statSync — which follows links): it
+  // catches an IN-ROOT junction (`.rea/log -> .rea/knowledge`) that realpath
+  // containment alone would allow, by reporting the LINK's own type (neither a
+  // directory nor a file) so a linked source is treated as absent and skipped.
+  const legacyLogIsRealDir =
+    safePath.isRealpathInsideRoot(targetRoot, LEGACY_LOG_REL_DIR) &&
+    fs.existsSync(legacyLogAbs) &&
+    fs.lstatSync(legacyLogAbs).isDirectory();
   const legacyLessonsIsRealFile =
-    fs.existsSync(legacyLessonsAbs) && fs.lstatSync(legacyLessonsAbs).isFile();
+    safePath.isRealpathInsideRoot(targetRoot, LEGACY_LESSONS_REL_FILE) &&
+    fs.existsSync(legacyLessonsAbs) &&
+    fs.lstatSync(legacyLessonsAbs).isFile();
 
   // Plan every (source, destination) pair up front — nothing is written yet,
   // regardless of dryRun, so this planning step is always safe to run.

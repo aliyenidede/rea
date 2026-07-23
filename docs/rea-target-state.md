@@ -482,8 +482,9 @@ earlier sections, this section governs.
   is deliberately REA-*as-engine* (intelligent); scope those framings to the installer, not to rea-cli.
 
 ### D1 — Distribution
-rea-tools ships via **`npx`** (JS installer); **PyPI dropped**. Install: `npx rea-tools init` (or
-`npx github:aliyenidede/rea-tools init`). Rationale: rea-tools is just files; the audience already has
+rea-tools ships via **`npx`** (JS installer); **PyPI dropped**. Install: `npx rea-tools setup` (or
+`npx github:aliyenidede/rea-tools setup`). _(The mechanical verb is `setup`, not `init` — 0009
+Decision 1, avoids the `rea init`↔`/rea-init` collision.)_ Rationale: rea-tools is just files; the audience already has
 Node (AI CLIs are npm-distributed); cross-platform incl. Windows; zero-install, always-latest. The npm
 package doubles as the vendorable Layer-1 artifact.
 

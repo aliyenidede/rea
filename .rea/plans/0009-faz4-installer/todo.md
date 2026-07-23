@@ -87,7 +87,7 @@ independent content.
       Test: roadmap §9 confirms separate-repos + names the repo/package split; the ADR exists and names
       the rollback mechanism; §9's "success metric + rollback" is no longer marked undecided.
 
-- [x] 4a-5 — Rollback git tag (tag created locally; push held for user confirmation)
+- [x] 4a-5 — Rollback git tag (annotated `pre-redesign-v0.7.1` created AND pushed to origin — verified 2026-07-24 via `git ls-remote --tags origin`; no longer a pending push)
       Files: none (git op; record in 4a-4's ADR)
       1. Identify the pre-redesign `main` HEAD (commit before `feature/rea-redesign` diverged).
       2. Create an annotated tag `pre-redesign-v0.7.1` on it; push the tag.

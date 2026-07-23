@@ -333,6 +333,70 @@ test('FIX B regression (external target): a `.rea/log` junction pointing OUTSIDE
   }
 });
 
+test('FIX F regression (intermediate component): a `.rea` PARENT junction pointing OUTSIDE targetRoot is refused on the source side — no out-of-root empty-dir deletion (FIX D) and nothing pulled in', (t) => {
+  const targetRoot = makeTmpRoot();
+  const outsideRoot = makeTmpRoot('rea-archive-test-outside-parent-');
+  // The `.rea` PARENT itself is the junction — the component FIX B's
+  // final-component lstat cannot see through. Under the (pre-FIX-F) gate,
+  // path.join(targetRoot, '.rea/log') would resolve via this junction to a
+  // real dir outside root, FIX B would pass, and FIX D would rmdir the empty
+  // dir below OUTSIDE the project root.
+  const reaLinkPath = path.join(targetRoot, '.rea');
+  try {
+    // A genuine, EMPTY directory under the junction target's `log/` — exactly
+    // what FIX D's removeEmptyDirsBottomUp would delete if it ran here.
+    fs.mkdirSync(path.join(outsideRoot, 'log', 'empty-sub'), { recursive: true });
+    // A real lessons file under the junction target too, to prove the source
+    // enumeration/move side is refused as well.
+    writeFile(outsideRoot, 'lessons.md', 'external lessons — must not move\n');
+
+    if (!createDirLinkOrSkip(t, outsideRoot, reaLinkPath)) {
+      return;
+    }
+
+    const result = archiveLegacyRea(targetRoot);
+
+    assert.deepEqual(result.moved, [], 'nothing should be moved through the .rea parent junction');
+    assert.deepEqual(result.failed, []);
+    assert.deepEqual(result.skipped, []);
+    // The load-bearing FIX F assertion: the empty dir OUTSIDE the project root
+    // must survive — FIX D must never have run against the escaping source.
+    assert.ok(
+      fs.existsSync(path.join(outsideRoot, 'log', 'empty-sub')),
+      'the empty dir outside root must NOT be rmdir-ed via the .rea parent junction (FIX D must not run on an escaping source)'
+    );
+    assert.ok(
+      fs.existsSync(path.join(outsideRoot, 'log')),
+      'the outside `log` dir must survive too'
+    );
+    assert.ok(
+      fs.existsSync(path.join(outsideRoot, 'lessons.md')),
+      'the external lessons file, reached only via the junction, must stay exactly where it is'
+    );
+    // `.rea/_archive` resolves through the junction to outsideRoot/_archive —
+    // it must never have been created (no archive happened at all).
+    assert.equal(
+      fs.existsSync(path.join(outsideRoot, '_archive')),
+      false,
+      'nothing should have been archived through the .rea parent junction'
+    );
+  } finally {
+    // Remove the junction FIRST (rm of targetRoot would otherwise recurse into
+    // outsideRoot through it on some platforms).
+    try {
+      fs.unlinkSync(reaLinkPath);
+    } catch {
+      try {
+        fs.rmdirSync(reaLinkPath);
+      } catch {
+        /* best-effort teardown */
+      }
+    }
+    fs.rmSync(targetRoot, { recursive: true, force: true });
+    fs.rmSync(outsideRoot, { recursive: true, force: true });
+  }
+});
+
 // ---------------------------------------------------------------------------
 // FIX C (resilience) — one locked file (EBUSY on rename) must not abort the
 // rest of the archive; it lands in `failed`, source left untouched. Also

@@ -141,15 +141,26 @@ Pipeline: `talk` (behaviour, not a command) → `rea-grill` → `rea-plan` → `
 `rea-worktree` · `rea-verify` → CLI verb · `rea-update` → utility, pip/PyPI path obsolete under npx
 (D1), out of the Phase-3 nine.
 
-### Phase 4 — npx installer + cross-platform placement + tests ⬜
-**Delivers:**
-- `npx rea-tools init` (JS installer; **PyPI dropped**, D1) — quick/full tiers
-- **manifest-based prune that actually deletes obsolete skills (G1)** + a one-time retired-file list for
-  the v0.7.1 → redesign jump
-- per-tool placement (`.claude/`, `.omp/`, …) + shim writing via managed markers / JSON merge, never
-  blind-overwrite (G6b) — **the real cross-platform mechanism**
-- feedback-gate tiers: inner = affected tests + lint; outer = full suite once; CI = safety net
-- the mechanical **`rea verify`** CLI (files present? shim correct? CI configured?)
+### Phase 4 — npx installer + cross-platform placement + tests ✅
+**Status:** code-complete 2026-07-23/24 — installer core + distribution landing (0009, `4da46bc`),
+`verify` + `migrate` bridge (0010, `9a6cf58`), and the safe-path/CWE-59 security gate (0011, `a83b216`)
+all executed and committed; the residual source-side CWE-59 hole (`rea-archive` FIX D) closed 2026-07-24
+(FIX F). `node --test`: 169 pass / 3 win32-EPERM skips / 0 fail. **Only user-gated `npm publish`
+(+ optional PyPI 0.7.2 shim) remains** — see §9. Non-gating polish (long-agent trim, skill-writer
+audience prose) parked as 4e → a later plan 0012.
+**Delivered:**
+- ✅ `npx rea-tools setup` (JS installer; **PyPI dropped**, D1) — quick/full tiers. _(Mechanical verb is
+  `setup`, not `init` — 0009 Decision 1, avoids the `rea init`↔`/rea-init` collision; overrides D1's
+  literal wording.)_ `src/cli.js`, `src/setup.js`, `bin/rea-tools.js`.
+- ✅ **manifest-based prune that actually deletes obsolete skills (G1)** + a one-time retired-file list
+  for the v0.7.1 → redesign jump. `src/prune.js`, `src/retired-list.js`, `src/manifest.js`.
+- ✅ per-tool placement (`.claude/` first-class; host-root `core/`; the `.rea/` typed scaffold) + shim
+  writing via managed markers / JSON merge, never blind-overwrite (G6b) — **the real cross-platform
+  mechanism**. `src/place.js`, `src/shims.js`, `src/settings-surgery.js`.
+- ✅ feedback-gate tiers: inner = affected tests + lint; outer = full suite once; CI = safety net —
+  realized in `rea-execute` (Phase 3) reading commands from `AGENTS.md` + the repo `ci.yml` safety net.
+- ✅ the mechanical **`npx rea-tools verify`** CLI (files present? shim correct? CI configured?) —
+  read-only, manifest-driven. `src/verify.js`.
 
 **Update & delete policy (how a project receives changes when the installer re-runs):**
 - **REA-owned files** (commands / agents / core) → **overwritten** with the current version (idempotent
@@ -175,13 +186,13 @@ _All 2026-07-21 closures (rea-target-state §9). "Where" = which phase implement
 |---|---|---|
 | D1 | Distribution = `npx`, drop PyPI | Phase 4 |
 | D2 | Names: rea-tools + rea-cli (readev umbrella) | all / naming |
-| G1 | Manifest-based obsolete-file prune + retired list | Phase 4 |
+| G1 | Manifest-based obsolete-file prune + retired list | Phase 4 ✅ (`src/prune.js` + `src/retired-list.js`, 0009) |
 | G2 | plan.md/todo.md schema (unit-id join, single-location fields) | Phase 0 ✅ (spec, `core/rea-schema.md`) → Phase 2 ✅ (plan-validator / dispatcher / implementer reference it) → Phase 3 ✅ (used by `rea-plan`'s spec/plan/todo authoring and `rea-execute`'s frontier computation) |
 | G3 | Retire scalar NEXT → computed frontier + status re-verify | Phase 0 ✅ (spec, `core/rea-schema.md`) → Phase 2 ✅ (plan-validator / dispatcher / implementer reference it) → Phase 3 ✅ (used — `rea-execute` computes the frontier from `Status:`/`Depends on`, retiring the `NEXT:` scan) |
 | G4 | capture = pure `AGENTS.md` reflex, **no hooks** (deliberate) | Phase 1 |
 | G5 | single short craft-checklist + mandatory citation | Phase 0 ✅ (written, `core/craft-checklist.md`) → Phase 2 ✅ (wired into code-reviewer / plan-reviewer) |
 | G6a | `NNNN-slug` numbering, slug-unique, no central index | Phase 0 ✅ (spec, `core/rea-schema.md`) |
-| G6b | shim managed-markers + JSON merge, never blind-overwrite | Phase 0 ✅ (spec, `core/rea-schema.md`) → Phase 4 (impl) |
+| G6b | shim managed-markers + JSON merge, never blind-overwrite | Phase 0 ✅ (spec, `core/rea-schema.md`) → Phase 4 ✅ (impl: `src/shims.js` + `src/settings-surgery.js`, 0009) |
 
 ---
 
@@ -310,12 +321,13 @@ Resolved when their component is built (not blocking):
   `.rea/decisions/0001-distribution-and-rollback.md`.
 - Obsidian frontmatter (Properties/Dataview) — after the plain wikilink graph
 
-**Carry-forward debt (from P1/P2 — Phase 4 must address):**
-- **`core/` placement assumption (Faz 1)** — the host-project `core/` location that `AGENTS.md` and the
-  agents' `core/…` pointers rest on is a *provisional* Phase-1 assumption
-  (`.rea/plans/0006-faz1-agents-shims/spec.md` "Placement contract for Phase 4"). Phase 4's installer must
-  vendor the `core/` trio at the host root, or rewrite every root-relative `core/…` reference if it
-  relocates them.
+**Carry-forward debt (from P1/P2):**
+- **✓ Closed (2026-07-23, 0009):** `core/` placement assumption (Faz 1). The host-project `core/`
+  location that `AGENTS.md` and the agents' `core/…` pointers rest on was a *provisional* Phase-1
+  assumption (`.rea/plans/0006-faz1-agents-shims/spec.md` "Placement contract for Phase 4"). Phase 4's
+  installer now vendors the `core/` trio at the host root verbatim — `src/place.js` `LAYOUT` entry
+  `{ srcDir: 'core', destDir: 'core' }` (README excluded) — so every root-relative `core/…` reference
+  resolves as-authored; no relocation/rewrite was needed.
 - **Long-agent prompt-length refactor (Faz 2)** — several carried-forward agents exceed the ~100-line
   "curse of instructions" guideline; Faz 2 kept them verbatim to preserve battle-tested content
   (`.rea/plans/0007-faz2-agents/plan.md` Decision 6, out of scope). Revisit as a dedicated trim pass, not
@@ -339,8 +351,7 @@ _Anything raised that isn't yet placed lands here, then moves into a phase._
   hook script) for the human to review, plus a one-time Claude-legacy bridge (the old `CLAUDE.md` body
   is flagged — "once `AGENTS.md` exists, move the preserved `CLAUDE.md` rules into it" — not
   auto-migrated).
-- **`core/` host-project placement** — a provisional Phase-1 assumption Phase 4 must honour: the
-  installer must vendor the full `core/` trio (`principles.md`, `craft-checklist.md`, `rea-schema.md`)
-  into every host project at a `core/` path so `AGENTS.md`'s map pointers resolve. Recorded in
-  `.rea/plans/0006-faz1-agents-shims/` `spec.md`/`plan.md`; **decide the mechanism when Phase 4 is
-  detailed.**
+- **✓ Resolved (Phase 4, 0009):** `core/` host-project placement. The installer vendors the full `core/`
+  trio (`principles.md`, `craft-checklist.md`, `rea-schema.md`) into every host project at a host-root
+  `core/` path so `AGENTS.md`'s map pointers resolve — `src/place.js` `LAYOUT` `core → core` (README
+  excluded). Mechanism decided + implemented; no longer an open question.

@@ -88,8 +88,13 @@ found and fixed before `safe-path.js` was adopted by any consumer.
 
 Now call `safe-path.js` directly:
 
-- `src/shims.js`, `src/verify.js`, `src/settings-surgery.js`, `src/place.js`, `src/manifest.js` — all
-  writes/reads route through the throwing `resolveInsideRoot`.
+- `src/shims.js`, `src/verify.js`, `src/settings-surgery.js`, `src/place.js`, `src/manifest.js` — every
+  content **write** routes through the throwing `resolveInsideRoot` (this is the load-bearing
+  arbitrary-write gate). Security-relevant reads are contained too — `verify`'s owned-files + shim-region
+  reads, `shims`' managed-block reads. A few low-severity existence/enumeration probes remain uncontained
+  by design (`manifest.load`, `verify`'s core/scaffold + CI probes, `legacy-scan`'s reads): they leak
+  only existence + directory-name enumeration, never write, and are not attacker-chosen paths — see the
+  Consequences note. The **write** class is what "must precede `npm publish`" required, and it is closed.
 - `src/prune.js` — its delete sweep routes through the non-throwing `isRealpathInsideRoot`; `prune`
   also re-exports `safe-path`'s `isInsideRoot`/`toCanonicalRel` to preserve its own public API for
   existing importers.
@@ -127,3 +132,27 @@ Now call `safe-path.js` directly:
   11-3 were the security-critical spine of the fix; this record (unit 11-5) closes the plan.
 - `docs/rea-roadmap.md` §9 "Carry-forward debt" now lists the shared `safe-path.js` fix as a closed
   item and points here.
+
+## Amendment (2026-07-24) — FIX F: the residual source-side `rea-archive` hole
+
+A Phase-4 completion audit found that unit 11-6 hardened only `rea-archive`'s **destination** side
+(FIX E). Its **source** side still had one unguarded FS mutation: `archiveLegacyRea`'s FIX D cleanup
+(`removeEmptyDirsBottomUp` → `fs.rmdirSync`) ran against the two fixed legacy sources (`.rea/log`,
+`.rea/lessons.md`) gated only by FIX B's `lstatSync`, which refuses to follow the **final** path
+component but still resolves an escaping **intermediate** one. A junction planted at the shared parent
+`.rea` therefore let `path.join(targetRoot, '.rea/log')` resolve outside the project root; FIX B passed,
+and FIX D would `rmdir` empty directories **outside** root (and `listFilesRecursive` would enumerate
+them). Narrow blast radius — empty-directory deletion + source enumeration only; no file content is
+written or exfiltrated, because FIX E already refuses the escaping **destination**, so no move occurs —
+but a genuine out-of-root FS mutation, which made this ADR's "CWE-59 class closed" claim not fully true.
+
+**Fix (FIX F, `src/rea-archive.js`):** route both fixed sources through the same non-throwing
+`safePath.isRealpathInsideRoot` **before** the FIX-B `lstat`, so an escaping `.rea`-parent is refused on
+the source side exactly as on the destination side; an escaping source is treated as absent (never
+enumerated, moved, nor cleaned up). Ordering is load-bearing — realpath first (so an escaping parent is
+never `lstat`-walked), FIX-B `lstat` second (still catches an **in-root** junction like
+`.rea/log -> .rea/knowledge` that realpath containment alone would allow). Covered by a RED/GREEN
+regression test (`test/rea-archive.test.js` "FIX F regression (intermediate component)"): a `.rea`-parent
+junction to an external dir must leave the outside empty dir intact and archive nothing. With FIX F, no
+installer FS **mutation** path (write or delete) bypasses `safe-path` containment — the CWE-59
+write/mutation class is now genuinely closed. `node --test`: 169 pass / 3 win32-EPERM skips / 0 fail.
