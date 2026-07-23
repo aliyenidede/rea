@@ -68,7 +68,9 @@ const { RETIRED_FILES } = require('./retired-list.js');
  */
 const HOST_LAYOUT = { tool: 'claude' };
 
-const PIP_UNINSTALL_NOTICE = 'Legacy rea-dev detected. You can now: pip uninstall rea-dev';
+const PIP_UNINSTALL_NOTICE =
+  'Legacy rea-dev detected. You can now: pip uninstall rea-dev; ' +
+  'run `npx rea-tools migrate` to finish the transition.';
 
 const FULL_HANDOFF_NOTICE =
   'Quick setup complete. For GitHub/CI wiring, run `/rea-init --full` inside your AI coding tool ' +

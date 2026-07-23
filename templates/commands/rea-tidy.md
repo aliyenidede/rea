@@ -16,7 +16,7 @@ only — nothing else in the pipeline calls it automatically.
 
 **Boundary:** this command's checks are the *intelligent* half of the legacy verify ritual. The
 *mechanical* half — file-presence checks, GitHub configuration, branch-protection status — is a
-separate, dumb `rea verify` CLI verb (Phase 4); this command never runs those checks.
+separate, dumb `npx rea-tools verify` CLI verb; this command never runs those checks.
 
 ## Step 0 — Choose the run mode
 
@@ -157,4 +157,4 @@ Report what actually changed, file by file, once the approved fixes are applied.
 - **Numbering fixes are cosmetic housekeeping, not a correctness fix.** Skip Step 4 silently when
   there is nothing to renumber; never treat a duplicate `NNNN-` as data loss.
 - **Out of scope: mechanical checks.** File-presence, GitHub configuration, and branch-protection
-  status are the dumb `rea verify` CLI verb (Phase 4) — this command never runs those checks.
+  status are the dumb `npx rea-tools verify` CLI verb — this command never runs those checks.

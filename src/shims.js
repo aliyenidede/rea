@@ -78,6 +78,21 @@
  *                                            .gemini/settings.json under targetRoot
  *                                            using the templates under sourceRoot,
  *                                            recording each write in `manifest`.
+ *   CLAUDE_SHIM_PREFIX                     - the literal one-line note text this
+ *                                            module prepends above the managed
+ *                                            markers when CREATING a brand-new
+ *                                            CLAUDE.md (the `createPrefix` passed
+ *                                            to `applyMarkerBlock` for CLAUDE.md in
+ *                                            `writeShims`), kept as a hard-coded
+ *                                            constant here — the single source of
+ *                                            truth other modules (src/legacy-scan.js)
+ *                                            compare a host's existing CLAUDE.md
+ *                                            pre-marker content against, to avoid
+ *                                            mistaking a freshly-shimmed CLAUDE.md
+ *                                            for a legacy one. Kept in sync with
+ *                                            `templates/shims/CLAUDE.md` by a
+ *                                            drift-guard test (test/legacy-scan.test.js),
+ *                                            not read from disk at require-time.
  */
 
 const fs = require('node:fs');
@@ -87,6 +102,24 @@ const manifest = require('./manifest');
 
 const MARKER_START = '<!-- rea-tools:start -->';
 const MARKER_END = '<!-- rea-tools:end -->';
+
+/**
+ * The literal prefix text this module prepends above the managed markers when
+ * CREATING a brand-new CLAUDE.md (see `writeShims`'s `claudeTemplate.prefix`,
+ * itself parsed from `templates/shims/CLAUDE.md`). Hard-coded here (not read
+ * from disk) so it is available as a plain constant to callers that only want
+ * to compare against it (src/legacy-scan.js) without needing a `sourceRoot`.
+ * A drift-guard test (test/legacy-scan.test.js) asserts this stays
+ * byte-identical to the real template's own pre-marker content, so the two
+ * can never silently diverge.
+ */
+const CLAUDE_SHIM_PREFIX =
+  '# CLAUDE.md\n' +
+  '\n' +
+  'This project uses [`AGENTS.md`](AGENTS.md) as its single source of behaviour and memory\n' +
+  'instructions. Content you add outside the managed markers below is yours to keep — a re-init or\n' +
+  'update only touches the managed region.\n' +
+  '\n';
 
 // Matches the full marker pair (start marker, tolerant interior newline, body,
 // tolerant interior newline, end marker), tolerant of CRLF line endings.
@@ -362,6 +395,7 @@ function writeShims(sourceRoot, targetRoot, manifestObj) {
 module.exports = {
   MARKER_START,
   MARKER_END,
+  CLAUDE_SHIM_PREFIX,
   resolveInsideRoot,
   applyMarkerBlock,
   mergeGeminiSettings,

@@ -24,7 +24,8 @@ design-closure decisions; where they conflict with earlier sections, §9 governs
   code smells, deep modules, tracer bullets, Pragmatic Programmer rules) that review agents consult
   (§5.9).
 - Commands are Claude slash commands (`/rea-grill`), referred to by name in prose. The CLI has a
-  few verbs (`rea setup`, `rea verify`). `talk` and `capture` are **not** commands (see §5).
+  few verbs (`npx rea-tools setup`, `npx rea-tools verify`). `talk` and `capture` are **not**
+  commands (see §5).
 
 ---
 
@@ -360,20 +361,29 @@ fault-tolerant, human-reviewed):
 Runs as **dry-run report → human approval → fix** (`rea-tidy --check` = report only). Absorbs what a
 health-check skill would do — which is why there is no `rea-verify` skill.
 
-### 5.9 rea verify — a mechanical CLI check (not a skill)
+### 5.9 npx rea-tools verify — a mechanical CLI check (not a skill)
 
 Setup is `rea-init` (idempotent — re-running re-syncs shims); intelligent reconciliation is
-`rea-tidy`. What's left is mechanical (files present? shim correct? CI configured?) — a **dumb
-`rea verify` CLI** ("CLI is dumb, Claude is smart"), not a ritual.
+`rea-tidy`. What's left is mechanical (files present? shim correct? CI configured?) — the **dumb
+`npx rea-tools verify` CLI** ("CLI is dumb, Claude is smart"), not a ritual.
 
-### 5.10 migration — a private one-off skill (not shipped)
+### 5.10 migration — public archive verb + private distiller (not shipped)
 
 Public REA ships the new `.rea/` format as the default; a new project starts with it, no migration
-burden. For the author's existing projects (e.g. CAW) with a large old-format `.rea/` (flat `log/` +
-`lessons.md` + `plans/`), a **private, one-off migration skill** — *not* in the REA templates —
-distils the old data into the new typed graph (lessons → `knowledge/` + `decisions/`, logs →
-`sessions/`, wikilinked). It may take 2–3 sessions for a clean result; the old `.rea/` is archived,
-not deleted.
+burden. For an *existing* v0.7.1 host crossing the breaking jump, the shipped, public path is
+**archive-and-start-fresh** via the mechanical **`npx rea-tools migrate`** verb ("CLI is dumb, Claude is
+smart"): it archives the legacy `.rea/` memory (flat `log/` + `lessons.md` → `.rea/_archive/`, never
+deleted), strips the dead legacy router hook from `.claude/settings.json` while preserving every other
+setting, and reports the remaining legacy artifacts (old `CLAUDE.md` body, legacy CI workflow, legacy
+lint hook script) for the human to review — no content is distilled or rewritten.
+
+For the author's existing projects (e.g. CAW) with a large old-format `.rea/` (flat `log/` +
+`lessons.md` + `plans/`) that warrant a genuine rebuild, a **private, one-off migration skill** — *not*
+in the REA templates, not shipped — distils the old data into the new typed graph (lessons →
+`knowledge/` + `decisions/`, logs → `sessions/`, wikilinked). It may take 2–3 sessions for a clean
+result; the old `.rea/` is archived, not deleted. This is the private half of a now-two-part migration
+story: the public archive verb (shipped, Phase 4d) and the private content distiller (Phase 5, not
+shipped).
 
 ---
 

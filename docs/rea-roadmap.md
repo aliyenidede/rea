@@ -157,7 +157,8 @@ Pipeline: `talk` (behaviour, not a command) → `rea-grill` → `rea-plan` → `
 - **Obsolete files** → **deleted** via the manifest prune (G1) + the one-time retired-file list.
 - **User-content files** (`CLAUDE.md`, `settings.json`) → **managed-marker / JSON merge**, never
   blind-overwrite (G6b).
-- **⚠ Open (→ §10):** the one-time **v0.7.1 → redesign migration UX** — decided when Phase 4 is detailed.
+- **✓ Resolved (Phase 4d):** the one-time **v0.7.1 → redesign migration UX** — the `npx rea-tools migrate`
+  verb; see §10.
 
 ### Phase 5 — Private migration ⬜ (personal, not shipped)
 Distil this repo's old-format `.rea/` (flat `log/` + `lessons.md` + `plans/0001-0004`) into the new
@@ -325,10 +326,15 @@ Resolved when their component is built (not blocking):
 ## 10. Forgotten / to-slot items
 
 _Anything raised that isn't yet placed lands here, then moves into a phase._
-- **v0.7.1 → redesign migration UX** — how an existing v0.7.1 user crosses the breaking jump (Python
-  installer → npx; entire skill set replaced). The retired-file list handles *pruning*; the full
-  transition path (auto-detect the old install? clean re-init? a `rea migrate` step?) → **decide when
-  Phase 4 is detailed.**
+- **✓ Resolved (Phase 4d):** **v0.7.1 → redesign migration UX** — how an existing v0.7.1 user crosses the
+  breaking jump (Python installer → npx; entire skill set replaced). The retired-file list handles
+  *pruning*; the full transition path is the **`npx rea-tools migrate` verb**: `--dry-run` flag-and-guide,
+  **archive-not-delete** (never deletes user memory — moves the legacy flat `.rea/log/` + `lessons.md`
+  under `.rea/_archive/`; only *removes* the dead SessionStart router hook, preserving every other
+  setting), reports remaining legacy artifacts (old `CLAUDE.md` body, legacy CI workflow, legacy lint
+  hook script) for the human to review, plus a one-time Claude-legacy bridge (the old `CLAUDE.md` body
+  is flagged — "once `AGENTS.md` exists, move the preserved `CLAUDE.md` rules into it" — not
+  auto-migrated).
 - **`core/` host-project placement** — a provisional Phase-1 assumption Phase 4 must honour: the
   installer must vendor the full `core/` trio (`principles.md`, `craft-checklist.md`, `rea-schema.md`)
   into every host project at a `core/` path so `AGENTS.md`'s map pointers resolve. Recorded in
