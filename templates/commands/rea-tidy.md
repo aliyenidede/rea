@@ -49,8 +49,8 @@ superseded by a new numbered entry that says so, and the old entry stays on disk
 
 ## Step 2 — Scan: shims (managed-marker drift)
 
-For every shim file present at the project root — `CLAUDE.md`, `GEMINI.md`, and Gemini's
-`settings.json` — compare what is on disk against `core/rea-schema.md`'s shim write semantics:
+For every shim file present at the project root — `CLAUDE.md` and Gemini's `settings.json` — compare
+what is on disk against `core/rea-schema.md`'s shim write semantics:
 
 - **Markdown shims:** read the region between `<!-- rea-tools:start -->` and
   `<!-- rea-tools:end -->`. Flag missing or malformed markers, or managed content that no longer

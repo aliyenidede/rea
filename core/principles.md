@@ -1,8 +1,8 @@
 # REA Principles
 
 The twelve principles below are the foundation the REA methodology is built on. They were
-distilled from Matt Pocock's 20 AI-coding principles (see
-[`researches/ai-coding-principles.md`](../docs/researches/ai-coding-principles.md)) and REA's own
+distilled from Matt Pocock's 20 AI-coding principles (documented in the rea-tools source repo under
+`docs/researches/ai-coding-principles.md`) and REA's own
 architecture rules, then owned through conversation — each one is kept because it earned its
 place, not because it was copied from a source.
 

@@ -280,6 +280,12 @@ _From `open-source-roadmap.md`. Goal: a stranger can **find it, get why it matte
 
 ## 9. Deferred / per-component decisions
 
+**Separate-repos path confirmed** (2026-07-23, unit 4a-4, `.rea/plans/0009-faz4-installer/`): the
+product shape stands exactly as designed in `rea-target-state.md` §9 "Product shape (two products,
+two repos)" — no rewrite needed there, this is a confirmation checkpoint only. This repo keeps the
+name `rea` and publishes the **`rea-tools`** npm package; **`rea-cli`** is a separate greenfield repo
+that vendors Layer 1 (`core/`) one-way.
+
 Resolved when their component is built (not blocking):
 - `rea-fix` escalation criterion (when a "small fix" becomes real work) — **decided in 0008** (Phase 3):
   stop + return to the normal path on ANY of {>~3 files; an arch/design (J/K) decision; >1 vertical
@@ -296,7 +302,11 @@ Resolved when their component is built (not blocking):
 - a prompt-level testing / eval strategy (the whole redesign is prompt content) — **decided in 0008**
   (Phase 3): documentation-style structural acceptance checks (each todo `Test:` line reads an assertion
   off the authored file); a real command-eval harness stays deferred
-- a redesign success metric + rollback plan
+- a redesign success metric + rollback plan — **decided** (2026-07-23, unit 4a-4): success = dogfood —
+  this repo's next feature runs end-to-end through grill→plan→execute→ship on the installed redesign
+  command/agent set; rollback = the git tag `pre-redesign-v0.7.1` (unit 4a-5, on the pre-redesign `main`
+  HEAD) + `rea-dev` 0.7.1 remains installable from PyPI as a frozen fallback. Full record:
+  `.rea/decisions/0001-distribution-and-rollback.md`.
 - Obsidian frontmatter (Properties/Dataview) — after the plain wikilink graph
 
 **Carry-forward debt (from P1/P2 — Phase 4 must address):**

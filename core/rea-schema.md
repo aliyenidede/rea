@@ -1,5 +1,5 @@
 ---
-schema-version: 0.1
+schema-version: 0.2
 ---
 
 # REA Schema — the `.rea/` format spec
@@ -159,6 +159,11 @@ is no separate scalar pointer (no `NEXT`) — progress is read entirely from the
 Transitions: `todo → in-progress → done` (the normal path), or `todo → in-progress → blocked` when
 work stalls on something that needs a human.
 
+A `done → blocked` regression is also sanctioned, for exactly one case: an outer full-suite gate that
+fails after its retry budget is exhausted for a unit that had already reached `done`. The resume
+re-verify described below only re-checks units left `in-progress` — it must **not** auto-clear
+`blocked`, so this regression stays visible until a human resolves it.
+
 **Frontier (computed, not stored):** the frontier is the set of units that can run right now. It is
 recomputed every run, never persisted:
 
@@ -196,15 +201,15 @@ Directory layout above). The numbering rule is the same for both:
 ## Shim write semantics
 
 _This section is the root-file shim contract referenced in this document's intro: it governs how
-`rea-tools` writes to files that live **outside** `.rea/` — the tool shims (`AGENTS.md`, `CLAUDE.md`,
-`GEMINI.md`) and Gemini's `settings.json`. It is part of this schema spec because, like the `.rea/`
+`rea-tools` writes to files that live **outside** `.rea/` — the tool shims (`AGENTS.md`, `CLAUDE.md`)
+and Gemini's `settings.json`. It is part of this schema spec because, like the `.rea/`
 formats above, both `rea-tools` and `rea-cli` must write these files the same way._
 
 The one rule that governs every shim write: **never blind-overwrite.** A shim file may contain user
 content that was never written by `rea-tools`; a naive overwrite would destroy it. Two write
 strategies follow from this, one per file format:
 
-- **Markdown shims** (`AGENTS.md`, `CLAUDE.md`, `GEMINI.md`) are written **inside managed markers**:
+- **Markdown shims** (`AGENTS.md`, `CLAUDE.md`) are written **inside managed markers**:
 
   ```
   <!-- rea-tools:start -->
@@ -218,7 +223,9 @@ strategies follow from this, one per file format:
 - **JSON shims** (Gemini's `settings.json`) use a **structured read-modify-write merge**: read the
   existing file, add or update only the keys `rea-tools` requires, and leave every other key as
   found. There is no managed-marker equivalent for JSON — the merge is field-by-field instead of a
-  block replace.
+  block replace. `rea-tools` sets `context.fileName` to list both `AGENTS.md` (its own managed-marker
+  file, per above) and `GEMINI.md` (Gemini's own native file, preserved as whatever default Gemini
+  ships) — `rea-tools` never creates or writes a `GEMINI.md` file itself.
 
 Ownership of which files (and which regions of them) belong to `rea-tools` is tracked in a
 per-project manifest written by the installer; `rea-tidy` reconciles any drift between the manifest
@@ -255,7 +262,7 @@ Provisional fields per type (extend once `capture` ships and real usage shows wh
 
 ## Versioning
 
-This document's frontmatter carries a `schema-version` stamp (currently `0.1`), tracking the shape of
+This document's frontmatter carries a `schema-version` stamp (currently `0.2`), tracking the shape of
 everything defined above — directory layout, naming/collision rules, `plan.md`/`todo.md` formats,
 status/frontier semantics, numbering, shim write semantics, capture note fields, and wikilink
 resolution.

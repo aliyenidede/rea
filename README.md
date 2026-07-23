@@ -3,16 +3,15 @@
 A portable development toolkit that bootstraps a structured Claude Code workflow into any project.
 
 ![CI](https://github.com/aliyenidede/rea/actions/workflows/ci.yml/badge.svg)
-![Python](https://img.shields.io/badge/python-3.11%2B-blue)
+![Node.js](https://img.shields.io/badge/node.js-required-brightgreen)
 
 > **Shared foundation (`core/`):** a redesign is underway — `core/` holds the tool-agnostic foundation (principles, craft checklist, schema) shared by both the future rea-tools and rea-cli products. See [docs/rea-target-state.md](docs/rea-target-state.md) §9.
 
 > **Install artifacts (`templates/`):** a new top-level `templates/` holds the redesign-era files the future installer places into a host project — `AGENTS.md`, per-tool shims (`CLAUDE.md` = `@AGENTS.md`, Gemini `settings.json`), and the `.rea/` typed scaffold. See [docs/rea-roadmap.md](docs/rea-roadmap.md) §4 (Phase 1).
 
 ```bash
-pip install rea-dev
-rea setup <project>          # copies slash commands + agents + creates .rea/ dirs
-# open Claude Code → /rea-init
+npx rea-tools setup <project>   # copies slash commands + agents + creates .rea/ dirs
+# open your coding tool (Claude Code, etc.) → /rea-init
 ```
 
 ---
@@ -32,14 +31,13 @@ REA installs slash commands, composable agents, and a structured plan/log system
 ### Commands
 
 ```
-rea setup             → copies .claude/commands/ + .claude/agents/ + creates .rea/
+npx rea-tools setup  → copies .claude/commands/ + .claude/agents/ + creates .rea/ (re-run to update)
 /rea-init            → scans project, installs missing config, sets up GitHub
 /rea-plan            → full planning pipeline with interrogation + adversarial review
 /rea-execute         → agent-driven implementation with parallel dispatch
 /rea-commit          → detects branch, opens PR to correct target
 /rea-verify          → health check, reports missing pieces with fix commands
 /rea-brainstorm      → collaborative design exploration before planning
-/rea-update          → update REA from PyPI + sync templates
 /rea-wrap            → session wrap-up — log, lessons, context for next session
 /rea-worktree        → isolated git worktree for parallel work
 /rea-write-skill     → create new agents or commands
@@ -67,18 +65,17 @@ Agents are composable building blocks that commands orchestrate. Each agent has 
 
 ## Quickstart
 
-**Requirements:** Python 3.11+, `gh` CLI authenticated (with `workflow` scope), git repo with GitHub remote.
+**Requirements:** Node.js (for `npx`), `gh` CLI authenticated (with `workflow` scope), git repo with GitHub remote.
 
 ```bash
-# 1. Install
-pip install rea-dev
+# 1. Add REA to your project
+npx rea-tools setup /path/to/project
 
-# 2. Add REA to your project
-rea setup /path/to/project
-
-# 3. Open Claude Code in that project and run
+# 2. Open your coding tool (Claude Code, etc.) in that project and run
 /rea-init
 ```
+
+> `rea-dev` on PyPI is a frozen legacy fallback (`pip install rea-dev`, last release 0.7.1) — the maintained path is `npx rea-tools setup`.
 
 `/rea-init` detects your stack (Node/pnpm, Python, etc.) and installs:
 - `.claude/settings.json` — allowed commands
@@ -224,9 +221,8 @@ Key rule: **agents never call other agents** — only commands orchestrate agent
 
 ```mermaid
 flowchart TD
-    A([Developer]) --> B["pip install rea (one time)"]
-    B --> C["rea setup — copies commands + creates .rea/"]
-    C --> D["Open Claude Code"]
+    A([Developer]) --> B["npx rea-tools setup (one time) — copies commands + creates .rea/"]
+    B --> D["Open your coding tool"]
     D --> E["/rea-init"]
 
     %% INIT

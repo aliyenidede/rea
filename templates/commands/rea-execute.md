@@ -59,7 +59,16 @@ recomputed from the per-unit `Status:` fields, never read from a leftover pointe
 > `dispatcher` for physical file-conflict grouping only — `dispatcher` does not recompute
 > eligibility.
 
-If the frontier is empty and no unit is `blocked`, every unit is done — skip ahead to Step 8.
+If the frontier is empty and no unit is `blocked`, every unit is done. Which step comes next depends
+on whether this run actually did anything:
+- **If any unit's `Status` became `done` during this run** — either by completing a batch in Step 4,
+  or via Step 0's resume re-verification of a stale `in-progress` unit to `done` — route to **Step 6**:
+  the outer full-suite gate has not run yet for the work this run just did, matching the Step 5
+  loop-exit condition below. This is the crash-resume case: the last batch committed but the outer gate
+  never ran, so it must run once before finishing.
+- **If no unit executed in this run** (this is the very first frontier computation this run made, and
+  it is already empty — every unit was already `Status: done` before this run started), skip ahead to
+  **Step 8**: this is a genuinely already-complete plan with nothing new to gate.
 
 If the frontier is empty but one or more units are `blocked`, stop and report the blocked units to
 the human. Nothing else can proceed until they are resolved.
@@ -176,8 +185,12 @@ of — that inner tier. The project's own CI remains the final safety net behind
 
 If anything fails: send the failure output back to the `implementer` responsible for the most likely
 unit (or, if not clearly attributable, report to the human) with fix instructions. Maximum 2 fix
-cycles. If still failing after 2 cycles → stop, show the errors to the human, and leave the affected
-unit(s) `Status: in-progress` (or `Status: blocked`, at the human's direction) rather than `done`.
+cycles. If still failing after 2 cycles → stop, show the errors to the human, and set the affected
+unit(s) `Status: blocked` rather than `done`. Use `blocked`, not `in-progress`, here: Step 0's resume
+re-verify only re-checks units left `in-progress`, and since the unit's completing commit already
+exists it would silently flip the status back to `done` on the next resume — masking the outer-gate
+failure. `blocked` is not auto-cleared by that check, so the failure stays visible until a human
+resolves it, per `core/rea-schema.md`.
 
 ## Step 7 — Pattern detection
 

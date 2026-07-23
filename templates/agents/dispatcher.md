@@ -143,4 +143,3 @@ below.
   explicitly.
 - Do not compute the frontier yourself, and do not attempt to group units beyond the frontier you
   were given — later units are re-grouped fresh once they enter a future frontier.
-</content>

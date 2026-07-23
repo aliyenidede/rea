@@ -166,4 +166,3 @@ X issues found: N rule violations, M architecture errors, K coverage gaps, J fro
 - Do NOT review plan quality, completeness of algorithms, or implementation approach — that is the plan-reviewer's job.
 - Do NOT suggest improvements or additions beyond what the rules require.
 - Be fast. This is a mechanical check, not a deep review.
-</content>

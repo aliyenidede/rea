@@ -23,6 +23,14 @@ app = typer.Typer(add_completion=False)
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 
 
+def _print_deprecation_notice():
+    console.print(
+        "[yellow]Deprecation notice:[/] rea-dev (this Python CLI) is frozen. "
+        "The maintained path is now [bold cyan]npx rea-tools setup[/]."
+    )
+    console.print()
+
+
 @app.callback(invoke_without_command=True)
 def main(
     ctx: typer.Context,
@@ -40,6 +48,8 @@ def main(
         return
 
     from rea import __version__
+
+    _print_deprecation_notice()
 
     # Header
     header = Text()
@@ -82,6 +92,8 @@ def init(
     ),
 ):
     """Install REA slash commands and agents into a project."""
+    _print_deprecation_notice()
+
     target = (path or Path.cwd()).resolve()
 
     if not target.is_dir():

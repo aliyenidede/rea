@@ -194,7 +194,7 @@ bootstraps.
 
 Not commands: **`talk`** (default `AGENTS.md` behaviour steering, below) and **`capture`** (memory
 reflex, §4). **`rea verify`** is a mechanical CLI check, not a Claude ritual (§5.9). Utilities:
-`rea-update`, `rea-write-skill`.
+`rea-write-skill`.
 
 **Agents (sub-agent building blocks):**
 - Generative **research is not a separate agent** — it's the `talk` behaviour (main agent). A
@@ -234,7 +234,7 @@ Dropped: **`rea-router`** (no principle demands session-start routing) and **`re
 Today's init forces GitHub upfront (auth, workflow scope, branch protection, CI, secrets) — a wall
 just to *try* REA. Split it:
 - **Quick (default, ~1–2 min):** the minimum to work — generate `AGENTS.md`, the `.rea/` structure,
-  the craft-reference, and the per-tool shims (`CLAUDE.md` = `@AGENTS.md`; Gemini `settings.json`).
+  the `core/` reference trio, and the per-tool shims (`CLAUDE.md` = `@AGENTS.md`; Gemini `settings.json`).
   **No GitHub, no CI, no branch protection.** `pip install → rea setup . → /rea-init` → ready to
   `talk` / `rea-grill` / `rea-plan`.
 - **Full (opt-in, later):** adds CI + branch protection + secrets. `/rea-init --full`.
@@ -354,7 +354,7 @@ ritual:
 One coherent job — *keep on-disk state consistent* — across three artifact kinds (all occasional,
 fault-tolerant, human-reviewed):
 - **Memory:** orphans, conflicts, dedup (same concept, different names).
-- **Shims:** `CLAUDE.md` ↔ `AGENTS.md` drift, `GEMINI.md` config.
+- **Shims:** `CLAUDE.md` ↔ `AGENTS.md` drift, `.gemini/settings.json` config.
 - **Rules:** stale / conflicting rules.
 
 Runs as **dry-run report → human approval → fix** (`rea-tidy --check` = report only). Absorbs what a
@@ -511,11 +511,13 @@ brand. Resolves the earlier `rea`-means-two-things collision: the mechanical ins
   from the slug, not the number** → parallel branches producing `0007-auth` + `0007-cache` are different
   dirs and merge cleanly; duplicate numbers are cosmetic, renumbered occasionally by `rea-tidy`. **No
   central index file** (that would be the conflict point) — the directory listing is the index.
-- **G6b — shim write semantics:** the installer **never blind-overwrites**. Markdown shims
-  (`AGENTS.md` / `CLAUDE.md` / `GEMINI.md`) are written inside **managed markers**
+- **G6b — shim write semantics:** the installer **never blind-overwrites**. The markdown managed-marker
+  shims are **`AGENTS.md` + `CLAUDE.md` only**, written inside **managed markers**
   (`<!-- rea-tools:start … end -->`); re-init replaces only the managed region, preserving user content.
-  Gemini `settings.json` is a **structured read-modify-write merge** (add the required key, keep the
-  rest). Ownership is tracked via the G1 manifest; `rea-tidy` reconciles later drift.
+  **REA never writes a `GEMINI.md` file** — Gemini is served by a **structured read-modify-write merge**
+  into `.gemini/settings.json`, whose `context.fileName` lists `AGENTS.md` (REA's file) alongside
+  `GEMINI.md` (Gemini's own native file, preserved as a default); every other key is kept. Ownership is
+  tracked via the G1 manifest; `rea-tidy` reconciles later drift.
 
 ### rea-cli engine — decided 2026-07-21 (verified)
 - **Engine = `oh-my-pi` (omp)** — a MIT, batteries-included rewrite/fork of Mario Zechner's Pi
@@ -545,5 +547,5 @@ brand. Resolves the earlier `rea`-means-two-things collision: the mechanical ins
 
 ### Deferred (per-component, decided when that component is planned)
 `rea-fix` escalation criterion · `rea-ship` solo/team detection · review-agent diff acquisition ·
-tiered-test tooling for non-Python projects · a prompt-level testing/eval strategy · a redesign success
-metric + rollback plan.
+tiered-test tooling for non-Python projects (**decided in 0008**) · a prompt-level testing/eval
+strategy (**decided in 0008**) · a redesign success metric + rollback plan.
