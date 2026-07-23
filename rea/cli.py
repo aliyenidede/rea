@@ -26,7 +26,7 @@ TEMPLATES_DIR = Path(__file__).parent / "templates"
 def _print_deprecation_notice():
     console.print(
         "[yellow]Deprecation notice:[/] rea-dev (this Python CLI) is frozen. "
-        "The maintained path is now [bold cyan]npx rea-tools setup[/]."
+        "The maintained path is now [bold cyan]npx readev-tools setup[/]."
     )
     console.print()
 

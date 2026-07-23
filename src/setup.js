@@ -41,7 +41,7 @@
  *                               path.resolve(__dirname, '..') }. Runs the
  *                               full setup pipeline against targetRoot,
  *                               reading source content from sourceRoot (the
- *                               rea-tools package root — defaults to this
+ *                               readev-tools package root — defaults to this
  *                               package's own root so a normal CLI install
  *                               needs no override; tests inject a fixture
  *                               sourceRoot). Returns { placed, pruned,
@@ -70,11 +70,11 @@ const HOST_LAYOUT = { tool: 'claude' };
 
 const PIP_UNINSTALL_NOTICE =
   'Legacy rea-dev detected. You can now: pip uninstall rea-dev; ' +
-  'run `npx rea-tools migrate` to finish the transition.';
+  'run `npx readev-tools migrate` to finish the transition.';
 
 const FULL_HANDOFF_NOTICE =
   'Quick setup complete. For GitHub/CI wiring, run `/rea-init --full` inside your AI coding tool ' +
-  '— rea-tools setup itself never touches GitHub.';
+  '— readev-tools setup itself never touches GitHub.';
 
 /**
  * True if any hard-coded retired (pre-manifest, legacy v0.7.1) file exists
@@ -96,7 +96,7 @@ function detectLegacyPresent(targetRoot) {
  * @param {boolean} [opts.full] - when true, also prints the `/rea-init
  *   --full` GitHub/CI hand-off notice (this installer never does GitHub/CI
  *   itself).
- * @param {string} [opts.sourceRoot] - the rea-tools package root containing
+ * @param {string} [opts.sourceRoot] - the readev-tools package root containing
  *   `templates/` and `core/`. Defaults to this package's own root; tests
  *   inject a fixture tree here.
  * @returns {{placed: number, pruned: string[], failed: string[], isBridge:
@@ -158,7 +158,7 @@ function run(targetRoot, { full = false, sourceRoot = path.resolve(__dirname, '.
   }
   if (pruneResult.failed.length > 0) {
     console.warn(
-      `rea-tools setup: could not remove ${pruneResult.failed.length} obsolete file(s): ` +
+      `readev-tools setup: could not remove ${pruneResult.failed.length} obsolete file(s): ` +
         pruneResult.failed.join(', ')
     );
   }

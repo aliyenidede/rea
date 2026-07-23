@@ -1,7 +1,7 @@
 {
-  "name": "rea-tools",
+  "name": "readev-tools",
   "version": "0.1.0",
-  "description": "Portable, cross-tool methodology installer for the REA workflow (npx rea-tools setup)",
+  "description": "Portable, cross-tool methodology installer for the REA workflow (npx readev-tools setup)",
   "license": "MIT",
   "author": "aliyenidede",
   "homepage": "https://github.com/aliyenidede/rea",
@@ -23,7 +23,7 @@
     "installer"
   ],
   "bin": {
-    "rea-tools": "bin/rea-tools.js"
+    "readev-tools": "bin/readev-tools.js"
   },
   "files": [
     "templates/**",

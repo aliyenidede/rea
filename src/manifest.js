@@ -5,7 +5,7 @@
  *
  * Reads/writes the per-project REA ownership manifest at a fixed path
  * (MANIFEST_REL_PATH, relative to the target project root). The manifest
- * records which files/regions rea-tools has written so later runs
+ * records which files/regions readev-tools has written so later runs
  * (place/shims/prune) can diff against a known-good previous state.
  *
  * Every stored path is a forward-slash relative path (relative to the

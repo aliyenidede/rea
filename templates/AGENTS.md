@@ -1,4 +1,4 @@
-<!-- rea-tools:start -->
+<!-- readev-tools:start -->
 # AGENTS.md
 
 Thin, always-on instructions. Loaded every session — keep it that way.
@@ -46,4 +46,4 @@ relevant to the task at hand — never auto-dump the whole store; keep context l
 - Craft checklist (code review) → `core/craft-checklist.md`
 - `.rea/` format spec → `core/rea-schema.md`
 - Project memory → `.rea/` (`knowledge/` · `decisions/` · `sessions/` · `plans/`)
-<!-- rea-tools:end -->
+<!-- readev-tools:end -->

@@ -16,7 +16,7 @@ principles); this file consolidates them plus the 2026-07 decisions into a flat,
 REA is a **portable, disciplined AI-coding workflow**, delivered as **two open-source products that
 share one brain**:
 
-- **rea-tools** — the methodology delivered *into* a host you already use (Claude Code, Codex,
+- **readev-tools** — the methodology delivered *into* a host you already use (Claude Code, Codex,
   Cursor, Gemini CLI, VS Code…). Methodology-as-guest, via `AGENTS.md` + `.rea/` + commands.
 - **rea-cli** (brand: **readev**) — the *same* methodology as its **own** standalone coding-agent CLI,
   built on **oh-my-pi** (engine). A separate repo.
@@ -26,10 +26,10 @@ drift. Usage is **user choice** — a matrix, not a hierarchy:
 
 | You want… | You run… |
 |---|---|
-| your Claude subscription | rea-tools inside **Claude Code** (sanctioned) |
+| your Claude subscription | readev-tools inside **Claude Code** (sanctioned) |
 | API-key / multi-provider / local models | **rea-cli** (oh-my-pi) |
 | parallel agents, worktree isolation, mobile, VPS | any of the above inside **Orca** (optional host) |
-| Codex / Cursor / Gemini | rea-tools' `AGENTS.md` steering (+ commands where the tool supports them) |
+| Codex / Cursor / Gemini | readev-tools' `AGENTS.md` steering (+ commands where the tool supports them) |
 
 **The moat is the methodology, not the plumbing** — rules battle-tested on a live production codebase
 (CAW). Goal is credibility + dogfooding, **not** a SaaS. Don't rebuild Archon; don't chase stars.
@@ -71,7 +71,7 @@ Refer to principles by letter in skills/plans/reviews. Homes below reflect the *
 
 ---
 
-## 4. rea-tools — the phases
+## 4. readev-tools — the phases
 
 ### Phase 0 — Shared core content ✅
 **Status:** done 2026-07-22 (commit `02509db`) — executed via `/rea-execute`; all 6 todos complete, CI green (22 passed, ruff clean), all spec+code reviews PASS.
@@ -149,9 +149,9 @@ all executed and committed; the residual source-side CWE-59 hole (`rea-archive` 
 (+ optional PyPI 0.7.2 shim) remains** — see §9. Non-gating polish (long-agent trim, skill-writer
 audience prose) parked as 4e → a later plan 0012.
 **Delivered:**
-- ✅ `npx rea-tools setup` (JS installer; **PyPI dropped**, D1) — quick/full tiers. _(Mechanical verb is
+- ✅ `npx readev-tools setup` (JS installer; **PyPI dropped**, D1) — quick/full tiers. _(Mechanical verb is
   `setup`, not `init` — 0009 Decision 1, avoids the `rea init`↔`/rea-init` collision; overrides D1's
-  literal wording.)_ `src/cli.js`, `src/setup.js`, `bin/rea-tools.js`.
+  literal wording.)_ `src/cli.js`, `src/setup.js`, `bin/readev-tools.js`.
 - ✅ **manifest-based prune that actually deletes obsolete skills (G1)** + a one-time retired-file list
   for the v0.7.1 → redesign jump. `src/prune.js`, `src/retired-list.js`, `src/manifest.js`.
 - ✅ per-tool placement (`.claude/` first-class; host-root `core/`; the `.rea/` typed scaffold) + shim
@@ -159,7 +159,7 @@ audience prose) parked as 4e → a later plan 0012.
   mechanism**. `src/place.js`, `src/shims.js`, `src/settings-surgery.js`.
 - ✅ feedback-gate tiers: inner = affected tests + lint; outer = full suite once; CI = safety net —
   realized in `rea-execute` (Phase 3) reading commands from `AGENTS.md` + the repo `ci.yml` safety net.
-- ✅ the mechanical **`npx rea-tools verify`** CLI (files present? shim correct? CI configured?) —
+- ✅ the mechanical **`npx readev-tools verify`** CLI (files present? shim correct? CI configured?) —
   read-only, manifest-driven. `src/verify.js`.
 
 **Update & delete policy (how a project receives changes when the installer re-runs):**
@@ -168,7 +168,7 @@ audience prose) parked as 4e → a later plan 0012.
 - **Obsolete files** → **deleted** via the manifest prune (G1) + the one-time retired-file list.
 - **User-content files** (`CLAUDE.md`, `settings.json`) → **managed-marker / JSON merge**, never
   blind-overwrite (G6b).
-- **✓ Resolved (Phase 4d):** the one-time **v0.7.1 → redesign migration UX** — the `npx rea-tools migrate`
+- **✓ Resolved (Phase 4d):** the one-time **v0.7.1 → redesign migration UX** — the `npx readev-tools migrate`
   verb; see §10.
 
 ### Phase 5 — Private migration ⬜ (personal, not shipped)
@@ -185,7 +185,7 @@ _All 2026-07-21 closures (rea-target-state §9). "Where" = which phase implement
 | Ref | Decision | Where |
 |---|---|---|
 | D1 | Distribution = `npx`, drop PyPI | Phase 4 |
-| D2 | Names: rea-tools + rea-cli (readev umbrella) | all / naming |
+| D2 | Names: readev-tools + rea-cli (readev umbrella) | all / naming |
 | G1 | Manifest-based obsolete-file prune + retired list | Phase 4 ✅ (`src/prune.js` + `src/retired-list.js`, 0009) |
 | G2 | plan.md/todo.md schema (unit-id join, single-location fields) | Phase 0 ✅ (spec, `core/rea-schema.md`) → Phase 2 ✅ (plan-validator / dispatcher / implementer reference it) → Phase 3 ✅ (used by `rea-plan`'s spec/plan/todo authoring and `rea-execute`'s frontier computation) |
 | G3 | Retire scalar NEXT → computed frontier + status re-verify | Phase 0 ✅ (spec, `core/rea-schema.md`) → Phase 2 ✅ (plan-validator / dispatcher / implementer reference it) → Phase 3 ✅ (used — `rea-execute` computes the frontier from `Status:`/`Depends on`, retiring the `NEXT:` scan) |
@@ -228,11 +228,11 @@ Gemini get `AGENTS.md` steering now; full command port when demand appears.
 
 ## 7. rea-cli — the phases (separate repo)
 
-rea-cli is a **co-equal product**, but honestly **downstream of rea-tools**: it vendors the shared core
-(Phase 0) and ports rea-tools' commands (Phase 3), so its meaty work follows rea-tools; only the
+rea-cli is a **co-equal product**, but honestly **downstream of readev-tools**: it vendors the shared core
+(Phase 0) and ports readev-tools' commands (Phase 3), so its meaty work follows readev-tools; only the
 engine/provider scaffold starts early, in parallel. **Not yet designed in depth** — the phases below are
 a sketch. rea-cli will get its **own design pass** (its own grill→plan and its own `rea-cli-target-state`
-doc), the way `rea-target-state.md` serves rea-tools.
+doc), the way `rea-target-state.md` serves readev-tools.
 
 **Engine (locked):** **oh-my-pi** (MIT, batteries-included Pi fork) as a **plugin/config layer — no hard
 fork.** Already ships web search (25-provider), parallel schema-validated subagents, deterministic
@@ -249,14 +249,14 @@ omp/Pi's `/login` OAuth is the grey case) + API-key + multi-provider config. Per
 metered credit pool was announced 2026-06-15 then paused → keep the layer flexible. **Volatile —
 re-verify.**
 
-### C2 — Command surface ⬜ (waits on rea-tools Phase 3)
+### C2 — Command surface ⬜ (waits on readev-tools Phase 3)
 Port rea's commands to `.omp/commands/*.md` (~1:1 from the Claude commands); wire the
 grill→plan→execute→ship pipeline; reuse omp's native subagents/workflows for execute's parallel fan-out.
-**Depends on:** rea-tools Phase 3.
+**Depends on:** readev-tools Phase 3.
 
 ### C3 — Interop + verify ⬜
-Round-trip acceptance test: a project touched by rea-cli is **losslessly readable by rea-tools-in-Claude
-and vice-versa** (the proof the shared core works). **Depends on:** C2 + rea-tools Phase 1.
+Round-trip acceptance test: a project touched by rea-cli is **losslessly readable by readev-tools-in-Claude
+and vice-versa** (the proof the shared core works). **Depends on:** C2 + readev-tools Phase 1.
 
 ### C4 — Branding + distribution ⬜
 readev branding; install path; docs; optional Orca-host polish.
@@ -295,7 +295,7 @@ _From `open-source-roadmap.md`. Goal: a stranger can **find it, get why it matte
 **Separate-repos path confirmed** (2026-07-23, unit 4a-4, `.rea/plans/0009-faz4-installer/`): the
 product shape stands exactly as designed in `rea-target-state.md` §9 "Product shape (two products,
 two repos)" — no rewrite needed there, this is a confirmation checkpoint only. This repo keeps the
-name `rea` and publishes the **`rea-tools`** npm package; **`rea-cli`** is a separate greenfield repo
+name `rea` and publishes the **`readev-tools`** npm package; **`rea-cli`** is a separate greenfield repo
 that vendors Layer 1 (`core/`) one-way.
 
 Resolved when their component is built (not blocking):
@@ -333,7 +333,7 @@ Resolved when their component is built (not blocking):
   (`.rea/plans/0007-faz2-agents/plan.md` Decision 6, out of scope). Revisit as a dedicated trim pass, not
   during a carry-forward.
 - **✓ Closed (2026-07-23, 0011):** shared `src/safe-path.js` + symlink-escape fix. Closed a CWE-59
-  symlink/junction-escape class (arbitrary file write via `npx rea-tools setup`/`migrate`) across the
+  symlink/junction-escape class (arbitrary file write via `npx readev-tools setup`/`migrate`) across the
   installer's write/read/prune paths. This was the must-land-before-`npm publish` security gate. Full
   record: `.rea/decisions/0002-safe-path-hardening.md`, `.rea/plans/0011-safe-path-hardening/`.
 
@@ -344,7 +344,7 @@ Resolved when their component is built (not blocking):
 _Anything raised that isn't yet placed lands here, then moves into a phase._
 - **✓ Resolved (Phase 4d):** **v0.7.1 → redesign migration UX** — how an existing v0.7.1 user crosses the
   breaking jump (Python installer → npx; entire skill set replaced). The retired-file list handles
-  *pruning*; the full transition path is the **`npx rea-tools migrate` verb**: `--dry-run` flag-and-guide,
+  *pruning*; the full transition path is the **`npx readev-tools migrate` verb**: `--dry-run` flag-and-guide,
   **archive-not-delete** (never deletes user memory — moves the legacy flat `.rea/log/` + `lessons.md`
   under `.rea/_archive/`; only *removes* the dead SessionStart router hook, preserving every other
   setting), reports remaining legacy artifacts (old `CLAUDE.md` body, legacy CI workflow, legacy lint

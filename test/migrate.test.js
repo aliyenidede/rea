@@ -78,7 +78,7 @@ function requireRealSetupModule() {
 
 const { run: setupRun } = requireRealSetupModule();
 
-// The real rea-tools package root (this repo) — templates/ and core/ live here.
+// The real readev-tools package root (this repo) — templates/ and core/ live here.
 const REPO_ROOT = path.resolve(__dirname, '..');
 
 /** Creates a unique tmp dir under the OS temp dir; returns its absolute path. */
@@ -243,7 +243,7 @@ test('migrate(): after a real setup.run() (which prunes rea-router.md), migrate(
     // rea-router.md — the exact file a detectLegacyPresent-style gate would
     // look for. settings.json, .rea/log/, .rea/lessons.md, and CLAUDE.md
     // itself are all prune-protected (src/prune.js's deny-list), and the
-    // CI workflow / lint hook script are not rea-tools-managed at all, so
+    // CI workflow / lint hook script are not readev-tools-managed at all, so
     // every piece migrate() needs to act on survives setup's prune.
     const { result: setupResult } = captureConsole(() =>
       setupRun(targetRoot, { full: false, sourceRoot: REPO_ROOT })

@@ -5,12 +5,12 @@ A portable development toolkit that bootstraps a structured Claude Code workflow
 ![CI](https://github.com/aliyenidede/rea/actions/workflows/ci.yml/badge.svg)
 ![Node.js](https://img.shields.io/badge/node.js-required-brightgreen)
 
-> **Shared foundation (`core/`):** a redesign is underway — `core/` holds the tool-agnostic foundation (principles, craft checklist, schema) shared by both the future rea-tools and rea-cli products. See [docs/rea-target-state.md](docs/rea-target-state.md) §9.
+> **Shared foundation (`core/`):** a redesign is underway — `core/` holds the tool-agnostic foundation (principles, craft checklist, schema) shared by both the future readev-tools and rea-cli products. See [docs/rea-target-state.md](docs/rea-target-state.md) §9.
 
 > **Install artifacts (`templates/`):** a new top-level `templates/` holds the redesign-era files the future installer places into a host project — `AGENTS.md`, per-tool shims (`CLAUDE.md` = `@AGENTS.md`, Gemini `settings.json`), and the `.rea/` typed scaffold. See [docs/rea-roadmap.md](docs/rea-roadmap.md) §4 (Phase 1).
 
 ```bash
-npx rea-tools setup <project>   # copies slash commands + agents + creates .rea/ dirs
+npx readev-tools setup <project>   # copies slash commands + agents + creates .rea/ dirs
 # open your coding tool (Claude Code, etc.) → /rea-init
 ```
 
@@ -31,7 +31,7 @@ REA installs slash commands, composable agents, and a structured plan/log system
 ### Commands
 
 ```
-npx rea-tools setup  → copies .claude/commands/ + .claude/agents/ + creates .rea/ (re-run to update)
+npx readev-tools setup  → copies .claude/commands/ + .claude/agents/ + creates .rea/ (re-run to update)
 /rea-init            → scans project, installs missing config, sets up GitHub
 /rea-plan            → full planning pipeline with interrogation + adversarial review
 /rea-execute         → agent-driven implementation with parallel dispatch
@@ -69,13 +69,13 @@ Agents are composable building blocks that commands orchestrate. Each agent has 
 
 ```bash
 # 1. Add REA to your project
-npx rea-tools setup /path/to/project
+npx readev-tools setup /path/to/project
 
 # 2. Open your coding tool (Claude Code, etc.) in that project and run
 /rea-init
 ```
 
-> `rea-dev` on PyPI is a frozen legacy fallback (`pip install rea-dev`, last release 0.7.1) — the maintained path is `npx rea-tools setup`.
+> `rea-dev` on PyPI is a frozen legacy fallback (`pip install rea-dev`, last release 0.7.1) — the maintained path is `npx readev-tools setup`.
 
 `/rea-init` detects your stack (Node/pnpm, Python, etc.) and installs:
 - `.claude/settings.json` — allowed commands
@@ -221,7 +221,7 @@ Key rule: **agents never call other agents** — only commands orchestrate agent
 
 ```mermaid
 flowchart TD
-    A([Developer]) --> B["npx rea-tools setup (one time) — copies commands + creates .rea/"]
+    A([Developer]) --> B["npx readev-tools setup (one time) — copies commands + creates .rea/"]
     B --> D["Open your coding tool"]
     D --> E["/rea-init"]
 

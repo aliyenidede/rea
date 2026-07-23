@@ -24,7 +24,7 @@ design-closure decisions; where they conflict with earlier sections, §9 governs
   code smells, deep modules, tracer bullets, Pragmatic Programmer rules) that review agents consult
   (§5.9).
 - Commands are Claude slash commands (`/rea-grill`), referred to by name in prose. The CLI has a
-  few verbs (`npx rea-tools setup`, `npx rea-tools verify`). `talk` and `capture` are **not**
+  few verbs (`npx readev-tools setup`, `npx readev-tools verify`). `talk` and `capture` are **not**
   commands (see §5).
 
 ---
@@ -361,17 +361,17 @@ fault-tolerant, human-reviewed):
 Runs as **dry-run report → human approval → fix** (`rea-tidy --check` = report only). Absorbs what a
 health-check skill would do — which is why there is no `rea-verify` skill.
 
-### 5.9 npx rea-tools verify — a mechanical CLI check (not a skill)
+### 5.9 npx readev-tools verify — a mechanical CLI check (not a skill)
 
 Setup is `rea-init` (idempotent — re-running re-syncs shims); intelligent reconciliation is
 `rea-tidy`. What's left is mechanical (files present? shim correct? CI configured?) — the **dumb
-`npx rea-tools verify` CLI** ("CLI is dumb, Claude is smart"), not a ritual.
+`npx readev-tools verify` CLI** ("CLI is dumb, Claude is smart"), not a ritual.
 
 ### 5.10 migration — public archive verb + private distiller (not shipped)
 
 Public REA ships the new `.rea/` format as the default; a new project starts with it, no migration
 burden. For an *existing* v0.7.1 host crossing the breaking jump, the shipped, public path is
-**archive-and-start-fresh** via the mechanical **`npx rea-tools migrate`** verb ("CLI is dumb, Claude is
+**archive-and-start-fresh** via the mechanical **`npx readev-tools migrate`** verb ("CLI is dumb, Claude is
 smart"): it archives the legacy `.rea/` memory (flat `log/` + `lessons.md` → `.rea/_archive/`, never
 deleted), strips the dead legacy router hook from `.claude/settings.json` while preserving every other
 setting, and reports the remaining legacy artifacts (old `CLAUDE.md` body, legacy CI workflow, legacy
@@ -426,7 +426,7 @@ shipped).
 The design is settled; this lists the non-obvious outcomes (the *how-we-got-here* is in git):
 
 - **canonical org** = `aliyenidede`; **distribution** = `npx` (PyPI dropped — §9/D1); **naming** =
-  `rea-tools` (methodology) + `rea-cli` (agent, brand `readev`) — §9/D2
+  `readev-tools` (methodology) + `rea-cli` (agent, brand `readev`) — §9/D2
 - **smart zone** = ~140K, model-dependent
 - **K** = every human-review gate (plan approval + pre-ship diff), not a PR gate; automated review
   agents feed it
@@ -462,36 +462,36 @@ earlier sections, this section governs.
 
 ### Product shape (two products, two repos)
 - **Two products, one shared "REA brain":**
-  - **rea-tools** — the methodology delivered *into* a host (VS Code, Claude Code, Codex, …). This is
+  - **readev-tools** — the methodology delivered *into* a host (VS Code, Claude Code, Codex, …). This is
     the design in §1–§8. Methodology-as-guest; steers via `AGENTS.md` + `.rea/`.
   - **rea-cli** (brand: **readev**) — the *same* methodology as its own standalone coding-agent CLI.
     Engine = **oh-my-pi** (a batteries-included MIT fork of Pi), used as a **plugin/config layer, not a
     hard fork** (see "rea-cli engine" below; Archon/Pi-self-host/VPS remain out of scope). A **separate
     greenfield repo with its own plan** — not part of §8.
 - **`readev`** = the umbrella/brand over both (optional).
-- **Repos:** the current `rea` repo evolves into **rea-tools** (keeps history); rea-cli is greenfield
+- **Repos:** the current `rea` repo evolves into **readev-tools** (keeps history); rea-cli is greenfield
   and **vendors Layer 1** (principles + craft-checklist + `.rea/` schema) as a clean one-way
   dependency. → Layer 1 becomes a **versioned, schema-specified, vendorable package** — a new
   implementation **item 0**, ahead of §8.1.
 - **Orca** (an ADE desktop app running terminal agents in isolated worktrees, bring-your-own
   subscription) is an **optional host** for rea-cli, not a dependency. It owns worktree isolation →
   double-confirms the dropped `rea-worktree`. Usage is a **user-choice matrix**: rea-cli standalone ·
-  rea-cli in Orca · rea-tools in VS Code · rea-tools in any CLI.
+  rea-cli in Orca · readev-tools in VS Code · readev-tools in any CLI.
 - **Framing amendment:** §2's "REA is the stable layer, the CLI is the interchangeable engine" and
-  Principle L's "CLI is dumb, Claude is smart" describe **rea-tools' mechanical installer**. rea-cli
+  Principle L's "CLI is dumb, Claude is smart" describe **readev-tools' mechanical installer**. rea-cli
   is deliberately REA-*as-engine* (intelligent); scope those framings to the installer, not to rea-cli.
 
 ### D1 — Distribution
-rea-tools ships via **`npx`** (JS installer); **PyPI dropped**. Install: `npx rea-tools setup` (or
-`npx github:aliyenidede/rea-tools setup`). _(The mechanical verb is `setup`, not `init` — 0009
-Decision 1, avoids the `rea init`↔`/rea-init` collision.)_ Rationale: rea-tools is just files; the audience already has
+readev-tools ships via **`npx`** (JS installer); **PyPI dropped**. Install: `npx readev-tools setup` (or
+`npx github:aliyenidede/rea setup`). _(The mechanical verb is `setup`, not `init` — 0009
+Decision 1, avoids the `rea init`↔`/rea-init` collision.)_ Rationale: readev-tools is just files; the audience already has
 Node (AI CLIs are npm-distributed); cross-platform incl. Windows; zero-install, always-latest. The npm
 package doubles as the vendorable Layer-1 artifact.
 
 ### D2 — Naming
-**rea-tools** (methodology toolkit) + **rea-cli** (standalone agent); **readev** = optional umbrella
+**readev-tools** (methodology toolkit) + **rea-cli** (standalone agent); **readev** = optional umbrella
 brand. Resolves the earlier `rea`-means-two-things collision: the mechanical installer keeps the
-`rea-tools` name/verbs; the intelligent agent is `rea-cli`/`readev`.
+`readev-tools` name/verbs; the intelligent agent is `rea-cli`/`readev`.
 
 ### Gap closures
 - **G1 — obsolete-file cleanup:** the installer writes a per-project **manifest** of REA-owned files;
@@ -524,7 +524,7 @@ brand. Resolves the earlier `rea`-means-two-things collision: the mechanical ins
   central index file** (that would be the conflict point) — the directory listing is the index.
 - **G6b — shim write semantics:** the installer **never blind-overwrites**. The markdown managed-marker
   shims are **`AGENTS.md` + `CLAUDE.md` only**, written inside **managed markers**
-  (`<!-- rea-tools:start … end -->`); re-init replaces only the managed region, preserving user content.
+  (`<!-- readev-tools:start … end -->`); re-init replaces only the managed region, preserving user content.
   **REA never writes a `GEMINI.md` file** — Gemini is served by a **structured read-modify-write merge**
   into `.gemini/settings.json`, whose `context.fileName` lists `AGENTS.md` (REA's file) alongside
   `GEMINI.md` (Gemini's own native file, preserved as a default); every other key is kept. Ownership is
@@ -543,7 +543,7 @@ brand. Resolves the earlier `rea`-means-two-things collision: the mechanical ins
   files → the AGENTS.md class) + `system-prompt-customization`; sub-agents via `task-agent-discovery`; TS
   extensions + MCP for anything tool-shaped. → the parked "command/agent portability" (§2/§6) is
   **near-free for omp** — the same markdown files, not a re-authoring.
-- **So rea-cli = omp (engine) + rea-tools' methodology files** (AGENTS.md + `.rea/` + craft-checklist +
+- **So rea-cli = omp (engine) + readev-tools' methodology files** (AGENTS.md + `.rea/` + craft-checklist +
   commands rendered to `.omp/commands/`) **+ Claude-sub-via-Agent-SDK provider config + branding.** It is
   *packaging + config*, not a bespoke agent build — weeks, not months.
 - **Claude auth (verified, volatile):** the sanctioned way to use a Claude **subscription** in a

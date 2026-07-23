@@ -18,14 +18,14 @@ shim file is placed for them.
 
 ## Write rule (G6b — never blind-overwrite)
 
-A shim file may hold user content `rea-tools` never wrote; overwriting the whole file would destroy
+A shim file may hold user content `readev-tools` never wrote; overwriting the whole file would destroy
 it. Two write strategies, one per format:
 
 - **Markdown shims** (`CLAUDE.md`) are written inside managed markers
-  (`<!-- rea-tools:start --> … <!-- rea-tools:end -->`) — a re-init or update replaces only the
+  (`<!-- readev-tools:start --> … <!-- readev-tools:end -->`) — a re-init or update replaces only the
   region between the markers, never anything outside it.
 - **JSON shims** (`gemini-settings.json`) use a structured read-modify-write merge — read the
-  existing file, add or update only the keys `rea-tools` requires, and leave every other key as
+  existing file, add or update only the keys `readev-tools` requires, and leave every other key as
   found. There is no marker equivalent for JSON; the merge is field-by-field.
 
 See [`core/rea-schema.md`](../../core/rea-schema.md) — "Shim write semantics" — for the full

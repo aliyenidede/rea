@@ -19,7 +19,7 @@ const manifest = require('../src/manifest.js');
 const shims = require('../src/shims.js');
 const { scanLegacy } = require('../src/legacy-scan.js');
 
-// The real rea-tools package root (this repo) — templates/ lives here.
+// The real readev-tools package root (this repo) — templates/ lives here.
 const REPO_ROOT = path.resolve(__dirname, '..');
 
 /** Creates a unique tmp dir under the OS temp dir; returns its absolute path. */

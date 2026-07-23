@@ -30,7 +30,7 @@ test('recordOwned + recordShimRegion, save, then reload round-trips', () => {
     let m = manifest.load(targetRoot);
     manifest.recordOwned(m, '.claude/commands/rea-init.md');
     manifest.recordOwned(m, 'core/principles.md');
-    manifest.recordShimRegion(m, 'AGENTS.md', 'rea-tools');
+    manifest.recordShimRegion(m, 'AGENTS.md', 'readev-tools');
 
     manifest.save(targetRoot, m);
 
@@ -38,7 +38,7 @@ test('recordOwned + recordShimRegion, save, then reload round-trips', () => {
     assert.deepEqual(reloaded, {
       version: 1,
       ownedFiles: ['.claude/commands/rea-init.md', 'core/principles.md'],
-      shimRegions: [{ file: 'AGENTS.md', marker: 'rea-tools' }],
+      shimRegions: [{ file: 'AGENTS.md', marker: 'readev-tools' }],
     });
   } finally {
     fs.rmSync(targetRoot, { recursive: true, force: true });
@@ -137,7 +137,7 @@ test('load() backfills a partial/old-schema manifest so recordOwned does not thr
     assert.deepEqual(m, { version: 1, ownedFiles: [], shimRegions: [] });
 
     assert.doesNotThrow(() => manifest.recordOwned(m, 'core/principles.md'));
-    assert.doesNotThrow(() => manifest.recordShimRegion(m, 'AGENTS.md', 'rea-tools'));
+    assert.doesNotThrow(() => manifest.recordShimRegion(m, 'AGENTS.md', 'readev-tools'));
   } finally {
     fs.rmSync(targetRoot, { recursive: true, force: true });
   }
@@ -179,9 +179,9 @@ test('recordShimRegion throws on an absolute path (win32 and posix forms) but no
   const targetRoot = makeTmpRoot();
   try {
     const m = manifest.load(targetRoot);
-    assert.throws(() => manifest.recordShimRegion(m, 'C:\\proj\\AGENTS.md', 'rea-tools'));
-    assert.throws(() => manifest.recordShimRegion(m, '/abs/AGENTS.md', 'rea-tools'));
-    assert.doesNotThrow(() => manifest.recordShimRegion(m, 'AGENTS.md', 'rea-tools'));
+    assert.throws(() => manifest.recordShimRegion(m, 'C:\\proj\\AGENTS.md', 'readev-tools'));
+    assert.throws(() => manifest.recordShimRegion(m, '/abs/AGENTS.md', 'readev-tools'));
+    assert.doesNotThrow(() => manifest.recordShimRegion(m, 'AGENTS.md', 'readev-tools'));
   } finally {
     fs.rmSync(targetRoot, { recursive: true, force: true });
   }

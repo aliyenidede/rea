@@ -1,12 +1,12 @@
 # core/
 
-`core/` is the shared, tool-agnostic foundation used by **both** `rea-tools` and `rea-cli` — one
+`core/` is the shared, tool-agnostic foundation used by **both** `readev-tools` and `rea-cli` — one
 source of truth so the two products never drift.
 
 ## Why
 
 Both products deliver the same methodology:
-- **rea-tools** — the methodology delivered *into* a host (VS Code, Claude Code, Codex, …).
+- **readev-tools** — the methodology delivered *into* a host (VS Code, Claude Code, Codex, …).
 - **rea-cli** — the same methodology as its own standalone coding-agent CLI.
 
 If the foundation were written twice, it would drift. `core/` is written once, here, and both

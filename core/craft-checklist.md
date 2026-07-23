@@ -6,7 +6,7 @@ in at the right moment. This file is that pull point for code review.
 
 It stays short on purpose — short enough to be **read in full**, not searched. There is no
 targeted-pull machinery here (no tags-to-fetch-by-topic, no partial reads); a reviewer reads the
-whole thing every time. `code-reviewer` and `plan-reviewer` (in both rea-tools and rea-cli) **must
+whole thing every time. `code-reviewer` and `plan-reviewer` (in both readev-tools and rea-cli) **must
 tag every finding with the `CC-NN` item it maps to** — that keeps this list active instead of
 dusty. Grow it only if it proves too thin in practice; do not pad it pre-emptively.
 

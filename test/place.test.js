@@ -10,7 +10,7 @@ const manifest = require('../src/manifest.js');
 const { place } = require('../src/place.js');
 const { createDirLinkOrSkip } = require('./helpers/symlink-fixtures');
 
-// The real rea-tools package root (this repo) — templates/ and core/ live here.
+// The real readev-tools package root (this repo) — templates/ and core/ live here.
 const SOURCE_ROOT = path.resolve(__dirname, '..');
 
 /** Creates a unique tmp dir under the OS temp dir; returns its absolute path. */

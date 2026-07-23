@@ -64,7 +64,7 @@ function requireRealSetupModule() {
 
 const { run } = requireRealSetupModule();
 
-// The real rea-tools package root (this repo) — templates/ and core/ live here.
+// The real readev-tools package root (this repo) — templates/ and core/ live here.
 const REPO_ROOT = path.resolve(__dirname, '..');
 
 /** Creates a unique tmp dir under the OS temp dir; returns its absolute path. */
@@ -109,7 +109,7 @@ function captureConsole(fn) {
 }
 
 /**
- * Builds a minimal fixture rea-tools source tree (mirroring the layout
+ * Builds a minimal fixture readev-tools source tree (mirroring the layout
  * place.js/shims.js/setup.js expect) under a fresh tmp dir:
  *   templates/commands/{a.md,b.md}
  *   templates/agents/x.md
@@ -404,7 +404,7 @@ test('run(): a mid-run crash (ambiguous CLAUDE.md markers) throws, leaves no man
     const claudeMdPath = writeFile(
       targetRoot,
       'CLAUDE.md',
-      '# My Project Notes\n\n<!-- rea-tools:start -->\nstray content, no end marker\n'
+      '# My Project Notes\n\n<!-- readev-tools:start -->\nstray content, no end marker\n'
     );
 
     const manifestPath = path.join(targetRoot, manifest.MANIFEST_REL_PATH);

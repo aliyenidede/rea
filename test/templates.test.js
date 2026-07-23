@@ -32,7 +32,7 @@ const manifest = require('../src/manifest.js');
 const { place } = require('../src/place.js');
 const { writeShims } = require('../src/shims.js');
 
-// The real rea-tools package root (this repo) — templates/ and core/ live here.
+// The real readev-tools package root (this repo) — templates/ and core/ live here.
 const SOURCE_ROOT = path.resolve(__dirname, '..');
 
 /** Creates a unique tmp dir under the OS temp dir; returns its absolute path. */
@@ -74,8 +74,8 @@ function listMarkdownFilesRecursive(dirAbs) {
 /**
  * Strips content that legitimately contains `<...>`-shaped or backtick-shaped
  * text but is not prose to be scanned as real links/tags: fenced code
- * blocks, inline code spans, and HTML comments (including the rea-tools
- * `<!-- rea-tools:start/end -->` markers). Shared by the link-target
+ * blocks, inline code spans, and HTML comments (including the readev-tools
+ * `<!-- readev-tools:start/end -->` markers). Shared by the link-target
  * extractor (TEST 1) and the stray-closing-tag heuristic (TEST 2) so that a
  * documentation EXAMPLE inside a code fence is never mistaken for a real
  * link or a real HTML/XML tag.
@@ -254,7 +254,7 @@ test('findUnmatchedClosingTags() heuristic: ignores placeholders/code/comments, 
   // Realistic prose shapes drawn from the actual templates: a `### U<n>`
   // heading style token, an unclosed <title> placeholder, a fenced code
   // block that happens to contain a bare closing tag, a comparison-like
-  // angle bracket, an underscore-bearing placeholder, and the rea-tools
+  // angle bracket, an underscore-bearing placeholder, and the readev-tools
   // HTML-comment markers. None of these are a real unmatched closing tag.
   const clean = [
     '### U<n> — <title>',
@@ -262,9 +262,9 @@ test('findUnmatchedClosingTags() heuristic: ignores placeholders/code/comments, 
     '```',
     '</content>',
     '```',
-    '<!-- rea-tools:start -->',
+    '<!-- readev-tools:start -->',
     'managed body',
-    '<!-- rea-tools:end -->',
+    '<!-- readev-tools:end -->',
   ].join('\n');
   assert.deepEqual(
     findUnmatchedClosingTags(clean),

@@ -4,6 +4,6 @@ This project uses [`AGENTS.md`](AGENTS.md) as its single source of behaviour and
 instructions. Content you add outside the managed markers below is yours to keep — a re-init or
 update only touches the managed region.
 
-<!-- rea-tools:start -->
+<!-- readev-tools:start -->
 @AGENTS.md
-<!-- rea-tools:end -->
+<!-- readev-tools:end -->

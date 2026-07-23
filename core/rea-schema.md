@@ -8,7 +8,7 @@ This is the tool-agnostic on-disk format spec for `.rea/`: the directory layout,
 collision rules per note type, and the exact templates for `plan.md` and `todo.md`. It is written
 as **markdown, not JSON Schema** — agents read markdown directly, and every rule below is phrased
 so it is regex-checkable (a fixed heading shape, a fixed field name) rather than requiring a
-schema validator. Both `rea-tools` and `rea-cli` read and write to this same spec — neither owns a
+schema validator. Both `readev-tools` and `rea-cli` read and write to this same spec — neither owns a
 private variant.
 
 _This document also covers the root-level shim write contract (for files like `AGENTS.md` /
@@ -201,33 +201,33 @@ Directory layout above). The numbering rule is the same for both:
 ## Shim write semantics
 
 _This section is the root-file shim contract referenced in this document's intro: it governs how
-`rea-tools` writes to files that live **outside** `.rea/` — the tool shims (`AGENTS.md`, `CLAUDE.md`)
+`readev-tools` writes to files that live **outside** `.rea/` — the tool shims (`AGENTS.md`, `CLAUDE.md`)
 and Gemini's `settings.json`. It is part of this schema spec because, like the `.rea/`
-formats above, both `rea-tools` and `rea-cli` must write these files the same way._
+formats above, both `readev-tools` and `rea-cli` must write these files the same way._
 
 The one rule that governs every shim write: **never blind-overwrite.** A shim file may contain user
-content that was never written by `rea-tools`; a naive overwrite would destroy it. Two write
+content that was never written by `readev-tools`; a naive overwrite would destroy it. Two write
 strategies follow from this, one per file format:
 
 - **Markdown shims** (`AGENTS.md`, `CLAUDE.md`) are written **inside managed markers**:
 
   ```
-  <!-- rea-tools:start -->
-  ...rea-tools-owned content...
-  <!-- rea-tools:end -->
+  <!-- readev-tools:start -->
+  ...readev-tools-owned content...
+  <!-- readev-tools:end -->
   ```
 
   A re-init (or update) replaces **only** the content between these markers. Anything a user wrote
   outside the markers — above, below, or interleaved across sessions — is preserved untouched.
 
 - **JSON shims** (Gemini's `settings.json`) use a **structured read-modify-write merge**: read the
-  existing file, add or update only the keys `rea-tools` requires, and leave every other key as
+  existing file, add or update only the keys `readev-tools` requires, and leave every other key as
   found. There is no managed-marker equivalent for JSON — the merge is field-by-field instead of a
-  block replace. `rea-tools` sets `context.fileName` to list both `AGENTS.md` (its own managed-marker
+  block replace. `readev-tools` sets `context.fileName` to list both `AGENTS.md` (its own managed-marker
   file, per above) and `GEMINI.md` (Gemini's own native file, preserved as whatever default Gemini
-  ships) — `rea-tools` never creates or writes a `GEMINI.md` file itself.
+  ships) — `readev-tools` never creates or writes a `GEMINI.md` file itself.
 
-Ownership of which files (and which regions of them) belong to `rea-tools` is tracked in a
+Ownership of which files (and which regions of them) belong to `readev-tools` is tracked in a
 per-project manifest written by the installer; `rea-tidy` reconciles any drift between the manifest
 and what is actually on disk. This manifest is what makes it safe for the installer to prune files it
 previously owned without ever touching a file — or a byte range — it doesn't own.

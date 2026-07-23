@@ -160,7 +160,7 @@ def test_init_fails_on_nonexistent_path(tmp_path: Path):
 def test_setup_prints_deprecation_notice(tmp_path: Path):
     result = runner.invoke(app, ["setup", str(tmp_path)])
     assert "Deprecation notice" in result.output
-    assert "npx rea-tools setup" in result.output
+    assert "npx readev-tools setup" in result.output
 
 
 def test_setup_still_performs_copy_after_notice(tmp_path: Path):
@@ -180,7 +180,7 @@ def test_setup_never_raises_on_normal_invocation(tmp_path: Path):
 def test_bare_invocation_prints_deprecation_notice():
     result = runner.invoke(app, [])
     assert "Deprecation notice" in result.output
-    assert "npx rea-tools setup" in result.output
+    assert "npx readev-tools setup" in result.output
 
 
 # --- template integrity ---

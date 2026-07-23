@@ -3,7 +3,7 @@
 /**
  * src/verify.js — read-only install health check (4c-1)
  *
- * `verify(targetRoot)` reports whether a previous `rea-tools setup` run is
+ * `verify(targetRoot)` reports whether a previous `readev-tools setup` run is
  * still intact, WITHOUT fixing anything and WITHOUT writing anything ("CLI
  * is dumb, Claude is smart" — repair is `rea-tidy`'s job, not this module's).
  * It only opens files to read them; it never creates, modifies, or deletes
@@ -37,7 +37,7 @@
  *                           treated as missing rather than throwing.
  *   4. shims intact      - for each manifest shimRegions[] entry, branch on
  *                           its recorded `marker` (never on the filename): a
- *                           `'rea-tools'` entry (a markdown shim — CLAUDE.md
+ *                           `'readev-tools'` entry (a markdown shim — CLAUDE.md
  *                           or AGENTS.md) still contains both managed markers,
  *                           correctly ordered (start strictly before end —
  *                           a reversed pair is not treated as intact), and —
@@ -185,7 +185,7 @@ function extractManagedBody(content) {
 
 /**
  * Validates one markdown-marker shim region (a manifest shimRegions[] entry
- * whose marker is 'rea-tools' — CLAUDE.md or AGENTS.md). Returns `null` when
+ * whose marker is 'readev-tools' — CLAUDE.md or AGENTS.md). Returns `null` when
  * intact, or a human-readable problem string otherwise.
  */
 function checkMarkdownShimRegion(targetRoot, relFile) {
@@ -215,7 +215,7 @@ function checkMarkdownShimRegion(targetRoot, relFile) {
   // REVERSED (end appears before start) is not a valid managed block; this
   // mirrors extractManagedBody's own `endIdx < startIdx -> null` guard below.
   if (startIdx === -1 || endIdx === -1 || startIdx >= endIdx) {
-    return `${relFile}: managed markers are missing or out of order (rea-tools:start/end)`;
+    return `${relFile}: managed markers are missing or out of order (readev-tools:start/end)`;
   }
 
   // The pointer-body check below is only meaningful for a single-line
@@ -298,7 +298,7 @@ function checkShimsIntact(targetRoot, shimRegions) {
       problem = checkGeminiShimRegion(targetRoot, region.file);
     } else {
       // Every other recorded marker value is a markdown marker-block shim
-      // (currently always 'rea-tools' — CLAUDE.md/AGENTS.md).
+      // (currently always 'readev-tools' — CLAUDE.md/AGENTS.md).
       problem = checkMarkdownShimRegion(targetRoot, region.file);
     }
     if (problem) {
@@ -379,7 +379,7 @@ function verify(targetRoot) {
       checks,
       'manifest present',
       'fail',
-      'not installed — run `npx rea-tools setup`'
+      'not installed — run `npx readev-tools setup`'
     );
     return { checks, ok: false };
   }

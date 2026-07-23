@@ -11,7 +11,7 @@ const manifest = require('../src/manifest.js');
 const { place } = require('../src/place.js');
 const { writeShims } = require('../src/shims.js');
 
-// The real rea-tools package root (this repo) — templates/ and core/ live here.
+// The real readev-tools package root (this repo) — templates/ and core/ live here.
 // Used by buildHealthyFixture() below to build a genuine install for the
 // `verify` dispatch tests (mirrors test/verify.test.js's own fixture builder).
 const REPO_ROOT = path.resolve(__dirname, '..');

@@ -90,7 +90,7 @@ function requireRealVerifyModule() {
 
 const { verify } = requireRealVerifyModule();
 
-// The real rea-tools package root (this repo) — templates/ and core/ live here.
+// The real readev-tools package root (this repo) — templates/ and core/ live here.
 const REPO_ROOT = path.resolve(__dirname, '..');
 
 /** Creates a unique tmp dir under the OS temp dir; returns its absolute path. */
@@ -205,7 +205,7 @@ test('verify(): CLAUDE.md with its markers stripped -> shims intact check fails'
     const original = fs.readFileSync(claudeMdPath, 'utf8');
     const stripped = original
       .split('\n')
-      .filter((line) => !line.includes('rea-tools:start') && !line.includes('rea-tools:end'))
+      .filter((line) => !line.includes('readev-tools:start') && !line.includes('readev-tools:end'))
       .join('\n');
     assert.notEqual(stripped, original, 'sanity: the fixture actually had markers before stripping');
     fs.writeFileSync(claudeMdPath, stripped, 'utf8');
@@ -493,7 +493,7 @@ test('verify(): no manifest -> a single fail check, "not installed"', () => {
     assert.equal(result.checks[0].name, 'manifest present');
     assert.equal(result.checks[0].status, 'fail');
     assert.match(result.checks[0].detail, /not installed/);
-    assert.match(result.checks[0].detail, /npx rea-tools setup/);
+    assert.match(result.checks[0].detail, /npx readev-tools setup/);
   } finally {
     fs.rmSync(targetRoot, { recursive: true, force: true });
   }

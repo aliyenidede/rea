@@ -3,7 +3,7 @@
 /**
  * src/prune.js — G1 obsolete-file prune (security-critical)
  *
- * Deletes files rea-tools previously placed but no longer owns. The prune
+ * Deletes files readev-tools previously placed but no longer owns. The prune
  * basis is a caller-supplied diff of two owned-path snapshots (never a fresh
  * disk scan) — see prune()'s parameters below — plus, on the one-time
  * legacy-host bridge, the hard-coded retired-file list (src/retired-list.js).
@@ -121,7 +121,7 @@ function isProtected(relPath) {
 }
 
 /**
- * Deletes files rea-tools previously owned but no longer owns.
+ * Deletes files readev-tools previously owned but no longer owns.
  *
  * @param {object} args
  * @param {string} args.targetRoot - absolute path to the host project root.

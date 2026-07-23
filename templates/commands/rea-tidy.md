@@ -16,7 +16,7 @@ only — nothing else in the pipeline calls it automatically.
 
 **Boundary:** this command's checks are the *intelligent* half of the legacy verify ritual. The
 *mechanical* half — file-presence checks, GitHub configuration, branch-protection status — is a
-separate, dumb `npx rea-tools verify` CLI verb; this command never runs those checks.
+separate, dumb `npx readev-tools verify` CLI verb; this command never runs those checks.
 
 ## Step 0 — Choose the run mode
 
@@ -52,16 +52,16 @@ superseded by a new numbered entry that says so, and the old entry stays on disk
 For every shim file present at the project root — `CLAUDE.md` and Gemini's `settings.json` — compare
 what is on disk against `core/rea-schema.md`'s shim write semantics:
 
-- **Markdown shims:** read the region between `<!-- rea-tools:start -->` and
-  `<!-- rea-tools:end -->`. Flag missing or malformed markers, or managed content that no longer
+- **Markdown shims:** read the region between `<!-- readev-tools:start -->` and
+  `<!-- readev-tools:end -->`. Flag missing or malformed markers, or managed content that no longer
   matches the current shim template — for example, the `@AGENTS.md` reference gone missing, altered,
   or repointed elsewhere. The managed region is a fixed reference to `AGENTS.md`, not a copy of its
   rules, so the check is against the template shape, never against `AGENTS.md`'s prose.
-- **`settings.json`:** read the file and diff only the keys `rea-tools` owns against what's
+- **`settings.json`:** read the file and diff only the keys `readev-tools` owns against what's
   actually there — flag a missing key, a changed value, or a naming collision with a key the user
   added independently. This is a field-by-field check, not a whole-file compare (G6b).
 
-Content outside the markers, or a JSON key `rea-tools` does not own, is never this job's
+Content outside the markers, or a JSON key `readev-tools` does not own, is never this job's
 concern — by definition it belongs to the human, untouched.
 
 ## Step 3 — Scan: rules (stale / conflicting)
@@ -157,4 +157,4 @@ Report what actually changed, file by file, once the approved fixes are applied.
 - **Numbering fixes are cosmetic housekeeping, not a correctness fix.** Skip Step 4 silently when
   there is nothing to renumber; never treat a duplicate `NNNN-` as data loss.
 - **Out of scope: mechanical checks.** File-presence, GitHub configuration, and branch-protection
-  status are the dumb `npx rea-tools verify` CLI verb — this command never runs those checks.
+  status are the dumb `npx readev-tools verify` CLI verb — this command never runs those checks.

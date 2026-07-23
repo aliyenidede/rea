@@ -28,21 +28,21 @@ function readTemplate(...segments) {
 
 test('applyMarkerBlock: file absent (null) creates prefix + managed block', () => {
   const out = shims.applyMarkerBlock(null, 'BODY', { createPrefix: 'HEADER\n\n' });
-  assert.equal(out, 'HEADER\n\n<!-- rea-tools:start -->\nBODY\n<!-- rea-tools:end -->\n');
+  assert.equal(out, 'HEADER\n\n<!-- readev-tools:start -->\nBODY\n<!-- readev-tools:end -->\n');
 });
 
 test('applyMarkerBlock: markers present replaces only the managed region', () => {
   const existing =
-    'TOP\n<!-- rea-tools:start -->\nOLD\n<!-- rea-tools:end -->\nBOTTOM\n';
+    'TOP\n<!-- readev-tools:start -->\nOLD\n<!-- readev-tools:end -->\nBOTTOM\n';
   const out = shims.applyMarkerBlock(existing, 'NEW');
-  assert.equal(out, 'TOP\n<!-- rea-tools:start -->\nNEW\n<!-- rea-tools:end -->\nBOTTOM\n');
+  assert.equal(out, 'TOP\n<!-- readev-tools:start -->\nNEW\n<!-- readev-tools:end -->\nBOTTOM\n');
 });
 
 test('applyMarkerBlock: markers absent appends the block, preserving existing content', () => {
   const existing = '# Hand-written notes\n\nSome content a human wrote.\n';
   const out = shims.applyMarkerBlock(existing, 'BODY');
   assert.ok(out.startsWith(existing), 'original content must be preserved verbatim at the start');
-  assert.ok(out.includes('<!-- rea-tools:start -->\nBODY\n<!-- rea-tools:end -->'));
+  assert.ok(out.includes('<!-- readev-tools:start -->\nBODY\n<!-- readev-tools:end -->'));
 });
 
 test('mergeGeminiSettings: missing settings (undefined) produces the fixed fileName array', () => {
@@ -76,19 +76,19 @@ test('mergeGeminiSettings: an array `context` value resets to {} instead of bein
 // ---------------------------------------------------------------------------
 
 test('applyMarkerBlock: an orphan start marker with no end marker throws instead of silently appending', () => {
-  const existing = '# Notes\n\n<!-- rea-tools:start -->\nUser started writing something but never closed it.\n';
+  const existing = '# Notes\n\n<!-- readev-tools:start -->\nUser started writing something but never closed it.\n';
   assert.throws(
     () => shims.applyMarkerBlock(existing, 'NEW', { fileLabel: 'CLAUDE.md' }),
-    /Ambiguous rea-tools managed markers in CLAUDE\.md/
+    /Ambiguous readev-tools managed markers in CLAUDE\.md/
   );
 });
 
 test('applyMarkerBlock: two well-formed start/end pairs throws instead of silently updating only the first', () => {
   const existing =
-    'TOP\n<!-- rea-tools:start -->\nFIRST OLD\n<!-- rea-tools:end -->\nMIDDLE\n<!-- rea-tools:start -->\nSECOND OLD\n<!-- rea-tools:end -->\nBOTTOM\n';
+    'TOP\n<!-- readev-tools:start -->\nFIRST OLD\n<!-- readev-tools:end -->\nMIDDLE\n<!-- readev-tools:start -->\nSECOND OLD\n<!-- readev-tools:end -->\nBOTTOM\n';
   assert.throws(
     () => shims.applyMarkerBlock(existing, 'NEW', { fileLabel: 'CLAUDE.md' }),
-    /Ambiguous rea-tools managed markers in CLAUDE\.md/
+    /Ambiguous readev-tools managed markers in CLAUDE\.md/
   );
 });
 
@@ -102,7 +102,7 @@ test('(a) CLAUDE.md with user content above/below existing markers: content pres
     const claudePath = path.join(targetRoot, 'CLAUDE.md');
     fs.writeFileSync(
       claudePath,
-      '# My Notes\n\nSome content above.\n\n<!-- rea-tools:start -->\nOLD STALE BODY\n<!-- rea-tools:end -->\n\nSome content below.\n',
+      '# My Notes\n\nSome content above.\n\n<!-- readev-tools:start -->\nOLD STALE BODY\n<!-- readev-tools:end -->\n\nSome content below.\n',
       'utf8'
     );
 
@@ -115,8 +115,8 @@ test('(a) CLAUDE.md with user content above/below existing markers: content pres
     assert.ok(!after.includes('OLD STALE BODY'), 'the old managed region must be replaced');
     assert.ok(after.includes('@AGENTS.md'), 'the new managed body must be present');
 
-    const starts = after.match(/<!-- rea-tools:start -->/g) || [];
-    const ends = after.match(/<!-- rea-tools:end -->/g) || [];
+    const starts = after.match(/<!-- readev-tools:start -->/g) || [];
+    const ends = after.match(/<!-- readev-tools:end -->/g) || [];
     assert.equal(starts.length, 1, 'exactly one start marker');
     assert.equal(ends.length, 1, 'exactly one end marker');
 
@@ -141,11 +141,11 @@ test('(b) markers-absent CLAUDE.md and AGENTS.md get the managed block appended 
     const agentsAfter = fs.readFileSync(agentsPath, 'utf8');
 
     assert.ok(claudeAfter.startsWith('# Legacy CLAUDE notes\n\nHand-written stuff.\n'));
-    assert.ok(claudeAfter.includes('<!-- rea-tools:start -->'));
+    assert.ok(claudeAfter.includes('<!-- readev-tools:start -->'));
     assert.ok(claudeAfter.includes('@AGENTS.md'));
 
     assert.ok(agentsAfter.startsWith('# Legacy AGENTS notes\n\nHand-written stuff too.\n'));
-    assert.ok(agentsAfter.includes('<!-- rea-tools:start -->'));
+    assert.ok(agentsAfter.includes('<!-- readev-tools:start -->'));
     assert.ok(agentsAfter.includes('## Behaviour'), 'the real AGENTS.md managed body must be appended');
   } finally {
     fs.rmSync(targetRoot, { recursive: true, force: true });
@@ -198,7 +198,7 @@ test('.gemini/settings.json is tracked as a shimRegion, NEVER as an owned (prune
     assert.ok(
       !manifest.listOwned(m).includes('.gemini/settings.json'),
       '.gemini/settings.json must never be in ownedFiles — prune could blind-delete a user file that ' +
-        'rea-tools only ever merges into'
+        'readev-tools only ever merges into'
     );
 
     const geminiRegion = m.shimRegions.find((r) => r.file === '.gemini/settings.json');
@@ -272,9 +272,9 @@ test('(f) a CRLF-line-ending CLAUDE.md still matches the markers and preserves s
     const crlfContent = [
       'TOP LINE',
       '',
-      '<!-- rea-tools:start -->',
+      '<!-- readev-tools:start -->',
       'OLD',
-      '<!-- rea-tools:end -->',
+      '<!-- readev-tools:end -->',
       '',
       'BOTTOM LINE',
       '',
@@ -290,7 +290,7 @@ test('(f) a CRLF-line-ending CLAUDE.md still matches the markers and preserves s
     assert.ok(!after.includes('OLD'), 'the old managed region must be replaced');
     assert.ok(after.includes('@AGENTS.md'));
 
-    const starts = after.match(/<!-- rea-tools:start -->/g) || [];
+    const starts = after.match(/<!-- readev-tools:start -->/g) || [];
     assert.equal(starts.length, 1, 'exactly one start marker — the CRLF marker must have matched, not been duplicated');
 
     assert.ok(
@@ -307,13 +307,13 @@ test('(g) a CLAUDE.md with an orphan start marker (no end) is left untouched —
   try {
     const claudePath = path.join(targetRoot, 'CLAUDE.md');
     const original =
-      '# Notes\n\n<!-- rea-tools:start -->\nUser started writing something but never closed it.\n';
+      '# Notes\n\n<!-- readev-tools:start -->\nUser started writing something but never closed it.\n';
     fs.writeFileSync(claudePath, original, 'utf8');
 
     const m = manifest.createEmptyManifest();
     assert.throws(
       () => shims.writeShims(REPO_ROOT, targetRoot, m),
-      /Ambiguous rea-tools managed markers in CLAUDE\.md/
+      /Ambiguous readev-tools managed markers in CLAUDE\.md/
     );
     assert.equal(
       fs.readFileSync(claudePath, 'utf8'),
@@ -325,7 +325,7 @@ test('(g) a CLAUDE.md with an orphan start marker (no end) is left untouched —
     // freshly-written end marker and swallow the user's content in between.
     assert.throws(
       () => shims.writeShims(REPO_ROOT, targetRoot, m),
-      /Ambiguous rea-tools managed markers in CLAUDE\.md/
+      /Ambiguous readev-tools managed markers in CLAUDE\.md/
     );
     assert.equal(
       fs.readFileSync(claudePath, 'utf8'),
@@ -342,14 +342,14 @@ test('(h) a CLAUDE.md with two well-formed start/end pairs is left untouched —
   try {
     const claudePath = path.join(targetRoot, 'CLAUDE.md');
     const original =
-      'TOP\n<!-- rea-tools:start -->\nFIRST OLD\n<!-- rea-tools:end -->\nMIDDLE\n' +
-      '<!-- rea-tools:start -->\nSECOND OLD\n<!-- rea-tools:end -->\nBOTTOM\n';
+      'TOP\n<!-- readev-tools:start -->\nFIRST OLD\n<!-- readev-tools:end -->\nMIDDLE\n' +
+      '<!-- readev-tools:start -->\nSECOND OLD\n<!-- readev-tools:end -->\nBOTTOM\n';
     fs.writeFileSync(claudePath, original, 'utf8');
 
     const m = manifest.createEmptyManifest();
     assert.throws(
       () => shims.writeShims(REPO_ROOT, targetRoot, m),
-      /Ambiguous rea-tools managed markers in CLAUDE\.md/
+      /Ambiguous readev-tools managed markers in CLAUDE\.md/
     );
     assert.equal(
       fs.readFileSync(claudePath, 'utf8'),

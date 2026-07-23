@@ -1,6 +1,6 @@
 ---
 name: rea-init
-description: "Intelligent bootstrap ritual for a project — quick tier (default, ~1-2 min) classifies the project and authors `AGENTS.md`'s project-specific sections (description, tech stack, architecture rules, file structure, commands); `--full` adds GitHub prerequisites, a staging branch, branch protection, CI workflows, and a secrets checklist. Requires the mechanical layer to already be installed via `npx rea-tools setup`. Use once per project, right after that."
+description: "Intelligent bootstrap ritual for a project — quick tier (default, ~1-2 min) classifies the project and authors `AGENTS.md`'s project-specific sections (description, tech stack, architecture rules, file structure, commands); `--full` adds GitHub prerequisites, a staging branch, branch protection, CI workflows, and a secrets checklist. Requires the mechanical layer to already be installed via `npx readev-tools setup`. Use once per project, right after that."
 ---
 
 Principles: D, K, L (`core/principles.md`)
@@ -14,7 +14,7 @@ the human; nothing is guessed. Work through the steps in order.
 
 **Preflight.** `/rea-init` never runs against a project the installer hasn't touched yet — it only
 ever adds content on top of a scaffold that is already there. Check for the mechanical layer the
-installer (`npx rea-tools setup`) is responsible for:
+installer (`npx readev-tools setup`) is responsible for:
 
 - Does `.rea/.rea-manifest.json` exist?
 - Does `.rea/` exist, with its `knowledge/`, `decisions/`, `sessions/`, `plans/` scaffold?
@@ -23,7 +23,7 @@ installer (`npx rea-tools setup`) is responsible for:
 If any of the three is missing, print:
 
 ```
-The mechanical layer is not installed yet. Run `npx rea-tools setup` first, then re-run /rea-init.
+The mechanical layer is not installed yet. Run `npx readev-tools setup` first, then re-run /rea-init.
 ```
 
 and **stop — do not proceed to Step 1.** Writing project-specific content on top of a
@@ -46,7 +46,7 @@ tool's own folder, creating the `.rea/` scaffold, writing the per-tool shims, an
 `AGENTS.md`'s fixed always-on block (behaviour steering, the `capture` reflex, the read-pull
 instruction, the map of pointers) is mechanical work the installer already did, once, before this
 command ever runs — this command adds only `AGENTS.md`'s **project-specific** content, and only
-**outside** the `<!-- rea-tools:start -->` … `<!-- rea-tools:end -->` markers the installer owns.
+**outside** the `<!-- readev-tools:start -->` … `<!-- readev-tools:end -->` markers the installer owns.
 If a shim later drifts from what the installer wrote, `rea-tidy` reconciles it — this command does
 not touch shims at all.
 
@@ -73,7 +73,7 @@ the project is not greenfield.
 
 Read the existing `AGENTS.md` and check its **project-specific sections** — project description,
 tech stack, architecture rules, file structure, and commands (build/test/lint) — all of which live
-outside the `<!-- rea-tools:start -->` … `<!-- rea-tools:end -->` markers the installer owns. For
+outside the `<!-- readev-tools:start -->` … `<!-- readev-tools:end -->` markers the installer owns. For
 each one that is missing, report it and ask: "Should I add the missing sections? I'll ask a
 question for each one, or generate a draft from the codebase via `explorer` if you'd rather review
 than answer."
@@ -113,8 +113,8 @@ Draft the project-specific content from the answers, then continue to Step 3.
 
 Write (or, on brownfield, extend) `AGENTS.md`'s **project-specific** content, from Step 1B / 1C /
 2's findings: project description, tech stack, architecture rules, file structure, and commands.
-This content always lives **outside** the `<!-- rea-tools:start -->` … `<!-- rea-tools:end -->`
-markers — append it after `<!-- rea-tools:end -->`, and never edit anything inside the markers.
+This content always lives **outside** the `<!-- readev-tools:start -->` … `<!-- readev-tools:end -->`
+markers — append it after `<!-- readev-tools:end -->`, and never edit anything inside the markers.
 That block is the installer's fixed always-on content (behaviour steering, the `capture` reflex,
 the read-pull instruction, and the map of pointers) — it is already in place, because Step 0's
 preflight refuses to run this command until it is.
@@ -252,14 +252,14 @@ action):
   **project-specific** sections; the installer already wrote the fixed always-on block before this
   command ever runs. Never write project rules or steering content into a tool-specific file as
   the primary source.
-- **Never write inside the managed markers.** `<!-- rea-tools:start -->` … `<!-- rea-tools:end -->`
+- **Never write inside the managed markers.** `<!-- readev-tools:start -->` … `<!-- readev-tools:end -->`
   is the installer's fixed always-on block; this command's project-specific content always goes
-  outside it, appended after `<!-- rea-tools:end -->`.
+  outside it, appended after `<!-- readev-tools:end -->`.
 - **Never destroy existing content.** A brownfield audit (Step 1B) only appends missing sections;
   it never rewrites what a human already wrote.
 - **Mechanical, cross-tool file placement is out of scope.** Placing files into each host tool's
   own folder, creating the `.rea/` scaffold, writing the per-tool shims, and authoring `AGENTS.md`'s
-  always-on block belong to the installer (`npx rea-tools setup`) — Step 0's preflight refuses to
+  always-on block belong to the installer (`npx readev-tools setup`) — Step 0's preflight refuses to
   run this command until that already happened. `rea-tidy` reconciles any drift a shim develops
   later; this command does not touch shims at all.
 - **Degrade gracefully on the full tier.** Missing `gh` auth, a missing `workflow` scope, no

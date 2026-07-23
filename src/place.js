@@ -3,8 +3,8 @@
 /**
  * src/place.js — Placement module
  *
- * Copies the rea-tools source content (commands, agents, the core reference
- * trio, and the `.rea/` typed-memory scaffold) from the rea-tools package
+ * Copies the readev-tools source content (commands, agents, the core reference
+ * trio, and the `.rea/` typed-memory scaffold) from the readev-tools package
  * root into a target host project, per a per-tool layout table, and records
  * every written path in the ownership manifest (src/manifest.js).
  *
@@ -147,7 +147,7 @@ function placeReaScaffold(sourceRoot, targetRoot, srcRelDir, destRelDir, manifes
 }
 
 /**
- * Places the rea-tools source content into `targetRoot` per LAYOUT[tool]:
+ * Places the readev-tools source content into `targetRoot` per LAYOUT[tool]:
  * commands, agents (minus per-tool exclusions), the core reference trio,
  * and the `.rea/` typed scaffold. Records every written path in
  * `manifestObj` (mutated). Returns `manifestObj`.

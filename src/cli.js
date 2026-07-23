@@ -11,7 +11,7 @@
  * ({placed, pruned, failed, isBridge, full}), never a number. `handleSetup`
  * maps that object to a numeric exit code (0 ok, 1 if `failed` is
  * non-empty) before returning, since `cli()`'s return value is assigned
- * straight to `process.exitCode` by bin/rea-tools.js, which requires an
+ * straight to `process.exitCode` by bin/readev-tools.js, which requires an
  * integer. verify.js's contract: verify(targetRoot) -> {checks, ok}, which
  * `handleVerify` maps to an exit code (0 when `ok`, else 1) after printing a
  * per-check report. migrate.js's contract: migrate(targetRoot, {dryRun}) ->
@@ -158,11 +158,11 @@ function loadMigrate() {
 function handleSetup(target, full) {
   const s = loadSetup();
   if (!s) {
-    console.log('rea-tools setup: orchestrator arrives in a later release');
+    console.log('readev-tools setup: orchestrator arrives in a later release');
     return 0;
   }
   // s.run() returns a result OBJECT ({placed, pruned, failed, isBridge, full}),
-  // never a number — bin/rea-tools.js assigns this handler's return value
+  // never a number — bin/readev-tools.js assigns this handler's return value
   // straight to process.exitCode, which Node requires to be an integer.
   // Map the result to a numeric exit code here rather than passing the
   // object through. Null-safe: a stub/older run() that returns a bare object
@@ -191,7 +191,7 @@ function printVerifyReport(result) {
 function handleVerify(target) {
   const v = loadVerify();
   if (!v) {
-    console.log('rea-tools verify: orchestrator arrives in a later release');
+    console.log('readev-tools verify: orchestrator arrives in a later release');
     return 0;
   }
   const result = v.verify(target);
@@ -220,7 +220,7 @@ function printMigrateReport(migrateModule, result) {
 function handleMigrate(target, { dryRun } = {}) {
   const m = loadMigrate();
   if (!m) {
-    console.log('rea-tools migrate: orchestrator arrives in a later release');
+    console.log('readev-tools migrate: orchestrator arrives in a later release');
     return 0;
   }
   const result = m.migrate(target, { dryRun });
@@ -233,7 +233,7 @@ function handleMigrate(target, { dryRun } = {}) {
  */
 function printUsage() {
   console.error(
-    ['Usage: rea-tools <setup|verify|migrate> [target] [--full] [--dry-run]'].join('\n')
+    ['Usage: readev-tools <setup|verify|migrate> [target] [--full] [--dry-run]'].join('\n')
   );
 }
 

@@ -9,7 +9,7 @@
  *
  * The contract (core/rea-schema.md, "Shim write semantics"):
  *   - Markdown shims (AGENTS.md, CLAUDE.md) are written INSIDE managed
- *     markers (`<!-- rea-tools:start -->` ... `<!-- rea-tools:end -->`):
+ *     markers (`<!-- readev-tools:start -->` ... `<!-- readev-tools:end -->`):
  *       - exactly one well-formed start/end pair -> replace ONLY the region
  *         between them.
  *       - no markers at all, file exists (hand-written/legacy) -> APPEND the
@@ -46,7 +46,7 @@
  * outside it even when an in-root path component is itself a symlink/
  * junction pointing elsewhere — and every write is recorded in the ownership
  * manifest (src/manifest.js) so later runs (place/prune) know which
- * files/regions rea-tools owns.
+ * files/regions readev-tools owns.
  *
  * Node built-ins only.
  *
@@ -100,8 +100,8 @@ const path = require('node:path');
 const manifest = require('./manifest');
 const safePath = require('./safe-path');
 
-const MARKER_START = '<!-- rea-tools:start -->';
-const MARKER_END = '<!-- rea-tools:end -->';
+const MARKER_START = '<!-- readev-tools:start -->';
+const MARKER_END = '<!-- readev-tools:end -->';
 
 /**
  * The literal prefix text this module prepends above the managed markers when
@@ -131,7 +131,7 @@ const MARKER_BLOCK_RE = new RegExp(
 
 // The label recorded in the manifest's shimRegions for every markdown shim
 // written by this module.
-const SHIM_MARKER_LABEL = 'rea-tools';
+const SHIM_MARKER_LABEL = 'readev-tools';
 
 // The label recorded in the manifest's shimRegions for the Gemini JSON shim
 // (it is tracked as a shim region, never as an owned/deletable file — see
@@ -241,7 +241,7 @@ function applyMarkerBlock(existingContent, managedBody, options = {}) {
 
   const label = options.fileLabel || 'the file';
   throw new Error(
-    `Ambiguous rea-tools managed markers in ${label}: found ${startCount} start marker(s) ` +
+    `Ambiguous readev-tools managed markers in ${label}: found ${startCount} start marker(s) ` +
       `(${MARKER_START}) and ${endCount} end marker(s) (${MARKER_END}); expected exactly one ` +
       'matching pair, or none. Refusing to write automatically to avoid corrupting or losing ' +
       'existing content — please resolve the markers in this file manually.'
@@ -320,7 +320,7 @@ function writeMarkdownShim(targetRoot, relFile, managedBody, createPrefix, manif
 
 /**
  * Writes the .gemini/settings.json shim under targetRoot, merging in
- * context.fileName. This file is a USER file rea-tools only ever merges a
+ * context.fileName. This file is a USER file readev-tools only ever merges a
  * key into — it is recorded as a manifest shimRegion, NEVER as an owned
  * file, so prune's blind-delete-when-no-longer-owned path can never target
  * it (see the module docstring's "Shim write semantics" section).
