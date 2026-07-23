@@ -4,15 +4,16 @@
 
 A portable CLI toolkit that bootstraps a structured Claude Code workflow (slash commands, CI, branch strategy, plan system) into any project. The CLI is mechanical — it copies files. All intelligence runs through Claude.
 
-> **Redesign in progress (2026-07):** a full principle-derived, cross-tool redesign is planned — two products (**rea-tools** methodology + **rea-cli** agent). Master plan: [docs/rea-roadmap.md](docs/rea-roadmap.md); rea-tools design: [docs/rea-target-state.md](docs/rea-target-state.md). The shipped v0.7.1 set described below is being superseded phase by phase — **not yet implemented** (work on branch `feature/rea-redesign`).
+> **Redesign in progress (2026-07):** a full principle-derived, cross-tool redesign — two products (**rea-tools** methodology + **rea-cli** agent). Master plan: [docs/rea-roadmap.md](docs/rea-roadmap.md); rea-tools design: [docs/rea-target-state.md](docs/rea-target-state.md). The shipped v0.7.1 Python-CLI set described below is being superseded phase by phase on branch `feature/rea-redesign`: **Faz 0–3 done** (`core/` foundation, install templates, tool-agnostic agents + commands); **Faz 4 part 1 done — 2026-07-23** (the npx **rea-tools** installer core under `src/`/`bin/`/`test/` + distribution landing: `rea-dev` frozen at 0.7.2 as a deprecation shim, npx is the maintained path). **Not yet:** `rea verify` CLI verb, `npm publish`/PyPI release, `rea-cli`.
 
 ## Tech Stack
 
-- Python 3.11+
+- Python 3.11+ (legacy `rea-dev` CLI, now a frozen deprecation shim)
 - Typer (CLI framework)
 - setuptools (packaging)
 - pytest (tests)
 - ruff (lint + format)
+- Node.js ≥20 (the redesign `rea-tools` npx installer — `src/`, CommonJS, no runtime deps, `node:test`; run `npm test`)
 
 ## Architecture Rules
 
@@ -87,7 +88,11 @@ tests/
 docs/
 pyproject.toml
 core/                            # tool-agnostic shared foundation (principles, craft-checklist, rea-schema) — full CLAUDE.md rewrite deferred to a later phase
-templates/                       # redesign-era install artifacts (AGENTS.md + per-tool shims + .rea/ scaffold) the future npx installer places into a host project — legacy rea/templates/ (Python-CLI Claude templates) is unchanged
+package.json                     # rea-tools npm package (bin: rea-tools; files ship src/**, templates/**, core/**, bin/**; test script = node --test --test-concurrency=1 test/*.test.js)
+bin/rea-tools.js                 # npx entry — requires src/cli.js
+src/                             # redesign npx installer core (CommonJS): cli, manifest (ownership), place, shims (managed-marker + Gemini merge), prune (deny-list + containment), setup (orchestrator), retired-list
+test/                            # node:test suites for src/ modules + templates.test.js (host-layout link-resolution + stray-tag checks)
+templates/                       # redesign-era install artifacts (AGENTS.md + per-tool shims + .rea/ scaffold) the npx installer places into a host project — legacy rea/templates/ (Python-CLI Claude templates) is unchanged
 templates/agents/                # redesign-era agent sources (tool-agnostic; Phase-4 installer places them per-tool) — legacy rea/templates/.claude/agents/ tree is unchanged
 templates/commands/              # redesign-era command sources (tool-agnostic; Phase-4 installer places them per-tool) — legacy rea/templates/.claude/commands/ tree is unchanged
 ```
