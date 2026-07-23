@@ -434,3 +434,18 @@
 **Source:** discovery
 **Lesson:** Wiring a new CLI verb (`migrate`) into `cli.js` left a test-coverage hole that BOTH code-reviewer and bug-scanner independently flagged: `migrate()`'s own logic was thoroughly tested in `test/migrate.test.js`, and `parseArgs(['migrate',...])` was tested, but NOTHING exercised `cli(['migrate', target])` end-to-end through `handleMigrate` — the exact wiring seam (DISPATCH arg-order, `--dry-run` threading, exit-code mapping, absent-module degrade) most likely to silently break on a refactor. The parallel `verify` verb had the full cli-dispatch tier; `migrate` had none. Separately, adding `dryRun` to `parseArgs`'s return broke 3 existing `deepEqual(parsed, {verb,target,full})` assertions — a return-shape change rippling to every exact-shape assertion.
 **Rule:** When adding a CLI verb, mirror the sibling verb's FULL cli-dispatch test tier (module-absent→graceful-degrade, real dispatch prints report + returns 0, failure→non-zero exit, and flag-threading through the real `cli()` path — not just `parseArgs`). And when a pure parser's return shape gains a field, budget for updating every exact-shape (`deepEqual`) assertion that consumes it.
+
+## 2026-07-23 23:47:16
+**Source:** user-correction
+**Lesson:** I surfaced a `.claude/settings.json` hook-cleanup micro-choice (which working hook to remove during v0.7.1→redesign migration) to the user as a decision. User, visibly tired: "dediğini aladım da biz bunları cross platform kullanıyor muyuz çok claude spesifik konuşuyorsun ben bunu hatırlatmaktan yoruluyorum artık". After it I decided #3 myself with the safe default (remove only the broken rea-router hook), reframed the whole migration at the cross-tool level, and updated the feedback memory.
+**Rule:** Discuss the REA redesign at the cross-tool level. Hooks are Claude-only and the redesign uses ZERO (G4); `.claude/`/settings.json/hooks appear only because migration's SOURCE (v0.7.1) was Claude-only — frame them as contained mechanical legacy cleanup, and DECIDE such Claude-only plumbing micro-details silently (safe default), never offload them to the user as decisions. Ask: "cross-tool product decision, or Claude-legacy plumbing detail?" — only the former reaches the user.
+
+## 2026-07-23 23:47:16
+**Source:** discovery
+**Lesson:** The 0011 plan (2 review cycles) asserted "shims `resolveInsideRoot` has exactly two consumers (verify + test)". A verification pass against the CURRENT tree found a THIRD: `src/settings-surgery.js` (added by 0010's 4d-1 AFTER 0011's grep). Removing the export while repointing only the two known importers would have crashed `migrate` (TypeError) AND left a live symlink write vuln. The consumer inventory went stale between plan phases.
+**Rule:** When a plan removes/renames a SHARED export, re-grep the current tree for ALL importers at execution/verification time — a consumer list captured in an earlier phase goes stale as later phases add importers. An export removal + every importer repoint must land in ONE atomic commit (any intermediate commit breaks the build).
+
+## 2026-07-23 23:47:16
+**Source:** discovery
+**Lesson:** plan-validator's reuse-accuracy check repeatedly caught functions the plan claimed to reuse that were DEFINED but not EXPORTED in the target modules (`setup.detectLegacyPresent`, `shims.detectEol`/`buildBlockCore`/`parseTemplate`, `manifest.manifestPathFor`). A plan built on `require('./x').fn` for a private `fn` breaks at runtime, not at author time.
+**Rule:** When planning to reuse a function from an existing module, verify it is in that module's `module.exports`, not merely defined in the file. Cite the exact export line. This is the single highest-value mechanical check when a plan builds on prior code.
