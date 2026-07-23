@@ -24,8 +24,10 @@
  *                           with only that one check — none of the checks
  *                           below make sense without a readable manifest.
  *   2. owned files present - every manifest.listOwned() path still exists on
- *                           disk (resolved via shims.resolveInsideRoot, so a
- *                           path that would escape targetRoot is reported as
+ *                           disk (resolved via the shared, realpath-aware
+ *                           src/safe-path.js#resolveInsideRoot guard, so a
+ *                           path that would escape targetRoot — lexically or
+ *                           via an in-root symlink/junction — is reported as
  *                           a failure rather than thrown out of verify()).
  *   3. core/ + scaffold  - the core/{principles,craft-checklist,rea-schema}.md
  *                           trio and the four typed .rea/ scaffold dirs
@@ -75,6 +77,7 @@ const path = require('node:path');
 
 const manifest = require('./manifest.js');
 const shims = require('./shims.js');
+const safePath = require('./safe-path.js');
 
 const CORE_FILES = ['principles.md', 'craft-checklist.md', 'rea-schema.md'];
 const REA_SCAFFOLD_TYPES = ['knowledge', 'decisions', 'sessions', 'plans'];
@@ -97,7 +100,7 @@ function checkOwnedFilesPresent(targetRoot, owned) {
   for (const relPath of owned) {
     let absPath;
     try {
-      absPath = shims.resolveInsideRoot(targetRoot, relPath);
+      absPath = safePath.resolveInsideRoot(targetRoot, relPath);
     } catch (err) {
       missing.push(`${relPath} (unresolvable: ${err.message})`);
       continue;
@@ -188,7 +191,7 @@ function extractManagedBody(content) {
 function checkMarkdownShimRegion(targetRoot, relFile) {
   let absPath;
   try {
-    absPath = shims.resolveInsideRoot(targetRoot, relFile);
+    absPath = safePath.resolveInsideRoot(targetRoot, relFile);
   } catch (err) {
     return `${relFile}: unresolvable (${err.message})`;
   }
@@ -240,7 +243,7 @@ function checkMarkdownShimRegion(targetRoot, relFile) {
 function checkGeminiShimRegion(targetRoot, relFile) {
   let absPath;
   try {
-    absPath = shims.resolveInsideRoot(targetRoot, relFile);
+    absPath = safePath.resolveInsideRoot(targetRoot, relFile);
   } catch (err) {
     return `${relFile}: unresolvable (${err.message})`;
   }

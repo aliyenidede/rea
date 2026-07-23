@@ -27,6 +27,17 @@
  *   - a real-path containment check that refuses a symlink/junction under
  *     targetRoot which resolves outside it (CWE-59)
  *
+ * The canonicalization, lexical containment, and real-path containment
+ * guards are NOT reimplemented here — they delegate to the shared
+ * `src/safe-path.js` (the single tested source of truth for every module
+ * that resolves a caller-influenced path against a project root).
+ * `isInsideRoot`/`toCanonicalRel` are re-exported from safe-path below so
+ * this module's public API is unchanged (safe-path's versions are
+ * byte-identical to this module's originals). The real-path re-check calls
+ * safe-path's NON-THROWING `isRealpathInsideRoot` and `continue`s on
+ * `false` — it deliberately never calls the throwing `resolveInsideRoot`,
+ * which would turn "skip one bad candidate" into "abort the whole prune".
+ *
  * A guard violation is skipped, not thrown — a single bad candidate must
  * never abort the rest of the prune. Likewise a delete that throws
  * (EBUSY/EPERM on a locked file) is caught and the candidate is recorded in
@@ -42,11 +53,13 @@
  *                                   or equals a denied file
  *   isInsideRoot(targetRoot, relPath)
  *                                 - true if relPath resolves STRICTLY inside
- *                                   targetRoot (root-equal is refused)
+ *                                   targetRoot (root-equal is refused).
+ *                                   Re-exported from src/safe-path.js.
  *   toCanonicalRel(targetRoot, relPath)
  *                                 - the single canonical (forward-slash,
  *                                   `..`-collapsed) relative form a candidate
- *                                   is checked and deleted under
+ *                                   is checked and deleted under.
+ *                                   Re-exported from src/safe-path.js.
  *   prune({ targetRoot, previouslyOwned, currentOwned, isBridge })
  *                                 - deletes owned-and-removed files (+ the
  *                                   retired list on the bridge); returns
@@ -63,6 +76,7 @@ const path = require('node:path');
 
 const manifest = require('./manifest');
 const { RETIRED_FILES } = require('./retired-list');
+const safePath = require('./safe-path');
 
 /**
  * Directory prefixes that are never eligible for deletion, no matter what
@@ -107,32 +121,6 @@ function isProtected(relPath) {
 }
 
 /**
- * Returns true if `relPath`, resolved against `targetRoot`, stays STRICTLY
- * inside `targetRoot`. Refuses a `../` escape, an absolute path pointing
- * elsewhere, and `targetRoot` itself (an empty/`.`/`./` candidate), so a
- * root-equal candidate can never reach the delete call in `prune()`.
- */
-function isInsideRoot(targetRoot, relPath) {
-  const resolvedRoot = path.resolve(targetRoot);
-  const resolvedEntry = path.resolve(targetRoot, relPath);
-  const rootWithSep = resolvedRoot.endsWith(path.sep) ? resolvedRoot : `${resolvedRoot}${path.sep}`;
-  return resolvedEntry.startsWith(rootWithSep);
-}
-
-/**
- * Returns the single canonical relative key used for BOTH the deny-list
- * check and the eventual delete target, so a non-canonical spelling of a
- * candidate (`x/../CLAUDE.md`, a redundant `./`, an absolute path that
- * still resolves inside root) cannot disagree with what actually gets
- * unlinked. Forward-slash, relative to `targetRoot`.
- */
-function toCanonicalRel(targetRoot, relPath) {
-  const resolvedRoot = path.resolve(targetRoot);
-  const resolvedEntry = path.resolve(targetRoot, relPath);
-  return path.relative(resolvedRoot, resolvedEntry).replace(/\\/g, '/');
-}
-
-/**
  * Deletes files rea-tools previously owned but no longer owns.
  *
  * @param {object} args
@@ -166,13 +154,6 @@ function prune({ targetRoot, previouslyOwned = [], currentOwned = [], isBridge =
     }
   }
 
-  // Resolved once: the real (symlink-free) root, used by the symlink-escape
-  // guard below (FIX-5 / CWE-59). targetRoot is the host project root the
-  // caller is operating on — if it doesn't exist, that's a caller error, not
-  // a per-candidate condition, so this is intentionally not wrapped.
-  const realRoot = fs.realpathSync(targetRoot);
-  const realRootWithSep = realRoot.endsWith(path.sep) ? realRoot : `${realRoot}${path.sep}`;
-
   const deleted = [];
   const failed = [];
   for (const relPath of candidates) {
@@ -181,7 +162,7 @@ function prune({ targetRoot, previouslyOwned = [], currentOwned = [], isBridge =
     // so a non-canonical spelling (`x/../CLAUDE.md`, a redundant `./`, an
     // absolute path that still resolves inside root) cannot disagree with
     // what actually gets unlinked.
-    const canonicalRel = toCanonicalRel(targetRoot, relPath);
+    const canonicalRel = safePath.toCanonicalRel(targetRoot, relPath);
 
     if (canonicalRel === '' || canonicalRel === '.') {
       continue; // root-equal candidate: never eligible (whole-project guard)
@@ -189,7 +170,7 @@ function prune({ targetRoot, previouslyOwned = [], currentOwned = [], isBridge =
     if (isProtected(canonicalRel)) {
       continue; // deny-list guard: refuse, do not unlink
     }
-    if (!isInsideRoot(targetRoot, canonicalRel)) {
+    if (!safePath.isInsideRoot(targetRoot, canonicalRel)) {
       continue; // containment guard: refuse, do not unlink
     }
 
@@ -201,15 +182,22 @@ function prune({ targetRoot, previouslyOwned = [], currentOwned = [], isBridge =
     // Lexical containment above only guards the *named* path; a symlink or
     // junction living under targetRoot can point outside it, so the OS
     // would delete outside root even though the candidate lexically passed.
-    // Resolve the real path and re-check containment before the unlink.
-    let realTarget;
-    try {
-      realTarget = fs.realpathSync(absPath);
-    } catch {
-      continue; // can't verify containment: refuse, do not unlink
-    }
-    if (!realTarget.startsWith(realRootWithSep)) {
-      continue; // resolves outside (or equal to) root via a symlink/junction
+    // Re-check containment via realpath before the unlink — NON-THROWING:
+    // a single bad candidate must be SKIPPED, never abort the rest of the
+    // prune, so this calls safePath.isRealpathInsideRoot (never the
+    // throwing safePath.resolveInsideRoot).
+    if (!safePath.isRealpathInsideRoot(targetRoot, canonicalRel)) {
+      // Skip ONLY a genuine escape: the realpath resolves OUTSIDE root (a
+      // symlink/junction escape, CWE-59) or containment could not be
+      // confirmed at all. A symlink/junction that resolves to root itself,
+      // or to some path INSIDE root, IS contained — isRealpathInsideRoot
+      // returns true for that case, so it is NOT skipped here and falls
+      // through to the rmSync below. That is safe: rmSync lstats the final
+      // path component and, for a symlink/junction, unlinks the link entry
+      // itself rather than recursing through it — so a link that merely
+      // "points at" root never causes root's own contents to be touched,
+      // even though the link entry is deleted.
+      continue;
     }
 
     try {
@@ -229,7 +217,10 @@ module.exports = {
   DENY_PREFIXES,
   DENY_FILES,
   isProtected,
-  isInsideRoot,
-  toCanonicalRel,
+  // Re-exported from src/safe-path.js (byte-identical to this module's
+  // former originals) so the public API is unchanged — src/rea-archive.js
+  // and test/prune.test.js both call these directly off this module.
+  isInsideRoot: safePath.isInsideRoot,
+  toCanonicalRel: safePath.toCanonicalRel,
   prune,
 };

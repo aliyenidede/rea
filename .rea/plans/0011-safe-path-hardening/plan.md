@@ -49,9 +49,18 @@ tested primitive every module calls.
 
 ## Context (what exists today — reuse, replace, or leave)
 
-- `src/shims.js` — `resolveInsideRoot(targetRoot, relFile)` **LEXICAL ONLY (Instance A)**. Exactly two
-  external consumers (confirmed by grep): `src/verify.js` (3 call sites) and `test/shims.test.js` (a
-  direct `shims.resolveInsideRoot` test block). Marker/JSON shim logic is out of scope — keep.
+- `src/shims.js` — `resolveInsideRoot(targetRoot, relFile)` **LEXICAL ONLY (Instance A)**. **THREE**
+  external consumers (re-confirmed by grep 2026-07-23): `src/verify.js` (3 read call sites),
+  **`src/settings-surgery.js`** (line 55 `require('./shims')` → line 139 `resolveInsideRoot(targetRoot,
+  '.claude/settings.json')` before an `fs.writeFileSync` — a **write** site added by plan 0010's 4d-1
+  AFTER this plan's original grep, so it silently inherits Instance A), and `test/shims.test.js` (a direct
+  test block). The original "exactly two consumers" claim was stale — settings-surgery is a real third
+  importer; U2 must repoint it too or removing the shims export both breaks `migrate` at runtime AND
+  leaves its `.claude/settings.json` write vulnerable. Marker/JSON shim logic is out of scope — keep.
+- `src/manifest.js` — `save()` (lines 177-179) writes `.rea/.rea-manifest.json` via
+  `mkdirSync(dirname)` + `writeFileSync` + `renameSync` with **no containment guard**. An escaping `.rea`
+  directory symlink would redirect this write. **Low severity** (fixed filename `.rea-manifest.json` +
+  rea-tools-generated JSON content — not attacker-chosen path or content), but same class. See Decision 8.
 - `src/place.js` — `copyFlatDir` + `placeReaScaffold` write with **no containment guard (Instance B)**;
   self-copy guarded only by an inline `path.resolve(srcPath) !== path.resolve(destPath)`. Dests are
   fixed `LAYOUT` literals, but the dest *directory components* can be attacker-controlled symlinks.
@@ -152,18 +161,28 @@ for the dir-parent-escape and place.js dir-symlink cases.
   symlink resolving INSIDE root; (h) `isRealpathInsideRoot` returns the matching booleans for (d)–(g)
   WITHOUT throwing. Asymmetric skip rule (win32 skip-loud / else assert.fail).
 
-### U2 (SECURITY-CRITICAL) — migrate shims + verify to `safe-path`
-- Files: `src/shims.js`, `src/verify.js`, `test/shims.test.js`.
+### U2 (SECURITY-CRITICAL) — migrate shims + verify + settings-surgery to `safe-path`
+- Files: `src/shims.js`, `src/verify.js`, `src/settings-surgery.js`, `test/shims.test.js`,
+  `test/settings-surgery.test.js`.
+- **Approved exception to the 1–3-files/unit convention (5 files, ONE commit):** removing
+  `resolveInsideRoot` from `shims.js`'s exports and repointing every importer are inseparable — any
+  intermediate commit leaves an importer calling a removed export (broken build / crashed `migrate`). So
+  the export removal + the verify + settings-surgery repoints + both regression tests land atomically.
 - Replace shims' local lexical `resolveInsideRoot` with `require('./safe-path')`. **Remove
   `resolveInsideRoot` from `shims.js`'s public exports entirely** (no thin re-export — avoids the
-  two-homes ambiguity; Decision 3/Option B). Repoint `src/verify.js` at `safePath.resolveInsideRoot`.
-  Move `test/shims.test.js`'s `resolveInsideRoot` block into `test/safe-path.test.js` (it tests the
-  primitive, not shims behaviour) — or delete it there if U1 already covers it.
-- RED: a shims-level test that `writeShims`/`writeMarkdownShim`/`writeGeminiShim` REFUSES to write when
-  the target's `AGENTS.md`/`CLAUDE.md`/`.gemini/settings.json` is a symlink escaping the target root
-  (the pointed-at outside file is left untouched; write throws). Skip-asymmetric.
-- Test: the shims symlink-escape write is refused (Instance A closed); shims + verify + templates tests
-  green; full suite green.
+  two-homes ambiguity; Decision 3/Option B). **Repoint ALL THREE importers** at
+  `safePath.resolveInsideRoot`: `src/verify.js` (3 read sites) AND **`src/settings-surgery.js`** (its
+  `.claude/settings.json` write — leaving it on the removed export throws TypeError and breaks `migrate`;
+  repointing also closes its inherited Instance A write vuln). This removal + all repoints must land in
+  **one commit** (atomic — the export and its importers can't be split). Move `test/shims.test.js`'s
+  `resolveInsideRoot` block into `test/safe-path.test.js` (it tests the primitive, not shims behaviour) —
+  or delete it there if U1 already covers it.
+- RED: (1) `writeShims`/`writeMarkdownShim`/`writeGeminiShim` REFUSES to write when the target's
+  `AGENTS.md`/`CLAUDE.md`/`.gemini/settings.json` is a symlink escaping the target root (outside file
+  untouched; write throws). (2) `removeDeadRouterHook` REFUSES to write when `.claude`/`.claude/settings.json`
+  is an escaping symlink/junction (outside untouched; throws). Both skip-asymmetric.
+- Test: both symlink-escape writes refused (Instance A closed for shims AND settings-surgery); shims +
+  verify + settings-surgery + templates tests green; full suite green.
 
 ### U3 (SECURITY-CRITICAL) — add containment to `place` writes + migrate self-copy guard
 - Files: `src/place.js`, `test/place.test.js`.
@@ -178,20 +197,27 @@ for the dir-parent-escape and place.js dir-symlink cases.
   outside target is untouched). Skip-asymmetric. Keep the dogfood self-copy test green.
 - Test: Instance B closed; place.test.js (esp. self-copy) green; full suite green.
 
-### U4 — migrate prune to safe-path (de-dup, behaviour-preserving, keep deny-list)
-- Files: `src/prune.js`, `test/prune.test.js`.
+### U4 — migrate prune to safe-path (de-dup) + guard `manifest.save` (behaviour-preserving, keep deny-list)
+- Files: `src/prune.js`, `src/manifest.js`, `test/prune.test.js`, `test/manifest.test.js` (4 files — a
+  behaviour-preserving prune de-dup plus a one-line manifest guard and their tests).
 - Replace prune's local `toCanonicalRel`/`isInsideRoot` and its inline realpath re-check with the
   shared equivalents — prune calls the **non-throwing** `safePath.isRealpathInsideRoot` and `continue`s
   on false (NEVER the throwing `resolveInsideRoot` — that would convert prune's skip-one-candidate
   contract into an abort-the-whole-prune crash; adversarial plan-review G2). KEEP `DENY_PREFIXES`/
   `DENY_FILES`/`isProtected` in prune. Behaviour-preserving; existing prune guard tests are the contract.
+- **Guard `manifest.save` (Decision 8):** wrap `.rea/.rea-manifest.json` in
+  `safePath.resolveInsideRoot(targetRoot, MANIFEST_REL_PATH)` before the `mkdirSync`/`writeFileSync`, so
+  an escaping `.rea/` symlink is refused. Low-severity same-class closure — folded here rather than the
+  security spine because it can't be weaponised for arbitrary content/filename.
 - Also update `test/prune.test.js`'s EXISTING "FIX5" symlink/junction-escape test (~lines 528-573),
   which currently `t.skip(...)`s on ANY platform where `fs.symlinkSync` throws — the exact G3 anti-pattern,
   and the one pre-existing security regression in the suite — to the asymmetric rule (win32 skip-loud /
   every other platform assert.fail). Test-only change; does not affect prune()'s behaviour or the
   "behaviour-preserving" claim (adversarial plan-review, re-review Decision).
 - Test: prune.test.js green incl. the (now asymmetric-skip) symlink/junction-escape skip and
-  root-equal/deny-list/EBUSY→failed guards; no observable behaviour change.
+  root-equal/deny-list/EBUSY→failed guards; no observable behaviour change. **manifest.test.js:** a new
+  case asserts `manifest.save` refuses (throws) when `.rea` is an escaping symlink/junction, and the
+  existing save round-trip tests stay green (skip-asymmetric).
 
 ### U5 — doc-sync + ADR
 - Files: `docs/rea-roadmap.md`, `.rea/decisions/0002-safe-path-hardening.md`.
@@ -199,11 +225,14 @@ for the dir-parent-escape and place.js dir-symlink cases.
   symlink-escape fix (the roadmap did NOT previously list safe-path debt — that framing lived only in
   the assistant's memory; plan-validator defect). Falsifiable acceptance: §9 names the safe-path.js
   symlink-escape fix as a closed item.
-- ADR `0002-safe-path-hardening.md`: record BOTH vulnerabilities (shims + place lexical/no-containment →
-  arbitrary write via `setup`), the fix (one shared realpath-aware primitive, nearest-existing-ancestor
-  tolerance, non-throwing boolean for prune), the modules converged, the residual TOCTOU limit, and the
-  "must precede npm publish" gate. Next ADR number after the existing
-  `.rea/decisions/0001-distribution-and-rollback.md` → `0002` (only 0001 exists on disk today).
+- ADR `0002-safe-path-hardening.md`: record the vulnerabilities — Instance A (lexical-only
+  `resolveInsideRoot` in shims, inherited by **`verify` reads** and **`settings-surgery` writes**) +
+  Instance B (`place` no-containment) → arbitrary write via `setup`/`migrate`; the low-severity
+  `manifest.save` same-class site — the fix (one shared realpath-aware primitive,
+  nearest-existing-ancestor tolerance, non-throwing boolean for prune), the modules converged
+  (shims/verify/settings-surgery/place/prune/rea-archive/manifest), the residual TOCTOU limit, and the
+  "must precede npm publish" gate. Note the stale "two consumers" inventory correction (settings-surgery
+  found 2026-07-23). Next ADR number after `.rea/decisions/0001-distribution-and-rollback.md` → `0002`.
 
 ---
 
@@ -229,7 +258,8 @@ for the dir-parent-escape and place.js dir-symlink cases.
 | 2 | place.js scope | In the security-critical spine (U3), guarded + dir-symlink test | Defer as low-urgency de-dup / fast-follow | Same vuln class, LARGER surface; "class closed" ADR is false otherwise (plan-review G1). |
 | 3 | Realpath primitive shape | Non-throwing `isRealpathInsideRoot` boolean + throwing `resolveInsideRoot` on top | One throwing primitive, prune wraps in try/catch | Prune's contract is skip-not-throw over many candidates; exceptions-as-control-flow is wrong + easy to get wrong (plan-review G2). |
 | 4 | New-file realpath tolerance | Nearest-EXISTING-ancestor | realpath `dest` only | Dest-only lets a new file under a symlinked parent escape — false-safe. |
-| 5 | shims `resolveInsideRoot` export | Remove entirely; update the 2 known importers | Keep a thin re-export alias | Re-export recreates the two-homes ambiguity the consolidation exists to kill; importer list is exhaustively known (plan-review Decision 3). |
+| 5 | shims `resolveInsideRoot` export | Remove entirely; repoint all **3** known importers (verify, settings-surgery, test) atomically | Keep a thin re-export alias | Re-export recreates the two-homes ambiguity the consolidation exists to kill. NOTE: the original "2 importers" count was stale — `settings-surgery.js` (0010/4d-1) is a third, security-relevant write consumer (verification 2026-07-23). |
+| 8 | `manifest.js` `save()` unguarded write | Fold a one-line `safePath.resolveInsideRoot` guard into U4 (or U2) + note the residual in the U5 ADR | Leave unguarded / ignore | Same symlink-escape class via an escaping `.rea/` dir; low severity (fixed `.rea-manifest.json` name + generated JSON content), but guarding it makes U5's "class closed" claim fully true. |
 | 6 | Deny-list home | Stays in `prune.js` | Move `isProtected` into safe-path | Delete-policy, not a path primitive; crisp module responsibility. |
 | 7 | Windows symlink tests | Attempt; win32 → skip-LOUD, else → assert.fail | Uniform skip-loud on all platforms | A symmetric skip lets CI-Linux (the real backstop) drop the security test silently (plan-review G3). |
 

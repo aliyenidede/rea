@@ -8,6 +8,7 @@ const path = require('node:path');
 
 const manifest = require('../src/manifest.js');
 const { place } = require('../src/place.js');
+const { createDirLinkOrSkip } = require('./helpers/symlink-fixtures');
 
 // The real rea-tools package root (this repo) — templates/ and core/ live here.
 const SOURCE_ROOT = path.resolve(__dirname, '..');
@@ -261,3 +262,118 @@ test('place() is idempotent — safe to run twice on the same targetRoot', () =>
     fs.rmSync(targetRoot, { recursive: true, force: true });
   }
 });
+
+// ---------------------------------------------------------------------------
+// SECURITY — a planted directory symlink/junction at a placed dest dir (e.g.
+// `.claude`) must not redirect place()'s writes outside targetRoot (CWE-59).
+//
+// Fixture shape: an OS tmp dir (`parent`) containing `root/` (the placement
+// targetRoot) and `outside/` as SIBLINGS, so an escape genuinely leaves root.
+// ---------------------------------------------------------------------------
+
+test(
+  'SECURITY: place() refuses to write through a `.claude` directory junction escaping targetRoot; the outside dir it points at is left untouched',
+  (t) => {
+    const parent = makeTmpRoot();
+    const root = path.join(parent, 'root');
+    const outside = path.join(parent, 'outside');
+    const evilClaudeDir = path.join(outside, 'evil-claude');
+    fs.mkdirSync(root, { recursive: true });
+    fs.mkdirSync(evilClaudeDir, { recursive: true });
+
+    try {
+      const claudeLink = path.join(root, '.claude');
+      if (!createDirLinkOrSkip(t, evilClaudeDir, claudeLink)) {
+        return;
+      }
+
+      const m = manifest.load(root);
+      // Pin the matcher to the containment guard's own error (safe-path.js's
+      // resolveInsideRoot messages all start with "Refusing to resolve …",
+      // for both the lexical and realpath-escape branches) — a plain string
+      // 2nd arg to assert.throws is only a failure MESSAGE, not an error
+      // matcher, so it would pass for ANY thrown error, not specifically
+      // this containment guard.
+      assert.throws(() => place(SOURCE_ROOT, root, m), /Refusing to resolve/);
+
+      // The outside target place() would have written into (via the
+      // junction) must be completely untouched: no `commands`/`agents`
+      // subdirs, no files — the containment guard must fire BEFORE the
+      // first fs.mkdirSync/copyFileSync, not after.
+      assert.deepEqual(
+        fs.readdirSync(evilClaudeDir),
+        [],
+        'no file/dir must have been written into the outside target through the junction'
+      );
+    } finally {
+      fs.rmSync(parent, { recursive: true, force: true });
+    }
+  }
+);
+
+// ---------------------------------------------------------------------------
+// SECURITY — placeReaScaffold's containment guard must run BEFORE the
+// "already populated?" reads (fs.existsSync/fs.readdirSync), not after. If an
+// escaping `.rea/<type>` junction points at a POPULATED outside dir, a guard
+// placed AFTER those reads would follow the junction, see `alreadyPopulated
+// === true`, and silently `continue` — leaving place() throwing nothing while
+// having already read through the junction. The fixed order (guard BEFORE
+// the reads) must throw instead, and never touch the outside dir at all.
+// ---------------------------------------------------------------------------
+
+test(
+  'SECURITY: place() refuses to read through a populated `.rea/knowledge` junction escaping targetRoot before the "already populated?" check; the outside dir it points at is left untouched',
+  (t) => {
+    const parent = makeTmpRoot();
+    const root = path.join(parent, 'root');
+    const outside = path.join(parent, 'outside');
+    const evilKnowledgeDir = path.join(outside, 'evil-knowledge');
+    fs.mkdirSync(root, { recursive: true });
+    fs.mkdirSync(evilKnowledgeDir, { recursive: true });
+
+    try {
+      // The escape target is POPULATED — this is the exact condition under
+      // which the OLD (guard-after-reads) code would have computed
+      // alreadyPopulated === true and silently `continue`d instead of
+      // throwing.
+      const plantedFile = path.join(evilKnowledgeDir, 'already-here.txt');
+      fs.writeFileSync(plantedFile, 'planted content\n', 'utf8');
+
+      // `.rea/` must exist as the junction's parent before the junction
+      // itself can be created inside it.
+      fs.mkdirSync(path.join(root, '.rea'), { recursive: true });
+
+      const knowledgeLink = path.join(root, '.rea', 'knowledge');
+      if (!createDirLinkOrSkip(t, evilKnowledgeDir, knowledgeLink)) {
+        return;
+      }
+
+      const m = manifest.load(root);
+      // Pin the matcher to the containment guard's own error (see the
+      // `.claude`-junction SECURITY test above for why a plain string 2nd
+      // arg would not be a real matcher).
+      assert.throws(() => place(SOURCE_ROOT, root, m), /Refusing to resolve/);
+
+      // The outside target the junction points at must be completely
+      // untouched: exactly the one planted file, with its original content,
+      // and NO scaffold README.md leaked through the junction.
+      assert.deepEqual(
+        fs.readdirSync(evilKnowledgeDir),
+        ['already-here.txt'],
+        'the outside dir must contain exactly its original file — nothing added, nothing removed'
+      );
+      assert.equal(
+        fs.readFileSync(plantedFile, 'utf8'),
+        'planted content\n',
+        'the outside file\'s content must be untouched'
+      );
+      assert.equal(
+        fs.existsSync(path.join(evilKnowledgeDir, 'README.md')),
+        false,
+        'the scaffold README.md must NOT have been written into the outside dir through the junction'
+      );
+    } finally {
+      fs.rmSync(parent, { recursive: true, force: true });
+    }
+  }
+);

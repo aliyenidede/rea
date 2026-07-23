@@ -8,6 +8,7 @@ const path = require('node:path');
 
 const manifest = require('../src/manifest.js');
 const shims = require('../src/shims.js');
+const { createFileSymlinkOrSkip, createDirLinkOrSkip } = require('./helpers/symlink-fixtures');
 
 /** The repo root — the real, shipped templates/ tree is the canonical source for these tests. */
 const REPO_ROOT = path.resolve(__dirname, '..');
@@ -361,17 +362,78 @@ test('(h) a CLAUDE.md with two well-formed start/end pairs is left untouched —
 });
 
 // ---------------------------------------------------------------------------
-// Containment check.
+// SECURITY — containment is enforced via the shared, realpath-aware
+// src/safe-path.js#resolveInsideRoot guard (see test/safe-path.test.js for
+// the primitive's own tests — lexical-reject + legit-in-root coverage lives
+// there now, not here; this file only tests THIS module's behaviour: a write
+// through an in-root symlink/junction escaping targetRoot must be refused).
+//
+// Fixture shape: an OS tmp dir (`parent`) containing `root/` (targetRoot) and
+// `outside/` as SIBLINGS, so an escape genuinely leaves `root`.
 // ---------------------------------------------------------------------------
 
-test('resolveInsideRoot refuses to resolve a destination outside the target root', () => {
-  const targetRoot = makeTmpRoot();
-  try {
-    assert.throws(() => shims.resolveInsideRoot(targetRoot, '../../escaped.md'));
-    assert.throws(() => shims.resolveInsideRoot(targetRoot, path.join(os.tmpdir(), 'elsewhere.md')));
-    assert.doesNotThrow(() => shims.resolveInsideRoot(targetRoot, 'CLAUDE.md'));
-    assert.equal(shims.resolveInsideRoot(targetRoot, 'CLAUDE.md'), path.join(path.resolve(targetRoot), 'CLAUDE.md'));
-  } finally {
-    fs.rmSync(targetRoot, { recursive: true, force: true });
+/** Creates a fresh `parent/{root,outside}` sibling pair; returns their absolute paths. */
+function makeParentRootOutside(prefix) {
+  const parent = makeTmpRoot(prefix);
+  const root = path.join(parent, 'root');
+  const outside = path.join(parent, 'outside');
+  fs.mkdirSync(root, { recursive: true });
+  fs.mkdirSync(outside, { recursive: true });
+  return { parent, root, outside };
+}
+
+test(
+  'SECURITY: writeShims refuses to write CLAUDE.md when it is a FILE symlink escaping the target root; the outside file it points at is left untouched',
+  (t) => {
+    const { parent, root, outside } = makeParentRootOutside('rea-shims-test-escape-md-');
+    try {
+      const outsideFile = path.join(outside, 'secret.md');
+      fs.writeFileSync(outsideFile, 'do not overwrite me via a shim write\n', 'utf8');
+      const claudePath = path.join(root, 'CLAUDE.md');
+
+      if (!createFileSymlinkOrSkip(t, outsideFile, claudePath)) {
+        return;
+      }
+
+      const m = manifest.createEmptyManifest();
+      assert.throws(() => shims.writeShims(REPO_ROOT, root, m));
+
+      assert.equal(
+        fs.readFileSync(outsideFile, 'utf8'),
+        'do not overwrite me via a shim write\n',
+        'the outside file the symlink points at must be left UNCHANGED'
+      );
+    } finally {
+      fs.rmSync(parent, { recursive: true, force: true });
+    }
   }
-});
+);
+
+test(
+  'SECURITY: writeShims refuses to write .gemini/settings.json when .gemini is a directory JUNCTION escaping the target root; the outside file it points at is left untouched',
+  (t) => {
+    const { parent, root, outside } = makeParentRootOutside('rea-shims-test-escape-gemini-');
+    try {
+      const outsideGeminiDir = path.join(outside, 'evil-gemini');
+      fs.mkdirSync(outsideGeminiDir, { recursive: true });
+      const outsideSettingsPath = path.join(outsideGeminiDir, 'settings.json');
+      fs.writeFileSync(outsideSettingsPath, '{"do-not-touch": true}\n', 'utf8');
+
+      const geminiLink = path.join(root, '.gemini');
+      if (!createDirLinkOrSkip(t, outsideGeminiDir, geminiLink)) {
+        return;
+      }
+
+      const m = manifest.createEmptyManifest();
+      assert.throws(() => shims.writeShims(REPO_ROOT, root, m));
+
+      assert.equal(
+        fs.readFileSync(outsideSettingsPath, 'utf8'),
+        '{"do-not-touch": true}\n',
+        'the outside settings.json the junction points at must be left UNCHANGED'
+      );
+    } finally {
+      fs.rmSync(parent, { recursive: true, force: true });
+    }
+  }
+);

@@ -7,6 +7,7 @@ const os = require('node:os');
 const path = require('node:path');
 
 const manifest = require('../src/manifest.js');
+const { createDirLinkOrSkip } = require('./helpers/symlink-fixtures');
 
 /** Creates a unique tmp dir under the OS temp dir; returns its absolute path. */
 function makeTmpRoot() {
@@ -198,3 +199,45 @@ test('recordShimRegion is idempotent: calling twice for the same file (backslash
     fs.rmSync(targetRoot, { recursive: true, force: true });
   }
 });
+
+// ---------------------------------------------------------------------------
+// SECURITY (Decision 8) — save() refuses to write when `.rea` is an escaping
+// symlink/junction. Containment is enforced via the shared, realpath-aware
+// src/safe-path.js#resolveInsideRoot guard (see test/safe-path.test.js for
+// the primitive's own tests); this file only tests THIS module's behaviour.
+//
+// Fixture shape: an OS tmp dir (`parent`) containing `root/` (targetRoot) and
+// `outside/` as SIBLINGS, so an escape genuinely leaves `root`.
+// ---------------------------------------------------------------------------
+
+test(
+  'SECURITY: save() refuses to write when `.rea` is a directory JUNCTION escaping the target root; the outside dir is left untouched',
+  (t) => {
+    const parent = fs.mkdtempSync(path.join(os.tmpdir(), 'rea-manifest-test-escape-'));
+    const root = path.join(parent, 'root');
+    const outside = path.join(parent, 'outside');
+    fs.mkdirSync(root, { recursive: true });
+    const outsideReaDir = path.join(outside, 'evil-rea');
+    fs.mkdirSync(outsideReaDir, { recursive: true });
+
+    try {
+      const reaLink = path.join(root, '.rea');
+      if (!createDirLinkOrSkip(t, outsideReaDir, reaLink)) {
+        return;
+      }
+
+      const m = manifest.load(root);
+      manifest.recordOwned(m, 'core/principles.md');
+
+      assert.throws(() => manifest.save(root, m), /Refusing to resolve/);
+
+      assert.equal(
+        fs.existsSync(path.join(outsideReaDir, '.rea-manifest.json')),
+        false,
+        'no manifest file must leak through the escaping junction into the outside dir'
+      );
+    } finally {
+      fs.rmSync(parent, { recursive: true, force: true });
+    }
+  }
+);

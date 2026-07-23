@@ -41,18 +41,17 @@
  * `templates/shims/CLAUDE.md`) under `sourceRoot`, so the templates stay
  * the single source of truth.
  *
- * Every write is contained inside `targetRoot` (`resolveInsideRoot`
- * refuses to resolve outside it) and every write is recorded in the
- * ownership manifest (src/manifest.js) so later runs (place/prune) know
- * which files/regions rea-tools owns.
+ * Every write is contained inside `targetRoot` — via the shared, realpath-
+ * aware `src/safe-path.js#resolveInsideRoot` guard, which refuses to resolve
+ * outside it even when an in-root path component is itself a symlink/
+ * junction pointing elsewhere — and every write is recorded in the ownership
+ * manifest (src/manifest.js) so later runs (place/prune) know which
+ * files/regions rea-tools owns.
  *
  * Node built-ins only.
  *
  * Exported API:
  *   MARKER_START, MARKER_END              - the literal marker comment strings
- *   resolveInsideRoot(targetRoot, relFile) - path.resolve(targetRoot, relFile),
- *                                            throws if the result would fall
- *                                            outside the resolved targetRoot
  *   applyMarkerBlock(existingContent, managedBody, [options]) - pure function;
  *                                            returns the new full file content
  *                                            per the replace/append/create rules
@@ -99,6 +98,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const manifest = require('./manifest');
+const safePath = require('./safe-path');
 
 const MARKER_START = '<!-- rea-tools:start -->';
 const MARKER_END = '<!-- rea-tools:end -->';
@@ -140,23 +140,6 @@ const GEMINI_SHIM_MARKER_LABEL = 'context.fileName';
 
 function escapeRegExp(literal) {
   return literal.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-/**
- * Resolves `relFile` against `targetRoot` and refuses to return a path that
- * falls outside the resolved target root (containment check). Throws on
- * escape (`../../x`, an absolute path elsewhere, etc.).
- */
-function resolveInsideRoot(targetRoot, relFile) {
-  const resolvedRoot = path.resolve(targetRoot);
-  const dest = path.resolve(resolvedRoot, relFile);
-  if (dest !== resolvedRoot && !dest.startsWith(resolvedRoot + path.sep)) {
-    throw new Error(
-      `Refusing to write outside target root: ${relFile} resolves to ${dest}, ` +
-        `which is outside ${resolvedRoot}`
-    );
-  }
-  return dest;
 }
 
 /** Returns the number of non-overlapping occurrences of `literal` in `str`. */
@@ -322,7 +305,7 @@ function parseTemplate(content, sourcePath) {
  * ambiguous marker count instead of writing/corrupting it.
  */
 function writeMarkdownShim(targetRoot, relFile, managedBody, createPrefix, manifestObj) {
-  const destPath = resolveInsideRoot(targetRoot, relFile);
+  const destPath = safePath.resolveInsideRoot(targetRoot, relFile);
   const existingContent = fs.existsSync(destPath) ? fs.readFileSync(destPath, 'utf8') : null;
 
   const newContent = applyMarkerBlock(existingContent, managedBody, { createPrefix, fileLabel: relFile });
@@ -343,7 +326,7 @@ function writeMarkdownShim(targetRoot, relFile, managedBody, createPrefix, manif
  * it (see the module docstring's "Shim write semantics" section).
  */
 function writeGeminiShim(targetRoot, relFile, manifestObj) {
-  const destPath = resolveInsideRoot(targetRoot, relFile);
+  const destPath = safePath.resolveInsideRoot(targetRoot, relFile);
 
   let existingSettings = {};
   if (fs.existsSync(destPath)) {
@@ -396,7 +379,6 @@ module.exports = {
   MARKER_START,
   MARKER_END,
   CLAUDE_SHIM_PREFIX,
-  resolveInsideRoot,
   applyMarkerBlock,
   mergeGeminiSettings,
   writeShims,

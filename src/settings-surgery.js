@@ -52,7 +52,7 @@
 
 const fs = require('node:fs');
 
-const { resolveInsideRoot } = require('./shims');
+const { resolveInsideRoot } = require('./safe-path');
 
 const SETTINGS_REL_PATH = '.claude/settings.json';
 

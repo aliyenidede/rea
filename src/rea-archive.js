@@ -23,10 +23,11 @@
  * the two fixed TOP-LEVEL SOURCE paths (`.rea/log`, `.rea/lessons.md` — see
  * FIX B), and the DESTINATION root (`.rea/_archive`, or `.rea` itself — see
  * FIX E). A plain lexical containment check on the destination is ALSO
- * performed, via prune's own `isInsideRoot`/`toCanonicalRel` helpers — this
- * one genuinely is defense-in-depth only (it can never fire for the fixed
- * `.rea/_archive/...` prefix built below); FIX E's realpath check is the
- * load-bearing guard for a destination-side symlink/junction.
+ * performed, via the shared `src/safe-path.js`'s `isInsideRoot`/
+ * `toCanonicalRel` helpers — this one genuinely is defense-in-depth only (it
+ * can never fire for the fixed `.rea/_archive/...` prefix built below); FIX
+ * E's realpath check is the load-bearing guard for a destination-side
+ * symlink/junction.
  *
  * The never-archive guard below is INTENTIONALLY NOT `prune.isProtected`:
  * prune's deny-list exists to PROTECT `.rea/log/` and `.rea/lessons.md` from
@@ -82,7 +83,7 @@
  *   a dir, so it has nothing to clean up.
  *
  *   FIX E (HIGH, CWE-59, destination side) — FIX B hardened the two SOURCE
- *   paths; the DESTINATION was still only lexically contained (`prune.
+ *   paths; the DESTINATION was still only lexically contained (`safePath.
  *   isInsideRoot`/`toCanonicalRel` do pure string resolution, no realpath).
  *   A malicious/compromised repo could plant `.rea/_archive` (or `.rea`
  *   itself) as a symlink/junction pointing OUTSIDE the project BEFORE this
@@ -91,25 +92,27 @@
  *   `mkdirSync`/`renameSync`/`copyFileSync` would then resolve that link at
  *   the OS level and write the victim's real `.rea/lessons.md`/`.rea/log/**`
  *   content to the external target: an out-of-root write/exfiltration
- *   primitive the lexical check alone cannot see. Fix:
- *   `isDestinationRealpathInsideRoot()` walks UP from `destAbs` to its
- *   NEAREST EXISTING ANCESTOR (destAbs itself, and typically some or all of
- *   `.rea/_archive/...`, won't exist yet on a first archive — `.rea` or
- *   targetRoot itself always will), `fs.realpathSync`-resolves that
- *   ancestor, and requires the result to stay at-or-inside
- *   `fs.realpathSync(targetRoot)`. Run BEFORE `moveFile` (so a symlinked
- *   `.rea/_archive` never gets an out-of-root dir created through it in the
- *   first place); a realpathSync failure (permission/race) is treated as
- *   "containment cannot be confirmed" and refuses the move — the safe
- *   default, never a throw. A refused destination lands in `failed` (it was
- *   otherwise eligible, but refused for safety), exactly like a FIX-C move
- *   failure; the source is left untouched either way. Mirrors src/prune.js's
- *   own realpath re-check (its FIX 5) and this module's own FIX B, now
- *   applied to the destination side. This is a bespoke, narrow realpath-
- *   containment check — once plan `.rea/plans/0011-safe-path-hardening/`
- *   lands its shared `src/safe-path.js` (`resolveInsideRoot`/
- *   `isRealpathInsideRoot`), this helper is a candidate to be replaced by
- *   that single source of truth.
+ *   primitive the lexical check alone cannot see. Fix: the destination's
+ *   containment is confirmed via the shared `src/safe-path.js`
+ *   `isRealpathInsideRoot()` (unit 11-6) — it walks UP from the destination
+ *   to its NEAREST EXISTING ANCESTOR (the destination itself, and typically
+ *   some or all of `.rea/_archive/...`, won't exist yet on a first archive —
+ *   `.rea` or targetRoot itself always will), `fs.realpathSync`-resolves that
+ *   ancestor via `fs.lstatSync`-based ancestor detection, and requires the
+ *   result to stay at-or-inside the resolved root. Run BEFORE `moveFile` (so
+ *   a symlinked `.rea/_archive` never gets an out-of-root dir created through
+ *   it in the first place); a realpath failure (permission/race) is treated
+ *   as "containment cannot be confirmed" and refuses the move — the safe
+ *   default, never a throw (this module calls the shared primitive's
+ *   NON-THROWING boolean, never its throwing sibling, so a refused
+ *   destination is recorded, not raised). A refused destination lands in
+ *   `failed` (it was otherwise eligible, but refused for safety), exactly
+ *   like a FIX-C move failure; the source is left untouched either way.
+ *   Because the shared primitive's ancestor walk is `lstatSync`-based (not
+ *   `existsSync`-based), this migration also closes a DANGLING-link gap this
+ *   module's own prior bespoke guard had: a `.rea/_archive` junction whose
+ *   target does not exist yet is now refused too, not just one whose target
+ *   already exists.
  *
  * On `dryRun`, `{moved, failed, skipped}` are computed identically to a real
  * run (every check involved — existence, realpath containment — is
@@ -133,8 +136,10 @@
  *         failed  - eligible to move but either the move itself threw (e.g. a
  *                   locked source file — FIX C), or the destination's
  *                   containment inside targetRoot could not be confirmed via
- *                   realpath (e.g. a symlinked/junctioned `.rea/_archive` —
- *                   FIX E); the source is left untouched either way.
+ *                   the shared `src/safe-path.js` `isRealpathInsideRoot`
+ *                   (e.g. a symlinked/junctioned `.rea/_archive`, including a
+ *                   DANGLING one whose target does not exist yet — FIX E);
+ *                   the source is left untouched either way.
  *         skipped - refused because the destination already exists (FIX A —
  *                   never overwrite previously-archived history); the
  *                   source is left untouched.
@@ -143,8 +148,8 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-const prune = require('./prune');
 const manifest = require('./manifest');
+const safePath = require('./safe-path');
 
 /** Legacy (pre-typed-memory) sources this module archives — fixed literals. */
 const LEGACY_LOG_REL_DIR = '.rea/log';
@@ -264,60 +269,6 @@ function removeEmptyDirsBottomUp(rootAbs) {
 }
 
 /**
- * Returns true if `destAbs`'s NEAREST EXISTING ANCESTOR directory resolves
- * (via `fs.realpathSync`) to a path at or inside `targetRoot`'s own real
- * path (FIX E). `destAbs` itself — and typically some or all of its parent
- * chain under `.rea/_archive/` — won't exist yet the first time this runs,
- * so this walks UP the path until it finds an ancestor that DOES exist;
- * `.rea` (or `targetRoot` itself) always does, so the walk always
- * terminates. Run this BEFORE any mkdirSync/rename/copy targeting `destAbs`,
- * so a symlinked/junctioned `.rea/_archive` (or `.rea` itself) pointing
- * outside the project is refused before an out-of-root directory or file is
- * ever created through it (CWE-59) — mirrors src/prune.js's own realpath
- * re-check and this module's own FIX B, now applied to the destination.
- *
- * A `realpathSync` failure (permission denied, or a TOCTOU race where the
- * ancestor disappears mid-check) is NOT treated as "no symlink here" — it is
- * treated as "containment cannot be confirmed", which refuses the move (the
- * safe default); this function never throws.
- *
- * TODO: this is a bespoke, narrow realpath-containment check — once plan
- * `.rea/plans/0011-safe-path-hardening/` lands its shared `src/safe-path.js`
- * (`resolveInsideRoot`/`isRealpathInsideRoot`), replace this helper with
- * that single source of truth.
- */
-function isDestinationRealpathInsideRoot(targetRoot, destAbs) {
-  let realRoot;
-  try {
-    realRoot = fs.realpathSync(targetRoot);
-  } catch {
-    return false; // can't even resolve the root itself: refuse
-  }
-  const realRootWithSep = realRoot.endsWith(path.sep) ? realRoot : `${realRoot}${path.sep}`;
-
-  let candidate = destAbs;
-  while (!fs.existsSync(candidate)) {
-    const parent = path.dirname(candidate);
-    if (parent === candidate) {
-      // Reached the filesystem root without finding anything that exists.
-      // Should never happen (targetRoot itself always exists), but guards
-      // against an infinite loop regardless.
-      return false;
-    }
-    candidate = parent;
-  }
-
-  let realCandidate;
-  try {
-    realCandidate = fs.realpathSync(candidate);
-  } catch {
-    return false; // cannot confirm containment: refuse
-  }
-
-  return realCandidate === realRoot || realCandidate.startsWith(realRootWithSep);
-}
-
-/**
  * Moves the legacy `.rea/log/` dir and `.rea/lessons.md` file under
  * `.rea/_archive/`, preserving relative structure. Never deletes, never
  * overwrites a previously-archived destination (FIX A).
@@ -371,12 +322,12 @@ function archiveLegacyRea(targetRoot, { dryRun = false } = {}) {
   for (const { sourceAbs, destRelToRoot } of planned) {
     // Canonicalize the destination once; every guard below and the eventual
     // move target run against this SAME resolved form.
-    const canonicalDestRel = prune.toCanonicalRel(targetRoot, destRelToRoot);
+    const canonicalDestRel = safePath.toCanonicalRel(targetRoot, destRelToRoot);
 
     // Defense-in-depth only (see module docstring) — for the fixed
     // `.rea/_archive/...` destinations built above, neither guard can ever
     // actually fire.
-    if (!prune.isInsideRoot(targetRoot, canonicalDestRel) || isNeverArchive(canonicalDestRel)) {
+    if (!safePath.isInsideRoot(targetRoot, canonicalDestRel) || isNeverArchive(canonicalDestRel)) {
       continue;
     }
 
@@ -392,9 +343,14 @@ function archiveLegacyRea(targetRoot, { dryRun = false } = {}) {
 
     // FIX E: refuse a destination whose nearest existing ancestor resolves
     // outside targetRoot via a symlink/junction (e.g. a pre-planted
-    // `.rea/_archive -> /outside` link). Also a read, so evaluated on a dry
-    // run too — a dry run's `failed` then predicts this refusal as well.
-    if (!isDestinationRealpathInsideRoot(targetRoot, destAbs)) {
+    // `.rea/_archive -> /outside` link) — delegated to the shared
+    // `src/safe-path.js` `isRealpathInsideRoot` (nearest-existing-ancestor,
+    // `lstatSync`-based, so a DANGLING escaping link is also caught, not just
+    // one whose target already exists). Non-throwing: a refused destination
+    // must land in `failed`, never abort the rest of the archive. Also a
+    // read, so evaluated on a dry run too — a dry run's `failed` then
+    // predicts this refusal as well.
+    if (!safePath.isRealpathInsideRoot(targetRoot, canonicalDestRel)) {
       failed.push(canonicalDestRel);
       continue;
     }

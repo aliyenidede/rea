@@ -43,11 +43,16 @@
  *                                                 (array of forward-slash relative paths)
  *   save(targetRoot, manifest)                  - atomic write (temp file + rename) of
  *                                                 pretty-printed JSON to MANIFEST_REL_PATH under
- *                                                 targetRoot. Creates parent dirs as needed.
+ *                                                 targetRoot. Creates parent dirs as needed. Refuses
+ *                                                 (throws) if `.rea` is an escaping symlink/junction —
+ *                                                 guarded via src/safe-path.js's resolveInsideRoot
+ *                                                 before the mkdir/write.
  */
 
 const fs = require('node:fs');
 const path = require('node:path');
+
+const safePath = require('./safe-path');
 
 const MANIFEST_REL_PATH = '.rea/.rea-manifest.json';
 const MANIFEST_VERSION = 1;
@@ -169,9 +174,15 @@ function listOwned(manifestObj) {
  * Atomically writes the manifest to MANIFEST_REL_PATH under targetRoot:
  * writes to a temp file then renames it over the real path. Creates parent
  * directories as needed.
+ *
+ * Guarded via `safePath.resolveInsideRoot` before the mkdir/write: refuses
+ * (throws) if `.rea` is an escaping symlink/junction, i.e. containment
+ * cannot be confirmed via realpath. For a fresh project (`.rea` does not
+ * exist yet) this resolves via the nearest EXISTING ancestor — targetRoot
+ * itself — and does not throw.
  */
 function save(targetRoot, manifestObj) {
-  const manifestPath = manifestPathFor(targetRoot);
+  const manifestPath = safePath.resolveInsideRoot(targetRoot, MANIFEST_REL_PATH);
   const tmpPath = `${manifestPath}.tmp`;
 
   fs.mkdirSync(path.dirname(manifestPath), { recursive: true });

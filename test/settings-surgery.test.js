@@ -7,6 +7,7 @@ const os = require('node:os');
 const path = require('node:path');
 
 const { removeDeadRouterHook, ROUTER_HOOK_PATH_FRAGMENT, filterHooksBy } = require('../src/settings-surgery.js');
+const { createDirLinkOrSkip } = require('./helpers/symlink-fixtures');
 
 /** Creates a unique tmp dir under the OS temp dir; returns its absolute path. */
 function makeTmpRoot(prefix) {
@@ -299,6 +300,41 @@ test('(h) invalid JSON in settings.json: a contextual error is thrown, naming th
     fs.rmSync(targetRoot, { recursive: true, force: true });
   }
 });
+
+// --- SECURITY: containment escape via a symlink/junction --------------------
+
+test(
+  'SECURITY: removeDeadRouterHook refuses to operate when .claude is a directory JUNCTION escaping the target root; the outside settings.json it points at is left untouched',
+  (t) => {
+    const parent = makeTmpRoot('rea-settings-surgery-test-escape-');
+    const targetRoot = path.join(parent, 'root');
+    const outside = path.join(parent, 'outside');
+    fs.mkdirSync(targetRoot, { recursive: true });
+    const outsideClaudeDir = path.join(outside, 'evil-claude');
+    fs.mkdirSync(outsideClaudeDir, { recursive: true });
+    const outsideSettingsPath = path.join(outsideClaudeDir, 'settings.json');
+    const outsideContentBefore = `${JSON.stringify(fixtureWithRouterHook(), null, 2)}\n`;
+    fs.writeFileSync(outsideSettingsPath, outsideContentBefore, 'utf8');
+
+    const claudeLink = path.join(targetRoot, '.claude');
+
+    try {
+      if (!createDirLinkOrSkip(t, outsideClaudeDir, claudeLink)) {
+        return;
+      }
+
+      assert.throws(() => removeDeadRouterHook(targetRoot));
+
+      assert.equal(
+        fs.readFileSync(outsideSettingsPath, 'utf8'),
+        outsideContentBefore,
+        'the outside settings.json the junction points at must be left UNCHANGED'
+      );
+    } finally {
+      fs.rmSync(parent, { recursive: true, force: true });
+    }
+  }
+);
 
 // --- filterHooksBy() direct unit tests ---------------------------------------
 

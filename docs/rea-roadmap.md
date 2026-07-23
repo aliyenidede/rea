@@ -320,6 +320,10 @@ Resolved when their component is built (not blocking):
   "curse of instructions" guideline; Faz 2 kept them verbatim to preserve battle-tested content
   (`.rea/plans/0007-faz2-agents/plan.md` Decision 6, out of scope). Revisit as a dedicated trim pass, not
   during a carry-forward.
+- **✓ Closed (2026-07-23, 0011):** shared `src/safe-path.js` + symlink-escape fix. Closed a CWE-59
+  symlink/junction-escape class (arbitrary file write via `npx rea-tools setup`/`migrate`) across the
+  installer's write/read/prune paths. This was the must-land-before-`npm publish` security gate. Full
+  record: `.rea/decisions/0002-safe-path-hardening.md`, `.rea/plans/0011-safe-path-hardening/`.
 
 ---
 

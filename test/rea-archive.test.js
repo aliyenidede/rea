@@ -7,6 +7,7 @@ const os = require('node:os');
 const path = require('node:path');
 
 const { archiveLegacyRea } = require('../src/rea-archive.js');
+const { createDirLinkOrSkip } = require('./helpers/symlink-fixtures');
 
 /** Creates a unique tmp dir under the OS temp dir; returns its absolute path. */
 function makeTmpRoot(prefix) {
@@ -56,41 +57,6 @@ function snapshotTree(root) {
     }
   })(root);
   return { dirs, files };
-}
-
-/**
- * Attempts to create a directory symlink/junction at `linkPath` pointing to
- * `targetDirAbs`. Mirrors test/prune.test.js's FIX5 REGRESSION rule as
- * corrected by plan 0011 (adversarial plan-review G3 / Decision 4) — the
- * ASYMMETRIC skip rule, not the symmetric "t.skip on any platform" anti-
- * pattern: on win32, a permission failure (EPERM/ENOSYS — junction creation
- * needs admin/Developer Mode without it) is a LOUD `t.skip(...)`; on every
- * OTHER platform (including CI-Linux, the real backstop for this
- * regression), the same kind of failure is `assert.fail`, never a silent
- * skip that could let a security regression drop out of CI unnoticed.
- * Returns true if the link was created (caller proceeds), false if the test
- * was skipped (caller must return immediately).
- */
-function createDirLinkOrSkip(t, targetDirAbs, linkPath) {
-  try {
-    if (process.platform === 'win32') {
-      fs.symlinkSync(targetDirAbs, linkPath, 'junction');
-    } else {
-      fs.symlinkSync(targetDirAbs, linkPath);
-    }
-    return true;
-  } catch (err) {
-    const isPermissionIssue = err && (err.code === 'EPERM' || err.code === 'ENOSYS');
-    if (process.platform === 'win32' && isPermissionIssue) {
-      t.skip(`directory junction creation not permitted on this host (${err.code}): ${err.message}`);
-      return false;
-    }
-    assert.fail(
-      `symlink/junction creation failed unexpectedly on ${process.platform} ` +
-        `(${err && err.code}): ${err && err.message}`
-    );
-    return false; // unreachable — assert.fail throws
-  }
 }
 
 test('archiveLegacyRea(): archives nested .rea/log/ + .rea/lessons.md under .rea/_archive/, preserving structure; typed dir untouched; nothing deleted', () => {
@@ -494,5 +460,139 @@ test('FIX E: a NORMAL (non-symlinked) pre-existing .rea/_archive dir does not bl
     assert.deepEqual(result.skipped, []);
   } finally {
     fs.rmSync(targetRoot, { recursive: true, force: true });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// unit 11-6 regression — DANGLING escaping `.rea/_archive` junction (the gap
+// closed by migrating the destination-realpath guard onto the shared
+// `src/safe-path.js` `isRealpathInsideRoot`, which walks its nearest-existing-
+// ancestor via `fs.lstatSync`). The module's PRIOR bespoke guard
+// (`isDestinationRealpathInsideRoot`) walked its ancestor chain via
+// `fs.existsSync`, which FOLLOWS a symlink/junction and reports a dangling
+// one's target as "does not exist" — so the walk stepped PAST the link
+// itself, straight to `.rea` (an in-root real directory), and never
+// `realpathSync`-checked the link — silently treating an escaping dangling
+// junction as safely contained. `safePath.isRealpathInsideRoot` uses
+// `fs.lstatSync` instead, which reports a dangling link as "exists" (an entry
+// is present, even though its target is not), so the walk stops AT the link
+// and `realpathSync`s it — catching the escape.
+// ---------------------------------------------------------------------------
+
+test('unit 11-6 regression: a `.rea/_archive` that is a DANGLING directory JUNCTION (target never created) is refused as a move destination — nothing escapes, source stays, reported in `failed`', (t) => {
+  const targetRoot = makeTmpRoot();
+  const outsideRoot = makeTmpRoot('rea-archive-test-outside-');
+  const neverCreatedTarget = path.join(outsideRoot, 'never-created');
+  const archiveLinkPath = path.join(targetRoot, '.rea', '_archive');
+  try {
+    writeFile(targetRoot, '.rea/lessons.md', 'legacy lessons\n');
+
+    // neverCreatedTarget is intentionally NEVER created — the junction is
+    // dangling: its target does not exist on disk.
+    if (!createDirLinkOrSkip(t, neverCreatedTarget, archiveLinkPath)) {
+      return;
+    }
+
+    const result = archiveLegacyRea(targetRoot);
+
+    // nothing was ever created at (or under) the dangling target
+    assert.equal(
+      fs.existsSync(neverCreatedTarget),
+      false,
+      'the dangling junction target must still not exist — nothing should have been created through it'
+    );
+    assert.deepEqual(
+      fs.readdirSync(outsideRoot),
+      [],
+      'the outside dir the dangling junction lives under must receive nothing'
+    );
+
+    // the legacy source is left exactly where it was — nothing lost, nothing
+    // moved through the link
+    assert.equal(
+      fs.readFileSync(path.join(targetRoot, '.rea', 'lessons.md'), 'utf8'),
+      'legacy lessons\n',
+      'the legacy lessons source must survive untouched'
+    );
+
+    assert.deepEqual(result.moved, [], 'the dangling destination must never be reported as moved');
+    assert.deepEqual(result.skipped, []);
+    assert.deepEqual(
+      result.failed,
+      ['.rea/_archive/lessons.md'],
+      'the dangling-junction destination must be refused and recorded in `failed`, not silently allowed'
+    );
+  } finally {
+    fs.rmSync(targetRoot, { recursive: true, force: true });
+    fs.rmSync(outsideRoot, { recursive: true, force: true });
+  }
+});
+
+test('unit 11-6 regression (dry-run): a dangling .rea/_archive junction is predicted as failed, not moved', (t) => {
+  // Same dangling-junction fixture as the real-run test above, but on a DRY
+  // RUN — moveFile() never executes, so the OS-level ENOENT (thrown when a
+  // real rename/mkdir traverses a dangling junction) never fires to mask a
+  // wrong verdict. This is the assertion that actually discriminates the
+  // fixed `safePath.isRealpathInsideRoot` guard from the OLD, reverted
+  // `existsSync`-based bespoke guard: on a real run, the old guard's wrong
+  // "safe" verdict would still get caught downstream by moveFile()'s own
+  // ENOENT and land in `failed` anyway — masking the guard bug. On a dry
+  // run there is no downstream write to catch the mistake, so the old guard
+  // would wrongly predict `moved`, while the fixed guard correctly predicts
+  // `failed`.
+  const targetRoot = makeTmpRoot();
+  const outsideRoot = makeTmpRoot('rea-archive-test-outside-');
+  const neverCreatedTarget = path.join(outsideRoot, 'never-created');
+  const archiveLinkPath = path.join(targetRoot, '.rea', '_archive');
+  try {
+    writeFile(targetRoot, '.rea/lessons.md', 'legacy lessons\n');
+
+    // neverCreatedTarget is intentionally NEVER created — the junction is
+    // dangling: its target does not exist on disk.
+    if (!createDirLinkOrSkip(t, neverCreatedTarget, archiveLinkPath)) {
+      return;
+    }
+
+    const result = archiveLegacyRea(targetRoot, { dryRun: true });
+
+    // a dry run writes nothing at all — the dangling target still doesn't
+    // exist, and the outside dir it lives under received nothing
+    assert.equal(
+      fs.existsSync(neverCreatedTarget),
+      false,
+      'the dangling junction target must still not exist — a dry run performs no writes'
+    );
+    assert.deepEqual(
+      fs.readdirSync(outsideRoot),
+      [],
+      'the outside dir the dangling junction lives under must receive nothing on a dry run'
+    );
+
+    // the legacy source is left exactly where it was — a dry run writes
+    // nothing on either side
+    assert.equal(
+      fs.readFileSync(path.join(targetRoot, '.rea', 'lessons.md'), 'utf8'),
+      'legacy lessons\n',
+      'the legacy lessons source must survive untouched'
+    );
+
+    // THE discriminating assertion: the escaping dangling destination must
+    // be PREDICTED as failed, never as moved. Against the reverted
+    // `existsSync`-based guard this goes RED (the old guard wrongly predicts
+    // `moved` on a dry run, since there is no downstream write to catch it).
+    assert.deepEqual(
+      result.moved,
+      [],
+      'the dangling destination must never be PREDICTED as moved on a dry run'
+    );
+    assert.deepEqual(result.skipped, []);
+    assert.deepEqual(
+      result.failed,
+      ['.rea/_archive/lessons.md'],
+      'the dangling-junction destination must be predicted as failed, not silently predicted as moved'
+    );
+  } finally {
+    fs.rmSync(targetRoot, { recursive: true, force: true });
+    fs.rmSync(outsideRoot, { recursive: true, force: true });
   }
 });

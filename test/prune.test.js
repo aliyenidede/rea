@@ -15,6 +15,7 @@ const {
   DENY_FILES,
 } = require('../src/prune.js');
 const { RETIRED_FILES } = require('../src/retired-list.js');
+const { handleLinkCreationFailure, createDirLinkOrSkip } = require('./helpers/symlink-fixtures');
 
 /** Creates a unique tmp dir under the OS temp dir; returns its absolute path. */
 function makeTmpRoot(prefix) {
@@ -544,8 +545,9 @@ test('FIX5: a symlink/junction inside root pointing outside root is refused; the
         fs.symlinkSync(outsideRoot, linkPath);
       }
     } catch (err) {
-      t.skip(`symlink/junction creation not permitted on this host: ${err.message}`);
-      return;
+      if (!handleLinkCreationFailure(t, err)) {
+        return;
+      }
     }
 
     const { deleted } = prune({
@@ -569,6 +571,58 @@ test('FIX5: a symlink/junction inside root pointing outside root is refused; the
     }
     fs.rmSync(targetRoot, { recursive: true, force: true });
     fs.rmSync(outsideRoot, { recursive: true, force: true });
+  }
+});
+
+// --- FIX5b (documented, verified-safe divergence from the old strict check) —
+// unlike the old realpath check this module used to inline (which was
+// STRICT: `realTarget.startsWith(realRoot + sep)`, so a candidate resolving
+// to EXACTLY targetRoot was skipped), the shared safe-path.isRealpathInsideRoot
+// treats real === root as CONTAINED (see src/safe-path.js's `real ===
+// resolvedRoot` branch), so a symlink/junction that points at root itself is
+// no longer special-cased out here — it proceeds to rmSync like any other
+// owned-then-unowned candidate. This is safe because rmSync lstats the final
+// path component and unlinks only the link entry for a symlink/junction; it
+// does not recurse through it. This test pins that exact behaviour.
+
+test('a symlink/junction inside root pointing at root ITSELF: the owned link is removed, but root and its contents survive (rmSync does not recurse through it)', (t) => {
+  const targetRoot = makeTmpRoot('rea-prune-test-selflink-');
+  const linkPath = path.join(targetRoot, 'self-link');
+  try {
+    const canary = writeFile(targetRoot, 'keep-me.txt', 'canary content — must survive');
+
+    if (!createDirLinkOrSkip(t, targetRoot, linkPath)) {
+      return; // skipped on this host (see handleLinkCreationFailure)
+    }
+
+    const { deleted, failed } = prune({
+      targetRoot,
+      previouslyOwned: ['self-link'],
+      currentOwned: [],
+      isBridge: false,
+    });
+
+    assert.deepEqual(deleted, ['self-link'], 'the owned-then-unowned self-pointing link must be reported deleted');
+    assert.deepEqual(failed, []);
+    assert.equal(fs.existsSync(targetRoot), true, 'targetRoot itself must survive');
+    assert.equal(fs.existsSync(canary), true, 'a real file inside targetRoot must survive');
+    assert.equal(
+      fs.readFileSync(canary, 'utf8'),
+      'canary content — must survive',
+      'the canary file content must be untouched'
+    );
+    assert.equal(
+      fs.existsSync(linkPath),
+      false,
+      'the link entry itself must be gone (rmSync removed the link, not its target)'
+    );
+  } finally {
+    try {
+      fs.unlinkSync(linkPath);
+    } catch {
+      // no-op: link may already have been removed by prune(), or never created
+    }
+    fs.rmSync(targetRoot, { recursive: true, force: true });
   }
 });
 

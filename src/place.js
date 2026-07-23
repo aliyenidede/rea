@@ -34,6 +34,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const manifest = require('./manifest.js');
+const safePath = require('./safe-path.js');
 
 /**
  * Per-tool host layout, as data. Each `dirs` entry is a flat (non-recursive)
@@ -71,6 +72,13 @@ function copyFlatDir(sourceDirAbs, destDirAbs, exclude, targetRoot, manifestObj)
     }
     const srcPath = path.join(sourceDirAbs, entry.name);
     const destPath = path.join(destDirAbs, entry.name);
+    // Refuse BEFORE any fs write if destPath escapes targetRoot — e.g. a
+    // planted directory symlink/junction at destDirAbs (or an ancestor of
+    // it) redirecting this write outside the project root (CWE-59).
+    // fs.mkdirSync/copyFileSync FOLLOW such a link and would write outside
+    // root; resolving containment first makes this throw before either op
+    // runs, so the outside target is never touched.
+    safePath.resolveInsideRoot(targetRoot, destPath);
     fs.mkdirSync(path.dirname(destPath), { recursive: true });
     // When sourceRoot === targetRoot (e.g. running the installer from a dev
     // checkout against itself — the dogfood scenario), a LAYOUT entry like
@@ -79,7 +87,7 @@ function copyFlatDir(sourceDirAbs, destDirAbs, exclude, targetRoot, manifestObj)
     // skip the physical copy in that case — but the file IS still owned
     // (it is exactly the content this run would have placed), so it must
     // still be recorded in the manifest.
-    if (path.resolve(srcPath) !== path.resolve(destPath)) {
+    if (!safePath.isSamePath(srcPath, destPath)) {
       fs.copyFileSync(srcPath, destPath);
     }
     manifest.recordOwned(manifestObj, manifest.normalizeRelPath(destPath, targetRoot));
@@ -109,6 +117,18 @@ function placeReaScaffold(sourceRoot, targetRoot, srcRelDir, destRelDir, manifes
     }
 
     const hostTypeDir = path.join(destDirAbs, typeName);
+    // Refuse BEFORE any fs op — including the "already populated?" READS
+    // below — if hostTypeDir escapes targetRoot: e.g. a planted directory
+    // symlink/junction at hostTypeDir (or an ancestor of it, such as `.rea`
+    // itself) redirecting this call outside the project root (CWE-59).
+    // fs.existsSync/readdirSync FOLLOW such a link, so checking containment
+    // only after those reads would let an escaping junction leak whether the
+    // OUTSIDE target is populated and silently change control flow (a quiet
+    // `continue` vs. throwing) before any write-side guard ever ran. A
+    // legitimate non-existent or in-root hostTypeDir still resolves cleanly
+    // here via nearest-existing-ancestor.
+    safePath.resolveInsideRoot(targetRoot, hostTypeDir);
+
     const alreadyPopulated =
       fs.existsSync(hostTypeDir) && fs.readdirSync(hostTypeDir).length > 0;
     if (alreadyPopulated) {
@@ -117,6 +137,10 @@ function placeReaScaffold(sourceRoot, targetRoot, srcRelDir, destRelDir, manifes
 
     fs.mkdirSync(hostTypeDir, { recursive: true });
     const destReadme = path.join(hostTypeDir, 'README.md');
+    // Defense-in-depth: guard the leaf write too (same pattern as
+    // copyFlatDir), even though hostTypeDir containment was already
+    // confirmed above.
+    safePath.resolveInsideRoot(targetRoot, destReadme);
     fs.copyFileSync(srcReadme, destReadme);
     manifest.recordOwned(manifestObj, manifest.normalizeRelPath(destReadme, targetRoot));
   }
