@@ -40,6 +40,16 @@ Editing a `templates/` file does **not** update copies already placed on disk (a
 re-sync consumers, then verify the copy actually changed — don't assume the edit propagated.
 (lesson 2026-04-25 08:15)
 
+## 4. Never write the managed-marker comments literally into prose
+
+A managed file (`AGENTS.md`, `CLAUDE.md`, any shim) must contain **exactly one** marker pair.
+Documenting the mechanism by pasting the literal `<!-- readev-tools:… -->` comments into body text
+creates a second pair, and `shims.js` then refuses the whole file — "Ambiguous readev-tools managed
+markers … refusing to write" — which blocks every later `setup`. Refer to them without the comment
+syntax (backticked `readev-tools:start` / `readev-tools:end`) instead. Note `verify` does **not**
+catch this state: its shim check is a lenient first-pair probe and still reports "shims intact".
+(2026-07-24, hit while moving this repo's project rules into `AGENTS.md`)
+
 ---
 
 Authoring lives only under the neutral `templates/` tree — never a host tool's own folder
