@@ -550,6 +550,81 @@ test('cli(["setup", "."]) throws (not swallowed) when setup.js itself fails to l
   });
 });
 
+test('cli(["setup", target, "--dry-run"]) refuses instead of running a real install', () => {
+  // --dry-run is a migrate-only flag, but KNOWN_FLAGS accepts it globally, so
+  // it used to fall through to a full, silent install: a user asking for a
+  // preview mutated their project. A mutating verb must never absorb a flag
+  // that promises the opposite.
+  const callLogPath = path.join(os.tmpdir(), `readev-tools-dryrun-${process.pid}.json`);
+  fs.rmSync(callLogPath, { force: true });
+  withTempSetup(
+    "'use strict';\nconst fs = require('node:fs');\nmodule.exports = { run(target, opts) {\n" +
+      `  fs.writeFileSync(${JSON.stringify(callLogPath)}, JSON.stringify({ target, opts }));\n` +
+      '  return { placed: 1, pruned: [], failed: [] };\n} };\n',
+    () => {
+      try {
+        const { result, err } = captureConsole(() => cliModule.cli(['setup', '/tmp/x', '--dry-run']));
+        assert.notEqual(result, 0, 'must exit non-zero rather than silently installing');
+        assert.equal(
+          fs.existsSync(callLogPath),
+          false,
+          'setup.run() must never be reached when --dry-run is passed'
+        );
+        assert.match(err, /--dry-run/);
+        assert.match(err, /migrate/);
+      } finally {
+        fs.rmSync(callLogPath, { force: true });
+      }
+    }
+  );
+});
+
+test('cli(["verify", target, "--dry-run"]) is refused too — the flag belongs to migrate alone', () => {
+  const { result, err } = captureConsole(() => cliModule.cli(['verify', '.', '--dry-run']));
+  assert.notEqual(result, 0);
+  assert.match(err, /--dry-run/);
+});
+
+test('cli(["setup", "/tmp/x"]) prints what it placed and pruned', () => {
+  // setup was the only verb that reported nothing at all: verify and migrate
+  // both print a report, while a successful install exited 0 in silence, so a
+  // user could not see what landed or what was removed.
+  withTempSetup(
+    "'use strict';\nmodule.exports = { run() { return " +
+      "{ placed: 23, pruned: ['.claude/commands/rea-commit.md'], failed: [], isBridge: false, full: false }; " +
+      '} };\n',
+    () => {
+      const { result, out } = captureConsole(() => cliModule.cli(['setup', '/tmp/x']));
+      assert.equal(result, 0);
+      assert.match(out, /23/, 'the placed count must be reported');
+      assert.match(out, /pruned/i);
+      assert.match(out, /rea-commit\.md/, 'a pruned file must be named, not just counted');
+    }
+  );
+});
+
+test('cli(["setup", "/tmp/x"]) reports the failed count alongside the exit code', () => {
+  withTempSetup(
+    "'use strict';\nmodule.exports = { run() { return " +
+      "{ placed: 2, pruned: [], failed: ['.claude/commands/locked.md'], isBridge: false, full: false }; } };\n",
+    () => {
+      const { result, out } = captureConsole(() => cliModule.cli(['setup', '/tmp/x']));
+      assert.equal(result, 1);
+      assert.match(out, /failed/i);
+    }
+  );
+});
+
+test('cli(["setup", "/tmp/x"]) prints nothing extra when run() returns a bare object (no placed/pruned fields)', () => {
+  // The null-safe path: an older/stub run() shape must not make the reporter
+  // throw or print "undefined file(s)".
+  withTempSetup("'use strict';\nmodule.exports = { run() { return {}; } };\n", () => {
+    const { result, out } = captureConsole(() => cliModule.cli(['setup', '/tmp/x']));
+    assert.equal(result, 0);
+    assert.doesNotMatch(out, /undefined/);
+  });
+});
+
 test('after all cli.js dispatch tests, src/setup.js on disk is exactly as it was before this suite ran', () => {
   assert.equal(fs.existsSync(SETUP_PATH), REAL_SETUP_EXISTED);
   if (REAL_SETUP_EXISTED) {

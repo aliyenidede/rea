@@ -117,6 +117,8 @@ ruff check . && ruff format .     # lint + format (ruff is pinned in [dev] so CI
 
 node bin/readev-tools.js setup .  # run the installer from source, no publish needed
 npx readev-tools setup|verify|migrate <project>   # the published entry points
+                                  # --dry-run belongs to migrate alone; setup always
+                                  # writes and reports what it placed and pruned
 ```
 
 ## File structure

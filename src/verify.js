@@ -208,6 +208,21 @@ function checkMarkdownShimRegion(targetRoot, relFile) {
     return `${relFile}: unreadable (${err.message})`;
   }
 
+  // More than one marker pair is exactly what shims.js's write path calls
+  // "ambiguous" and refuses to touch. Reading such a file still "works" (the
+  // first pair wins), so the probe below would happily report it intact —
+  // and the install would then fail on every later `setup`. Report it here
+  // instead of green-lighting a tree that cannot be updated. The counting
+  // rule is shims.js's own, imported rather than re-implemented.
+  const startCount = shims.countOccurrences(content, shims.MARKER_START);
+  const endCount = shims.countOccurrences(content, shims.MARKER_END);
+  if (startCount > 1 || endCount > 1) {
+    return (
+      `${relFile}: ambiguous managed markers (${startCount} start / ${endCount} end) — ` +
+      'setup will refuse to write this file until exactly one pair remains'
+    );
+  }
+
   const startIdx = content.indexOf(shims.MARKER_START);
   const endIdx = content.indexOf(shims.MARKER_END);
   // Both markers must be present AND correctly ordered — start strictly

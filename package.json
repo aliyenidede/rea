@@ -1,6 +1,6 @@
 {
   "name": "readev-tools",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Portable, cross-tool methodology installer for the REA workflow (npx readev-tools setup)",
   "license": "MIT",
   "author": "aliyenidede",

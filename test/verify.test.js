@@ -348,6 +348,33 @@ test('verify(): CLAUDE.md with its markers reversed (end before start) -> shims 
   }
 });
 
+test('verify(): CLAUDE.md with a SECOND marker pair -> shims intact check fails (setup would refuse this file)', () => {
+  // The state shims.js calls "ambiguous" and refuses to write: more than one
+  // marker pair in a managed file. It is reachable by ordinary authoring —
+  // writing the literal marker comments into the file's own prose. verify's
+  // marker probe is deliberately lenient (indexOf, first pair wins), so this
+  // used to report PASS for a tree whose every later `setup` hard-fails.
+  // verify must not green-light an install that cannot be updated.
+  const targetRoot = buildHealthyFixture();
+  try {
+    const claudeMdPath = path.join(targetRoot, 'CLAUDE.md');
+    const original = fs.readFileSync(claudeMdPath, 'utf8');
+    const doubled = `${original}\n${MARKER_START}\nstray second block\n${MARKER_END}\n`;
+    fs.writeFileSync(claudeMdPath, doubled, 'utf8');
+
+    const result = verify(targetRoot);
+
+    assert.equal(result.ok, false);
+    const check = findCheck(result, 'shims intact');
+    assert.equal(check.status, 'fail');
+    assert.match(check.detail, /CLAUDE\.md/);
+    assert.match(check.detail, /ambiguous/i);
+    assert.match(check.detail, /2 start/);
+  } finally {
+    fs.rmSync(targetRoot, { recursive: true, force: true });
+  }
+});
+
 // ---------------------------------------------------------------------------
 // Robustness gap: a poisoned shimRegions[] entry (e.g. `null`) must not throw
 // a TypeError out of verify() when its `.marker`/`.file` are accessed.
