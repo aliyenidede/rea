@@ -1,5 +1,14 @@
 # Lessons
 
+> **Phase-5 distillation (2026-07-24):** the durable, cross-tool-useful facts in this log were
+> distilled into the typed graph — see `knowledge/` (`installer-testing-and-tooling`,
+> `authoring-install-templates`, `cross-tool-portability-model`, `rea-repo-layout`,
+> `plan-as-knowledge-capsule`) and `decisions/0004-rea-cli-runtime-and-auth`. **Most lessons below
+> deliberately stayed here** — per REA's own memory-write filter (`AGENTS.md`), behavioural reflexes,
+> already-shipped methodology, one-off operational mistakes, and readev-project-context facts do **not**
+> belong in `knowledge/`. This file remains the raw chronological capture log; the graph holds only what
+> a *different tool* opening this repo would need.
+
 ## 2026-03-15
 **Mistake:** pyproject.toml package-data noktalı klasörleri (.claude, .github) kapsamıyordu, `rea init` template'leri kopyalayamıyordu.
 **Rule:** Yeni template klasörü eklenince `pyproject.toml` `package-data` glob'larını kontrol et — noktalı klasörler (`.*`) wildcard'a dahil edilmez, explicit yazılması gerekir.

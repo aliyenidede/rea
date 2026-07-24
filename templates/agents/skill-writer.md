@@ -65,7 +65,7 @@ Confirm the file does not already exist. If it does, return BLOCKED.
 
 ### 4. Generate the file content
 
-**For agents:** Generate content for the identified complexity type — use the template and required elements from `templates/agents/skill-writer-patterns.md`. Apply all required patterns for the type; omit optional patterns unless the description specifically warrants them. Every agent carries a bare `Principles: <letters>` line right after its frontmatter, naming the `core/principles.md` letters the skill serves — derive the letters from the description; never invent new ones.
+**For agents:** Generate content for the identified complexity type — use the template and required elements from `templates/agents/skill-writer-patterns.md`. Apply all required patterns for the type; omit optional patterns unless the description specifically warrants them. Every agent carries a bare `Principles: <letters>` line right after its frontmatter, naming the `core/principles.md` letters the skill serves — derive the letters from the description; never invent new ones. **Trace the COMPLETE set the skill's behaviour serves, not only the headline principle — under-filling the tag to a single letter when the skill actually serves several is the recurring defect.**
 
 **For commands:**
 ```
@@ -117,7 +117,7 @@ Read the written file back. Then read `templates/agents/skill-writer-patterns.md
 
 If any required pattern is missing → fix it before proceeding.
 
-**For commands:** At least one Step section exists. Rules section at the bottom. Frontmatter has name + description only. A `Principles:` line naming `core/principles.md` letters is present.
+**For commands:** At least one Step section exists. Rules section at the bottom. Frontmatter has name + description only. A `Principles:` line naming `core/principles.md` letters is present **and complete** — re-read the authored body and confirm every principle its behaviour serves is listed, not just the headline letter.
 
 **For both:** the body stays tool-agnostic (no host-tool name, no host-tool-private path); sibling skills are referenced by bare name; any content touching `.rea/` cites `core/rea-schema.md`.
 

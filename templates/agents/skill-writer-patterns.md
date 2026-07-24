@@ -385,6 +385,8 @@ Return a structured summary with file:line references:
 
 **Optional additions**: Nothing extra — keep mechanical agents minimal. No rationalizations table, no confidence scoring, no blast radius.
 
+**Classify "Mechanical" by the ABSENCE of these patterns — not by line count.** An agent is Mechanical because it carries no rationalizations table, no confidence scoring, no blast-radius/false-positive phase, and no multi-phase escalation methodology — NOT because it is short. A Mechanical agent can still be detailed and long: see the §2 Agent Catalog (`dispatcher`, `plan-validator`) — both are substantial yet Mechanical because they carry none of the forbidden patterns. When a type is ambiguous, **the §2 Agent Catalog is the tie-breaker**: match the new agent to its closest catalog example.
+
 **Skeleton**:
 
 ```markdown
