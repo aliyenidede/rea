@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "rea-dev"
 version = "0.7.2"
-description = "Development toolkit — bootstraps structured Claude Code workflow (commands, agents, plans, CI) into any project"
+description = "Deprecated — frozen at 0.7.2. Replaced by `npx readev-tools`, which installs the same workflow for any AI coding tool"
 readme = "PYPI.md"
 requires-python = ">=3.11"
 license = "MIT"
@@ -14,7 +14,7 @@ authors = [
 ]
 keywords = ["claude", "claude-code", "ai", "development", "toolkit", "agents", "workflow"]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 7 - Inactive",
     "Environment :: Console",
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3",
