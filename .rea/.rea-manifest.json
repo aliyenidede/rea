@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "ownedFiles": [
+    ".claude/commands/rea-execute.md",
+    ".claude/commands/rea-fix.md",
+    ".claude/commands/rea-grill.md",
+    ".claude/commands/rea-init.md",
+    ".claude/commands/rea-plan.md",
+    ".claude/commands/rea-ship.md",
+    ".claude/commands/rea-tidy.md",
+    ".claude/commands/rea-wrap.md",
+    ".claude/commands/rea-write-skill.md",
+    ".claude/agents/bug-scanner.md",
+    ".claude/agents/code-reviewer.md",
+    ".claude/agents/debugger.md",
+    ".claude/agents/dispatcher.md",
+    ".claude/agents/explorer.md",
+    ".claude/agents/implementer.md",
+    ".claude/agents/plan-reviewer.md",
+    ".claude/agents/plan-validator.md",
+    ".claude/agents/security-scanner.md",
+    ".claude/agents/skill-writer-patterns.md",
+    ".claude/agents/spec-reviewer.md",
+    "core/craft-checklist.md",
+    "core/principles.md",
+    "core/rea-schema.md"
+  ],
+  "shimRegions": [
+    {
+      "file": "AGENTS.md",
+      "marker": "readev-tools"
+    },
+    {
+      "file": "CLAUDE.md",
+      "marker": "readev-tools"
+    },
+    {
+      "file": ".gemini/settings.json",
+      "marker": "context.fileName"
+    }
+  ]
+}

@@ -1,151 +1,239 @@
 ---
 name: rea-execute
-description: "Execute the current plan using the agent-driven implementation loop with parallel dispatch."
+description: "Execute the active plan's frontier — orchestrator-computed frontier, agent-driven parallel dispatch, TDD, fresh-context batch review, and audit-trailed status tracking."
 ---
 
-Execute the current plan using the agent-driven implementation loop with parallel dispatch.
+Principles: D, E, G, I, C
 
-## Step 0 — Find active plan
+Execute the active plan using the frontier-driven, agent-driven implementation loop with parallel
+dispatch.
 
-Scan `.rea/plans/*/todo.md` for any `- [ ] NEXT:` lines.
+## Step 0 — Find the active plan and resume
 
-If no NEXT: marker found:
+Scan `.rea/plans/*/todo.md` for any unit whose `Status:` is `todo`, `in-progress`, or `blocked`. If
+more than one plan directory has open units, ask the human which one to run. If none do, report:
+
 ```
-No active plan found. Run /rea-plan first.
+No active plan found. Run rea-grill then rea-plan first.
 ```
+
 Stop here.
 
-If found, report:
+Otherwise report:
+
 ```
 Active plan: .rea/plans/<folder>/
-Next item: <item text>
 ```
+
+**Resume — re-verify `in-progress` units first.** For any unit whose `Status:` is `in-progress`
+(left over from a session that did not finish cleanly), re-verify before anything else: check
+whether a commit already exists that satisfies the unit's `Done when:` (inspect the git log for the
+unit's `Files:`). If a qualifying commit exists → set `Status: done`. If none does → reset
+`Status: todo` so the unit re-enters the frontier. This check always runs first — it is a no-op on a
+fresh run where nothing is `in-progress`, per `core/rea-schema.md`.
+
+**Only this command writes `Status:` into `todo.md`.** `implementer` never touches `todo.md` — it
+only reports a status back to this command, which records it.
 
 ## Step 1 — Load context
 
-Read the plan files:
-- `.rea/plans/<folder>/plan.md` — requirements and architecture
-- `.rea/plans/<folder>/todo.md` — full task list
-- `.rea/lessons.md` — if it exists, apply lessons to execution
-- `CLAUDE.md` — project rules
+Read:
+- `.rea/plans/<folder>/plan.md` — the dependency graph (`Unit` / `Title` / `Depends on`)
+- `.rea/plans/<folder>/todo.md` — per-unit detail (`Files:`, `Done when:`, `Size:`, `Status:`)
+- `.rea/plans/<folder>/spec.md` — requirements and constraints, if present
+- `AGENTS.md` — project rules, including the project's test and lint commands
+- Any `.rea/knowledge/` notes linked from the plan
 
-## Step 1.5 — Dispatch planning
+## Step 2 — Compute the frontier
+
+Per `core/rea-schema.md`: the **frontier** is every unit with `Status: todo` whose every unit listed
+in its `plan.md` `Depends on` has `Status: done`. Compute this directly by reading `todo.md`'s
+`### U<n>` `Status:` fields together with `plan.md`'s `Depends on` column.
+
+There is no scalar `NEXT:` pointer to scan for — that mechanism is retired. The frontier is always
+recomputed from the per-unit `Status:` fields, never read from a leftover pointer.
+
+> **Override note:** target-state §5.4 step 2 describes computing the frontier "via dispatcher."
+> This command overrides that: frontier eligibility is deterministic filtering with no judgment call
+> in it, so this command computes the frontier itself and hands the resulting unit-set to
+> `dispatcher` for physical file-conflict grouping only — `dispatcher` does not recompute
+> eligibility.
+
+If the frontier is empty and no unit is `blocked`, every unit is done. Which step comes next depends
+on whether this run actually did anything:
+- **If any unit's `Status` became `done` during this run** — either by completing a batch in Step 4,
+  or via Step 0's resume re-verification of a stale `in-progress` unit to `done` — route to **Step 6**:
+  the outer full-suite gate has not run yet for the work this run just did, matching the Step 5
+  loop-exit condition below. This is the crash-resume case: the last batch committed but the outer gate
+  never ran, so it must run once before finishing.
+- **If no unit executed in this run** (this is the very first frontier computation this run made, and
+  it is already empty — every unit was already `Status: done` before this run started), skip ahead to
+  **Step 8**: this is a genuinely already-complete plan with nothing new to gate.
+
+If the frontier is empty but one or more units are `blocked`, stop and report the blocked units to
+the human. Nothing else can proceed until they are resolved.
+
+## Step 3 — Dispatch planning
 
 Call the `dispatcher` agent with:
-- todo.md path
-- plan.md path
+- The computed frontier (the list of eligible unit ids)
+- The `todo.md` path
 
-The dispatcher will return an execution schedule with parallel groups.
+`dispatcher` groups the frontier's units into parallel / sequential / safe-sequential batches by
+physical file conflict — it treats the frontier as given and does not re-derive eligibility.
 
-Show the groups to the user (informational — no approval needed):
+Show the batch plan to the human (informational — no approval needed):
+
 ```
 Dispatch plan:
-  Batch 1 (parallel): items 1, 3 — src/auth/, src/billing/
-  Batch 2 (sequential): items 2, 4 — src/shared/utils.py
-  Batch 3 (safe-sequential): item 5 — unknown scope
+  Batch 1 (parallel): U3, U5 — src/auth/, src/billing/
+  Batch 2 (sequential): U4, U6 — src/shared/utils.py
+  Batch 3 (safe-sequential): U7 — unknown scope
 ```
 
-If the dispatcher returns BLOCKED, fall back to sequential execution (one item at a time, original todo order).
+If `dispatcher` returns BLOCKED, fall back to sequential execution: process the frontier's units one
+at a time, in the order given.
 
-## Step 2 — Execute items
+## Step 4 — Execute a batch
 
-Process batches in order from the dispatch plan.
+Process batches in the order given by the dispatch plan.
 
-**For parallel batches:** Launch multiple `implementer` agents simultaneously (one per item in the batch, using multiple Agent tool calls in a single message). Wait for all to complete before proceeding to reviews.
+### 4a — Implement
 
-**For sequential and safe-sequential batches:** Execute items one at a time in order.
+1. Set every unit in the batch to `Status: in-progress` in `todo.md`.
+2. Record `pre-batch-sha` — the current `HEAD` commit, before any implementer touches the tree.
+3. Launch `implementer`:
+   - **Parallel batch** — one `implementer` agent per unit, all launched in a single message; wait
+     for every agent to return before continuing.
+   - **Sequential / safe-sequential batch** — `implementer` agents one at a time, in the batch's
+     given order.
 
-For each item (whether parallel or sequential):
+   Give each `implementer` call the unit's todo item text verbatim (`Files:` / `Done when:` /
+   `Size:`) plus the relevant `plan.md` context.
 
-### 2a — Implement
+4. Handle each unit's returned status:
+   - **DONE** → leave `Status: in-progress`, continue to review.
+   - **DONE_WITH_CONCERNS** → show the concerns to the human; proceed only on explicit confirmation.
+     If the human says no → set the unit `Status: blocked` and halt.
+   - **BLOCKED** or **NEEDS_CONTEXT** → set the unit `Status: blocked`; show the blocker to the human;
+     halt this batch. Units in the same batch that already reached DONE keep `Status: in-progress` —
+     they are re-verified and picked up again on the next resume once the blocker is resolved.
 
-Call the `implementer` agent with:
-- The todo item text (verbatim)
-- Relevant sections from plan.md
+If every unit in the batch reached DONE (or a human-confirmed DONE_WITH_CONCERNS), continue to 4b.
 
-Wait for the agent to return a status:
-- **DONE** → proceed to 2b
-- **DONE_WITH_CONCERNS** → show concerns to user, ask if OK to proceed. If yes → 2b. If no → stop.
-- **BLOCKED** → show blocker to user, stop execution, keep NEXT: on this item
-- **NEEDS_CONTEXT** → show what's unclear to user, stop execution, keep NEXT: on this item
+### 4b — Batch review (fresh-context agents, relevant ones only)
 
-### 2b — Spec review
+Diff scope for every review agent: the explicit commit range `<pre-batch-sha>..HEAD`, plus the union
+of the batch's units' `Files:` lists. This is deterministic and safe to hand to an agent with no
+memory of the implementation session.
 
-Call the `spec-reviewer` agent with:
-- The original todo item text (the requirement)
-- File paths that were changed by the implementer
+**Always run**, regardless of what changed:
+- `spec-reviewer` — verifies the diff matches each unit's `Done when:` requirement (one call per
+  unit, or one call covering the batch with each unit's requirement text attached).
+- `code-reviewer` — craft quality and test quality over the batch diff. Tag every finding that maps
+  to `core/craft-checklist.md` with its `CC-NN` id.
 
-Wait for the agent to return a status:
-- **PASS** → proceed to 2c
-- **FAIL** → show the gap list to the user. Call implementer again with fix instructions. Re-run spec-reviewer. Maximum 3 fix cycles. If still FAIL after 3 → stop and report.
+**Run only when the batch diff includes code files** (skip on a pure-prose / documentation batch —
+these agents only produce noise on a markdown-only diff):
+- `bug-scanner`
+- `security-scanner`
 
-### 2c — Code review
+Preserve `CC-NN` tags when surfacing findings — a CC-tagged design smell is a blocking finding like
+any other.
 
-Call the `code-reviewer` agent with:
-- File paths that were changed by the implementer
+**Fix cycle (shared across the four review agents, maximum 3 cycles):**
+- Any FAIL (spec-reviewer) or Critical/Important finding (code-reviewer, bug-scanner,
+  security-scanner) → send it back to the relevant unit's `implementer` with fix instructions;
+  re-run only the review agent(s) that raised the finding, against the updated diff.
+- Minor / Nit findings → note them; do not block.
+- If a Critical or FAIL finding still remains after 3 cycles → stop, report to the human, and set the
+  affected unit(s) `Status: blocked`.
 
-Wait for the agent to return a status:
-- **No Critical or Important issues** → item is done
-- **Critical or Important issues found** → show issues. Call implementer with fix instructions. Re-run code-reviewer. Maximum 3 fix cycles. If still has Critical after 3 → stop and report.
-- **Minor issues only** → note them but proceed (do not fix unless user asks)
+**No authoring mode is imposed here.** A unit's `Done when:` is its completion gate whether the unit
+is code or prose; `implementer`'s documentation-only carve-out (no test on a pure rename / config /
+doc change, with a stated reason) already covers prose units — nothing extra is added for that. TDD
+(principle E) stays mandatory for code units. The only content-aware rule at this level is the
+bug-scanner / security-scanner gate above.
 
-### 2d — CI gate (BEFORE marking complete)
+### 4c — Mark the batch complete
 
-Run the project's full test and lint suite yourself — do NOT trust the implementer's self-reported results:
-- Run the test command from CLAUDE.md (e.g., `pytest`, `npm test`)
-- Run the lint command from CLAUDE.md (e.g., `ruff check .`, `eslint`)
+Once every unit in the batch clears review, set each unit's `Status: done` in `todo.md`.
 
-If ANY failure:
-- Send the error output back to the implementer agent with fix instructions
-- Maximum 2 fix cycles
-- If still failing after 2 cycles → STOP, show errors to user, keep NEXT: on this item
+Never delete a unit's section from `todo.md`, even once it is `done` — `todo.md` is the audit trail;
+`Status: done` is the permanent record.
 
-Only proceed to 2e after CI gate passes.
+## Step 5 — Loop
 
-### 2e — Mark complete
+Recompute the frontier (Step 2) — newly `done` units may unblock dependents. If the frontier is
+non-empty, return to Step 3 for the next batch. Report brief progress to the human between batches:
 
-Update `.rea/plans/<folder>/todo.md`:
-1. Change `- [ ] NEXT: <item>` to `- [x] <item>`
-2. Find the next `- [ ]` item and add `NEXT:` prefix to it
-3. If no more `- [ ]` items exist, all tasks are done
+```
+Completed batch N. Frontier: <unit ids>. Next batch: <batch info>
+```
 
-## Step 3 — Loop or finish
+If the frontier is empty and no unit is `blocked`, proceed to Step 6.
 
-If there are more batches to process:
-- Show progress: `Completed X/Y items. Next batch: <batch info>`
-- Go back to Step 2 for the next batch
+## Step 6 — Outer gate: full suite once
 
-If all items are done, proceed to Step 3.5.
+Before finishing, run the project's full test suite and full lint once — the outer feedback-gate
+tier. Read the test and lint commands generically from `AGENTS.md` (or the project's own rules) —
+never hardcode a specific tool (e.g. do not assume `pytest`); use whatever the project declares. If
+the project provides a narrower affected-test selector appropriate to its language, that selector is
+what `implementer` already used per unit as the **inner** tier (affected tests + lint, run inside
+`implementer`); this outer tier is the one full run across everything, in addition to — not a repeat
+of — that inner tier. The project's own CI remains the final safety net behind both.
 
-## Step 3.5 — Pattern detection
+If anything fails: send the failure output back to the `implementer` responsible for the most likely
+unit (or, if not clearly attributable, report to the human) with fix instructions. Maximum 2 fix
+cycles. If still failing after 2 cycles → stop, show the errors to the human, and set the affected
+unit(s) `Status: blocked` rather than `done`. Use `blocked`, not `in-progress`, here: Step 0's resume
+re-verify only re-checks units left `in-progress`, and since the unit's completing commit already
+exists it would silently flip the status back to `done` on the next resume — masking the outer-gate
+failure. `blocked` is not auto-cleared by that check, so the failure stays visible until a human
+resolves it, per `core/rea-schema.md`.
 
-After all items are complete, internally reflect: did you notice any recurring patterns during this execution that would benefit from a dedicated agent or command? Do NOT output your reasoning — only tell the user if you found a pattern.
+## Step 7 — Pattern detection
 
-Examples of patterns worth surfacing:
-- Same boilerplate code generated multiple times
-- A specific review concern that came up repeatedly
+After the outer gate passes, internally reflect: did any recurring pattern show up during this run
+that would benefit from a dedicated agent or command? Do not output the reasoning — only tell the
+human if a pattern was found.
+
+Examples worth surfacing:
+- The same boilerplate generated multiple times
+- A review concern that came up repeatedly across batches
 - A workflow step that was manually repeated
 
-If patterns found:
+If a pattern is found:
+
 ```
 Pattern detected: <description>
-This could be a new [agent/command]. Run /rea-write-skill to create it.
+This could be a new agent or command. Run rea-write-skill to create it.
 ```
 
-If no patterns: skip silently.
+If no pattern is found, skip silently.
 
-## Step 4 — Finish
+## Step 8 — Finish
 
 ```
-All tasks complete. Run /rea-commit to open a PR.
+All units complete. Run rea-ship to commit / open a PR / deploy.
 ```
 
 ## Rules
 
-- **Never skip the spec-reviewer or code-reviewer.** Every item goes through the full triple loop.
-- **Never delete completed items from todo.md.** Change `- [ ]` to `- [x]`. Todo.md is an audit trail — deletion is data loss.
-- **Maximum 3 fix cycles** per review stage. If still failing, stop and ask the user.
-- **Do not modify plan.md or spec.md** during execution. If something needs to change in the plan, stop and tell the user.
-- **Use the dispatcher agent for parallel grouping.** Items in the same sequential group run in order. Parallel groups run simultaneously.
-- **If dispatcher returns BLOCKED, fall back to sequential.** Execute items one at a time in original todo order.
-- **Keep the user informed.** After each batch completes, show a brief status update.
+- **Never skip a relevant review agent.** `spec-reviewer` and `code-reviewer` always run over a
+  batch; `bug-scanner` and `security-scanner` run whenever the batch diff includes code files.
+- **Never delete completed units from `todo.md`.** `Status: done` is the audit trail — deleting a
+  unit's section is data loss.
+- **Maximum 3 fix cycles** per batch review stage (Step 4b); **maximum 2 fix cycles** for the outer
+  gate (Step 6). If still failing, stop and ask the human.
+- **Do not modify `plan.md` or `spec.md`** during execution. If something in the plan needs to
+  change, stop and tell the human (principle H — the runtime agent does not re-split the plan).
+- **Use `dispatcher` for grouping the frontier into batches**; if it returns BLOCKED, fall back to
+  sequential execution in frontier order.
+- **Only this command writes `Status:`** into `todo.md`. `implementer` reports a status back; it
+  never edits `todo.md` itself.
+- **Halt for the human at any decision or blocker** — a real architectural choice, a `BLOCKED` /
+  `NEEDS_CONTEXT` return, or a review finding that survives its fix-cycle cap (principle G). Apply
+  the `capture` reflex (per `AGENTS.md`) whenever a lasting decision or a root-cause surfaces during
+  the run.
+- **Keep the human informed.** Report progress after each batch and at the outer gate.

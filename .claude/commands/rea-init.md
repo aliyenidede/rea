@@ -1,221 +1,190 @@
 ---
 name: rea-init
-description: "Set up the REA development toolkit in a project — installs config, CI, branch protection."
+description: "Intelligent bootstrap ritual for a project — quick tier (default, ~1-2 min) classifies the project and authors `AGENTS.md`'s project-specific sections (description, tech stack, architecture rules, file structure, commands); `--full` adds GitHub prerequisites, a staging branch, branch protection, CI workflows, and a secrets checklist. Requires the mechanical layer to already be installed via `npx readev-tools setup`. Use once per project, right after that."
 ---
 
-You are setting up the REA development toolkit in this project. Follow these steps exactly.
+Principles: D, K, L (`core/principles.md`)
 
-## Step 1 — Check dependencies
+Bootstrap this project's content — the intelligent layer only. Detect what already exists before
+writing anything — never assume a greenfield project or overwrite content that is already there.
+This is the L habit in practice: every check below either finds a concrete fact on disk or asks
+the human; nothing is guessed. Work through the steps in order.
 
-Check that the following are available:
+## Step 0 — Preflight: confirm the mechanical layer, then pick a tier
 
-- `gh` CLI: run `gh auth status`. If not authenticated or not installed, stop and tell the user to run `gh auth login` first.
-- `git` remote: run `git remote -v`. If no GitHub remote exists, stop and tell the user to push the repo to GitHub first.
-- `workflow` scope: run `gh auth status` and check for `workflow` in the token scopes. If missing, stop and tell the user to run `gh auth refresh -h github.com -s workflow` first.
+**Preflight.** `/rea-init` never runs against a project the installer hasn't touched yet — it only
+ever adds content on top of a scaffold that is already there. Check for the mechanical layer the
+installer (`npx readev-tools setup`) is responsible for:
 
-## Step 2 — Detect project state
+- Does `.rea/.rea-manifest.json` exist?
+- Does `.rea/` exist, with its `knowledge/`, `decisions/`, `sessions/`, `plans/` scaffold?
+- Does `core/` exist, with `principles.md`, `craft-checklist.md`, `rea-schema.md`?
+
+If any of the three is missing, print:
+
+```
+The mechanical layer is not installed yet. Run `npx readev-tools setup` first, then re-run /rea-init.
+```
+
+and **stop — do not proceed to Step 1.** Writing project-specific content on top of a
+half-installed project (no `.rea/plans/` to hold anything, dangling `core/` pointers inside
+`AGENTS.md`) produces a broken, half-configured project; refusing to start is the safer failure.
+
+Once the preflight passes, pick a tier:
+
+- **Quick (default, ~1-2 min):** the minimum to start working on this project — classify it and
+  author `AGENTS.md`'s project-specific sections. No GitHub, no CI, no branch protection.
+- **Full (opt-in via a `--full` flag, or an explicit request):** everything quick tier does, plus
+  GitHub prerequisites, a staging branch, branch protection, CI workflows, and a secrets checklist.
+
+If the human did not request `--full`, run Steps 1 through 3 and stop at the quick-tier report
+(Step 4). Only run Step 5 onward when `--full` was explicitly requested.
+
+**Boundary:** this command is the *intelligent* layer of setup — classification, codebase
+analysis, and content decisions, all made fresh for this project. Placing files into each host
+tool's own folder, creating the `.rea/` scaffold, writing the per-tool shims, and authoring
+`AGENTS.md`'s fixed always-on block (behaviour steering, the `capture` reflex, the read-pull
+instruction, the map of pointers) is mechanical work the installer already did, once, before this
+command ever runs — this command adds only `AGENTS.md`'s **project-specific** content, and only
+**outside** the `<!-- readev-tools:start -->` … `<!-- readev-tools:end -->` markers the installer owns.
+If a shim later drifts from what the installer wrote, `rea-tidy` reconciles it — this command does
+not touch shims at all.
+
+## Step 1 — Classify project state
 
 Check what already exists:
-- Is there a `CLAUDE.md`?
-- Is there `.claude/settings.json`?
-- Is there `.github/workflows/`?
-- What is the tech stack? Check for `package.json`, `pyproject.toml`, `requirements.txt`, `Cargo.toml` etc.
+- Is there an `AGENTS.md` at the project root?
+- Is there a `.rea/` directory?
+- What is the tech stack? Look for the project's own manifest/config files (package manager
+  files, build config, language-specific project files).
 
-Now classify the project into one of three states:
+Classify into one of three states:
 
 | State | Condition | Action |
-|-------|-----------|--------|
-| **Brownfield** | `CLAUDE.md` exists | Audit existing CLAUDE.md (Step 2B) |
-| **Undocumented** | No `CLAUDE.md` BUT code files exist (src/, lib/, app/, packages/, etc.) | Auto-generate CLAUDE.md from codebase analysis (Step 2C) |
-| **Greenfield** | No `CLAUDE.md` AND project directory is empty or contains only config files (.git, .gitignore, README.md) | Ask the user questions and write CLAUDE.md from scratch (Step 3) |
+|---|---|---|
+| **Brownfield** | `AGENTS.md` exists | Audit it — Step 1B |
+| **Undocumented** | No `AGENTS.md`, but code files exist | Auto-generate via `explorer` — Step 1C |
+| **Greenfield** | No `AGENTS.md`, and the project is empty or holds only config files (`.git`, `.gitignore`, `README.md`) | Ask the human — Step 2 |
 
-To detect code files: glob for `**/*.{ts,tsx,js,jsx,py,rs,go,java,rb,cs}` — if any matches exist, it is NOT greenfield.
+To detect code files, look for source files across the common language extensions; if any exist,
+the project is not greenfield.
 
-## Step 2B — Brownfield only: audit CLAUDE.md
+## Step 1B — Brownfield: audit AGENTS.md
 
-If brownfield, read the existing `CLAUDE.md` and check for these sections:
+Read the existing `AGENTS.md` and check its **project-specific sections** — project description,
+tech stack, architecture rules, file structure, and commands (build/test/lint) — all of which live
+outside the `<!-- readev-tools:start -->` … `<!-- readev-tools:end -->` markers the installer owns. For
+each one that is missing, report it and ask: "Should I add the missing sections? I'll ask a
+question for each one, or generate a draft from the codebase via `explorer` if you'd rather review
+than answer."
 
-| Section | Why it matters |
-|---|---|
-| `## Architecture Rules` | Without this, Claude makes wrong placement decisions |
-| `## Commands` | Without this, Claude runs wrong build/test/lint commands |
-| `## Workflow Behavior` | Self-improvement loop + verification standard |
+Append only the missing sections, outside the markers. **Never modify existing content** — an
+audit only fills gaps, it never rewrites what a human already wrote, and it never touches the
+managed block (Step 0's preflight already guarantees that block is in place). Once the audit's
+additions (if any) are settled, continue to Step 3.
 
-For each missing section, report it:
+## Step 1C — Undocumented: auto-generate via explorer
+
+If the project has code but no `AGENTS.md`, do not ask the greenfield questions. Use the
+`explorer` agent to investigate: project structure, tech stack, entry points, architecture
+patterns, build/test/lint commands, and existing conventions.
+
+Draft the project-specific content from these findings — project description, tech stack,
+architecture rules, file structure, commands — and show it to the human:
+
 ```
-⚠️  CLAUDE.md is missing these sections:
-  - ## Commands
-  - ## Workflow Behavior
-```
-
-If `## Workflow Behavior` is missing: add it immediately without asking (same content as greenfield). No confirmation needed.
-
-For other missing sections, report them and ask: "Should I add the missing sections? I'll ask you questions for each one."
-
-If user says yes:
-- `## Commands` → ask: "What are the build, test, and lint commands for this project?"
-- `## Architecture Rules` → ask: "What are the main architectural rules I should always follow?"
-
-Append only the missing sections. Never modify existing content.
-
-Also scan for `features/` directory. If it exists, check each subdirectory for a `CLAUDE.md`:
-```
-⚠️  These features are missing a CLAUDE.md:
-  - features/auth/
-  - features/billing/
-```
-Ask: "Should I create CLAUDE.md files for these features? I'll ask 3 questions per feature."
-
-If user says yes, for each feature ask:
-1. What is the scope of this feature? (what's in, what's out)
-2. What are the feature-specific rules and constraints?
-3. What key decisions were made when building this?
-
-## Step 2C — Undocumented only: auto-generate CLAUDE.md
-
-If the project has code but no CLAUDE.md, do NOT ask greenfield questions. Instead, analyze the codebase and generate CLAUDE.md automatically.
-
-### 2C.1 — Explore the codebase
-
-Use the `explorer` agent to investigate:
-- Project structure (directory tree, key directories)
-- Tech stack (languages, frameworks, package managers, build tools)
-- Entry points (main files, app directories, worker directories)
-- Architecture patterns (monorepo? microservices? single app? API + frontend?)
-- Build/test/lint commands (read package.json scripts, pyproject.toml, Makefile, etc.)
-- Existing conventions (naming patterns, file organization, import patterns)
-
-### 2C.2 — Generate draft CLAUDE.md
-
-Write a `CLAUDE.md` with these sections, populated entirely from codebase analysis:
-- **Project description** — inferred from README.md, package.json description, or directory structure
-- **Tech stack** — detected from config files and dependencies
-- **Architecture rules** — inferred from actual code organization (e.g., if shared code lives in `packages/`, state that rule)
-- **File structure** — actual directory tree with brief descriptions
-- **Commands** — extracted from package.json scripts, Makefile targets, pyproject.toml, etc.
-
-### 2C.3 — Present to user for confirmation
-
-Show the generated CLAUDE.md to the user:
-```
-I analyzed the codebase and generated a CLAUDE.md draft.
+I analyzed the codebase and drafted the project-specific section of AGENTS.md.
 Please review — is anything wrong or missing?
 ```
 
-Wait for confirmation. Apply any corrections the user provides. Then proceed to Step 4.
+Apply any corrections the human provides, then continue to Step 3.
 
-## Step 3 — Greenfield only: generate CLAUDE.md
+## Step 2 — Greenfield: ask and write
 
-If the project is truly empty (no code files), ask the user these questions one by one:
+If the project is truly empty, ask the human these questions one at a time:
 1. What does this project do? (one sentence)
 2. What is the tech stack?
-3. What are the main architectural rules I should always follow?
-4. What commands are used to build, test, and lint?
+3. What are the main architectural rules to always follow?
+4. What are the build, test, and lint commands?
 
-Then write a `CLAUDE.md` with the following sections:
-- Project description (from Q1)
-- Tech stack (from Q2)
-- Architecture rules (from Q3)
-- Commands: build, test, lint (from Q4)
-- Always append this section verbatim:
+Draft the project-specific content from the answers, then continue to Step 3.
+
+## Step 3 — Finalize AGENTS.md's project-specific sections
+
+Write (or, on brownfield, extend) `AGENTS.md`'s **project-specific** content, from Step 1B / 1C /
+2's findings: project description, tech stack, architecture rules, file structure, and commands.
+This content always lives **outside** the `<!-- readev-tools:start -->` … `<!-- readev-tools:end -->`
+markers — append it after `<!-- readev-tools:end -->`, and never edit anything inside the markers.
+That block is the installer's fixed always-on content (behaviour steering, the `capture` reflex,
+the read-pull instruction, and the map of pointers) — it is already in place, because Step 0's
+preflight refuses to run this command until it is.
+
+On brownfield, this step only adds what Step 1B found missing — it never rewrites existing
+content. On undocumented or greenfield, this is the first write of the project-specific content;
+the always-on block is already there from the installer.
+
+## Step 4 — Quick-tier report
+
+If `--full` was not requested, stop here and report:
 
 ```
-## Workflow Behavior
-
-**Self-Improvement Loop** — After any correction from the user, append the lesson to `.rea/lessons.md`:
-```
-## YYYY-MM-DD HH:MM:SS
-**Source:** user-correction
-**Lesson:** what was learned
-**Rule:** what to do in the future
-```
-If the lesson is architectural (e.g. a rule about what can import what, where logic must live), promote it to the relevant section of `CLAUDE.md` instead of lessons.md.
-
-**Verification Standard** — Before marking any task complete, ask: "Would a staff engineer approve this?" Run tests, check logs, prove it works.
-
-**Verification Iron Rule** — NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE. Before saying "done": run the command that proves it, read the full output, check exit code. "Should work" is not evidence.
+AGENTS.md — <created / audited, N sections added>
+GitHub / CI / branch protection — skipped (quick tier). Re-run with --full to add them.
 ```
 
-## Step 4 — Install missing files
+## Step 5 — Full tier: GitHub prerequisites
 
-Install only what is missing. Never overwrite existing files.
+Check that the following are in place before doing anything GitHub-specific:
 
-### `.claude/settings.json`
-If missing, create it based on detected tech stack:
-- Node/pnpm: `{"permissions": {"allow": ["pnpm run build:*", "pnpm run test:*", "pnpm run typecheck:*", "pnpm run lint:*"]}}`
-- Node/npm: same with `npm run`
-- Python: `{"permissions": {"allow": ["pytest*", "ruff*", "mypy*"]}}`
+- **Authenticated:** run `gh auth status`. If not authenticated (or the CLI isn't installed), stop
+  and tell the human to authenticate first.
+- **`workflow` scope:** check the token scopes reported by `gh auth status`. If `workflow` is
+  missing, stop and tell the human to refresh the token with that scope.
+- **A GitHub remote exists:** run `git remote -v`. If none exists, stop and tell the human to push
+  the repo to GitHub first.
 
-### `.claude/hooks/post-tool-use.sh`
-If missing, create hooks directory and script:
-- Node/pnpm: `pnpm run lint --fix 2>/dev/null || true`
-- Node/npm: `npm run lint --fix 2>/dev/null || true`
-- Python: `ruff format . 2>/dev/null || true`
+A failed check stops the rest of the full tier (Steps 6 onward) — do not proceed to the staging
+branch, branch-protection, or CI steps without it. It does not undo the quick-tier work already
+completed; that stands regardless.
 
-Also create `.claude/settings.json` hook entry if not present:
-```json
-{
-  "hooks": {
-    "PostToolUse": [{"matcher": "Write|Edit", "hooks": [{"type": "command", "command": "bash .claude/hooks/post-tool-use.sh"}]}]
-  }
-}
+## Step 6 — Full tier: create the staging branch
+
+```
+git checkout -b staging 2>/dev/null || true && git push origin staging 2>/dev/null || true && git checkout -
 ```
 
-### SessionStart hook (automatic skill routing)
-If `.claude/settings.json` exists but has no `SessionStart` hook entry, add one:
-```json
-{
-  "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "cat .claude/agents/rea-router.md"
-          }
-        ]
-      }
-    ]
-  }
-}
+Idempotent — if `staging` already exists locally or on the remote, this is a no-op.
+
+## Step 7 — Full tier: branch protection
+
+Check whether the repo is private:
+
 ```
-Merge with existing hooks in settings.json — do not overwrite `PostToolUse` or other existing hooks.
-
-Only add this hook if `.claude/agents/rea-router.md` exists.
-
-### `.github/workflows/ci.yml`
-If missing, create based on tech stack. See GitHub workflow templates.
-
-### `.github/workflows/claude-review.yml`
-If missing, create it with this exact content (uses `claude-code-action` — requires `ANTHROPIC_API_KEY` secret):
-
-```yaml
-name: claude-review
-
-on:
-  issue_comment:
-    types: [created]
-
-jobs:
-  review:
-    if: contains(github.event.comment.body, '@claude')
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-      issues: write
-      id-token: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: anthropics/claude-code-action@beta
-        with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+gh api repos/{owner}/{repo} --jq '.private'
 ```
 
-### `.gitattributes`
-If missing, always create — regardless of stack:
+If `true`: warn the human that branch protection requires a paid GitHub tier on private repos, and
+skip this step.
+
+If `false`: apply protection to `main` and `staging`:
+
+```
+gh api repos/{owner}/{repo}/branches/{branch}/protection --method PUT --input - <<EOF
+{"required_status_checks":{"strict":true,"contexts":["test"]},"enforce_admins":true,"required_pull_request_reviews":null,"restrictions":null}
+EOF
+```
+
+## Step 8 — Full tier: CI workflows
+
+Create, if missing:
+
+- **`ci.yml`** — a workflow that runs the project's own test and lint commands (whatever Step 1's
+  classification or Step 2's answers found) on every push and pull request.
+- **`claude-review.yml`** — a workflow that lets a human trigger an AI review on a pull request or
+  issue comment, using whatever review action the project's host tooling provides. If missing,
+  create it with a job that fires on a comment mentioning the assistant and runs that action.
+- **`.gitattributes`** — always create if missing, regardless of stack, normalizing line endings:
+
 ```
 * text=auto eol=lf
 *.py text eol=lf
@@ -229,112 +198,73 @@ If missing, always create — regardless of stack:
 *.sh text eol=lf
 ```
 
-### Placeholder test
-If no test files exist anywhere in the project (check recursively), create one based on stack:
+- **A placeholder test** — if no test files exist anywhere in the project (checked recursively),
+  create one appropriate to the detected stack (for example a `test_placeholder` function that
+  does nothing but exists, or the language's equivalent), so principle D's feedback loop is never
+  empty from day one. Remove-me-once-real-tests-exist is the intent, not a permanent fixture.
 
-- **Python**: create `tests/test_placeholder.py`:
-```python
-def test_placeholder():
-    """Remove this once real tests exist."""
-    pass
+## Step 9 — Full tier: leakage check
+
+Some host tools expose a global, cross-project config listing extra directories they always treat
+as visible (for example, an "additional directories" permission list). If the running tool exposes
+such a config, read it and get this project's root path.
+
+For each entry in that config: normalize both paths (forward slashes, lowercase, no trailing
+slash) and check whether the project root is a prefix of, or equal to, the entry. If any match is
+found, warn the human:
+
 ```
-
-- **Node/pnpm or Node/npm**: create `src/__tests__/placeholder.test.ts` (or `.js` if no TypeScript):
-```typescript
-test("placeholder", () => {
-  // Remove this once real tests exist.
-});
-```
-
-### Python only: dev extras in `pyproject.toml`
-If `pyproject.toml` exists and `[project.optional-dependencies]` section is missing, add:
-```toml
-[project.optional-dependencies]
-dev = [
-    "pytest>=8",
-    "ruff>=0.4",
-]
-```
-Also update `ci.yml` install step to use `pip install -e ".[dev]"` if not already.
-
-### `.claude/agents/`
-If missing, create directory and copy REA agent templates:
-- `explorer.md` — read-only codebase research agent (Read, Glob, Grep, Haiku model)
-
-### `.rea/log/` and `.rea/plans/`
-Create if missing.
-
-## Step 4.5 — Check global settings for skill leakage
-
-Read the global Claude Code settings file at `~/.claude/settings.json`. Extract the `permissions.additionalDirectories` array (if it exists).
-
-Get the current project root path via `pwd`.
-
-For each entry in `additionalDirectories`:
-1. Normalize both paths: convert backslashes to forward slashes, lowercase, strip trailing slash
-2. Prefix-check: is the normalized project root a prefix of (or equal to) the normalized entry?
-
-If any match found, warn the user:
-```
-⚠️  Skill leakage detected — this project's path appears in global additionalDirectories:
+Leakage detected — this project's path appears in the host tool's global extra-directories config:
   <matched entry>
 
-This causes REA skills (commands + agents) from this project to appear in ALL other
-Claude Code projects. This is almost never intentional.
-
-Fix: remove the entry from ~/.claude/settings.json → permissions.additionalDirectories
+This causes this project's commands and agents to appear in every other project session. Almost
+never intentional. Fix: remove the entry from that global config.
 ```
 
-If no matches found: skip silently.
+If no match is found, skip silently.
 
-## Step 5 — Create staging branch
+## Step 10 — Full tier: secrets checklist and report
 
-Run: `git checkout -b staging 2>/dev/null || true && git push origin staging 2>/dev/null || true && git checkout -`
-
-## Step 6 — Set up branch protection
-
-First check if the repo is private:
-```bash
-gh api repos/{owner}/{repo} --jq '.private'
-```
-
-If `true`: warn the user that branch protection requires GitHub Pro on private repos, and skip.
-If `false`: run via gh CLI:
+Print the final summary:
 
 ```
-gh api repos/{owner}/{repo}/branches/main/protection --method PUT --input - <<EOF
-{"required_status_checks":{"strict":true,"contexts":["test"]},"enforce_admins":true,"required_pull_request_reviews":null,"restrictions":null}
-EOF
+AGENTS.md          — <created / audited, N sections added>
+staging branch      — <created / already present>
+branch protection   — <main + staging / skipped — private repo>
+ci.yml              — <created / already present>
+claude-review.yml   — <created / already present>
+.gitattributes      — <created / already present>
+placeholder test    — <created / not needed — tests already exist>
+
+Add the secret(s) claude-review.yml's action requires (commonly an API key for the review
+action):
+  gh secret set <SECRET_NAME>
 ```
 
-Same for staging branch.
+## Rules
 
-## Step 7 — Report
-
-Print a clear summary:
-```
-✅ CLAUDE.md — OK
-✅ .claude/settings.json — created
-✅ .claude/hooks/ — created
-✅ .github/workflows/ci.yml — created
-✅ .github/workflows/claude-review.yml — created
-✅ staging branch — created
-✅ branch protection — main + staging
-
-⚠️  Add these GitHub secrets (run each command):
-  gh secret set ANTHROPIC_API_KEY
-
-If the project deploys to Coolify (check ci.yml for Coolify steps — if present, include this):
-  gh secret set COOLIFY_STAGING_WEBHOOK_URL
-  gh secret set COOLIFY_PRODUCTION_WEBHOOK_URL
-
-  Coolify setup checklist (do this in order):
-    1. Create a new project in Coolify
-    2. Add application → select GitHub repo
-    3. Copy the deploy key from Coolify → add to GitHub repo Settings → Deploy keys (read-only)
-    4. Set all environment variables (use .env.example as reference)
-    5. Copy webhook URLs from Coolify → set as secrets above
-    6. Trigger first deploy and verify
-
-Run /rea-verify when done.
-```
+- **Preflight before anything else.** Step 0 stops before Step 1 whenever `.rea/`, `core/`, or the
+  ownership manifest is missing — this command never writes project-specific content into a
+  project the installer hasn't set up yet.
+- **Quick tier is the default.** Full-tier steps (5-10) run only when the human explicitly
+  requested `--full`.
+- **`AGENTS.md` is the canonical rules file** — this command authors only its
+  **project-specific** sections; the installer already wrote the fixed always-on block before this
+  command ever runs. Never write project rules or steering content into a tool-specific file as
+  the primary source.
+- **Never write inside the managed markers.** `<!-- readev-tools:start -->` … `<!-- readev-tools:end -->`
+  is the installer's fixed always-on block; this command's project-specific content always goes
+  outside it, appended after `<!-- readev-tools:end -->`.
+- **Never destroy existing content.** A brownfield audit (Step 1B) only appends missing sections;
+  it never rewrites what a human already wrote.
+- **Mechanical, cross-tool file placement is out of scope.** Placing files into each host tool's
+  own folder, creating the `.rea/` scaffold, writing the per-tool shims, and authoring `AGENTS.md`'s
+  always-on block belong to the installer (`npx readev-tools setup`) — Step 0's preflight refuses to
+  run this command until that already happened. `rea-tidy` reconciles any drift a shim develops
+  later; this command does not touch shims at all.
+- **Degrade gracefully on the full tier.** Missing `gh` auth, a missing `workflow` scope, no
+  GitHub remote, or a private repo (branch protection needs a paid tier) each stop only the
+  affected step with a clear message — never crash the whole run.
+- **Never proceed past a human question silently (principle K — the human QA gate).** The
+  greenfield questions (Step 2) and the brownfield missing-section prompt (Step 1B) both wait for
+  an answer before writing.

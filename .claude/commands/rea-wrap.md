@@ -1,113 +1,128 @@
 ---
 name: rea-wrap
-description: "Wrap up the current session — summarize work, save context, prepare for next session."
+description: "Clean-close ritual for the end of a session — writes one session note to `.rea/sessions/`, suggests (never forces) a commit and any architecture-rule change, and reports remaining work."
 ---
 
-The user is ending this session and moving to a new one. Your job is to close out all work, persist everything important, and leave a clean state for the next session. Do all steps — do not ask for confirmation, do not propose changes. Act.
+Principles: — (a clean-close ritual; serves no single principle. See `core/principles.md`.)
 
-## Step 1 — Commit uncommitted changes
+The session is ending. Close it out: write one session note capturing what happened, link it to
+whatever this session already captured into `.rea/knowledge/` and `.rea/decisions/`, suggest a
+commit if the tree is dirty, suggest an architecture-rule change if one surfaced, and report
+remaining work. This command writes only under `.rea/` — it never commits, never touches a project
+rules file, and never writes to native memory. Work through the steps in order; if one step cannot
+complete (no git history, no plans directory, nothing to report), skip it and note the gap in the
+final report rather than stopping the whole ritual.
 
-Run: `git status`
+## Step 1 — Determine the session's dominant theme
 
-If there are uncommitted changes, commit them now using the commit conventions from CLAUDE.md. Push to the current branch. Do not ask — just do it.
+Look at this session's commits, file changes, and conversation topics. Pick the dominant theme and
+reduce it to a 2-3 word kebab-case slug (e.g. `payment-webhook`, `auth-refactor`). This slug names the
+session note and anchors the summary in Step 2.
 
-If there are no changes, skip.
+If no single theme stands out (the session touched several unrelated things), pick the theme that
+took the most time or produced the most durable output, and mention the others briefly in the
+summary instead of forcing a single label onto everything.
 
-## Step 2 — Write session log
+## Step 2 — Write the session log
 
-**File name:** `.rea/log/YYYY-MM-DD-HHmm-session-<session-name>.md`
+**File:** `.rea/sessions/YYYY-MM-DD-HHMM-<slug>.md` — use the actual current date and time, no
+separators in the time part (e.g. `2026-03-17-1830-payment-webhook.md`), per the `sessions/` naming
+rule in `core/rea-schema.md`. The timestamp makes the filename unique on its own — no collision
+check is needed for this note type.
 
-Use the actual current date and time (24h format, no separators in time). `<session-name>` is a 2-3 word kebab-case summary of what was done this session. Example: `2026-03-17-1830-session-payment-webhook.md`
-
-To determine the session name: look at commits, changes, and conversation topics — pick the dominant theme.
+Write exactly these frontmatter fields, then a short body:
 
 ```markdown
-# Session: <session-name>
+---
+date: YYYY-MM-DD HH:MM:SS
+summary: <one-line dominant theme, from Step 1>
+links: [<wikilinks to notes this session touched — see Step 3>]
+---
 
-Date: YYYY-MM-DD HH:MM:SS
+# Session: <slug>
+
+## What happened
+<2-4 sentences: what was done, grounded in the dominant theme>
 
 ## Commits
-<run git log --oneline --since="4 hours ago" and paste output>
-
-## Decisions
-- <important decisions made this session>
+<`git log --oneline` since session start, or "none">
 
 ## Next
-- <what should happen next session>
+<what should happen next session>
 ```
 
-## Step 3 — Save lessons
+This is the only file this command writes for the log itself. Do not also write to a legacy log
+location — `.rea/sessions/` is the sole destination.
 
-Scan the visible conversation for lessons. Look for BOTH categories with equal priority:
+## Step 3 — Light consolidation — link the session's captures
 
-**User corrections and redirections:**
+During the session, the ongoing capture reflex (see `AGENTS.md`) may already have written notes into
+`.rea/knowledge/` and `.rea/decisions/`, and may have touched a plan under `.rea/plans/`. Gather the
+list of notes created or updated this session and add them to the session note's `links` field as
+wikilinks (e.g. `[[some-entity]]`, `[[0004-some-decision]]`, `[[plans/0003-x/todo]]` — path-qualify
+plan links per the wikilinks rule in `core/rea-schema.md`).
 
-Enumerate user messages in order. Skip `tool_result` blocks, system wrappers (`<task-notification>`, `<command-message>`, `<ide_opened_file>`), and empty/whitespace-only messages.
+This is light linking only — connect what already exists. Do not rewrite, merge, or deduplicate
+those notes here; reconciling duplicate or drifted notes is `rea-tidy`'s job, not this command's.
 
-For each remaining user message, apply this per-message judgment: *"Did the user push back, correct, redirect, reject, or disagree with what I just did?"*
+## Step 4 — Suggest a commit (never force)
 
-**Behavior-change gate:** Only log a correction if the assistant actually changed approach, output, or plan after the message. Skepticism without behavior change is not a lesson. This gate applies uniformly — to direct refusals, short pushbacks, ironic tone, and questions that imply disagreement. If there was no behavior change, skip the message.
+Run `git status`. If there are uncommitted changes, note this in the final report as a suggestion —
+do not run `git add`, `git commit`, or `git push` here. Committing (and everything downstream of it —
+push, PR, deploy) is `rea-ship`'s job.
 
-**Gate-unverifiable case (partial context):** If the pushback turn is visible but the confirming follow-up turns are outside current context, log as provisional with the exact inline note `(behavior-change unverifiable — context truncated)` appended to the Lesson line.
+If the tree is clean, note that too — no suggestion needed.
 
-When logging a correction: include the verbatim user quote in its original language — do not translate. Preserve harsh, profane, or ironic wording exactly as written. Non-English corrections stay in their original language. Also include one line of context describing what the assistant had just done, and what changed afterwards (or the provisional marker if unverifiable).
+## Step 5 — Suggest an architecture-rule change (never force — principle J)
 
-**Long-session coverage note:** If the session is long and early turns are no longer accessible in current context, explicitly state in the Step 7 final report which portion of the session was scanned (e.g. "Lessons captured from turns 80–200; earlier turns not in context").
+Reflect on whether this session surfaced a lasting change to how the project is structured (a new
+module boundary, a changed convention, a rule that should steer future sessions). If so, describe the
+suggested change in the final report and point at the project's rules file (`AGENTS.md`) as where a
+human would add it. Do not edit that file yourself — architecture awareness is a human call
+(principle J), not something this command decides and writes on its own.
 
-**Internal mistakes and surprises:**
-- Approaches that failed or had to be abandoned
-- Unexpected behaviors, gotchas, or edge cases discovered
-- Assumptions that turned out to be wrong
+If nothing architectural surfaced this session, skip this silently.
 
-For each lesson found, append to `.rea/lessons.md`:
+## Step 6 — Count remaining work
 
-```
-## YYYY-MM-DD HH:MM:SS
-**Source:** user-correction | internal-mistake | discovery
-**Lesson:** what was learned
-**Rule:** what to do in the future
-```
+Scan `.rea/plans/*/todo.md` for every unit's `Status:` field. Count every unit whose `Status` is
+**not** `done` (`todo`, `in-progress`, and `blocked` all count as remaining). Do not attempt to
+complete or fix any of them — only report the count, per plan directory if more than one plan is
+active.
 
-If a lesson is architectural (affects how code is structured or deployed), add it directly to the relevant section in `CLAUDE.md` instead.
-
-If no lessons, skip.
-
-## Step 4 — Update CLAUDE.md
-
-Read `CLAUDE.md`. Check against this session's work:
-- New commands or workflows added? Update the Commands section.
-- New architectural rules discovered? Update Architecture Rules.
-- File structure changed? Update the file tree.
-
-Edit directly. Do not ask.
-
-## Step 5 — Update memory
-
-Save to memory:
-- Important decisions made
-- User preferences discovered
-- Project state changes
-
-Skip if nothing noteworthy.
-
-## Step 6 — Check remaining work
-
-Check `.rea/plans/*/todo.md` for any `- [ ]` items. Count remaining. Do NOT attempt to complete them — only report the count.
+If no `.rea/plans/` directory exists, or every unit is `done`, report "none".
 
 ## Step 7 — Report
 
 Print the final summary:
 
 ```
-Session wrapped.
-
-Done:
-  - <2-3 bullets of what was accomplished>
+Session wrapped: <slug>
 
 Saved:
-  - <what was written to log/lessons/CLAUDE.md/memory>
+  - .rea/sessions/<filename> (linked: <n> notes)
+
+Suggested:
+  - Commit: <"uncommitted changes — run rea-ship" or "tree clean, nothing to commit">
+  - Architecture: <one-line suggestion, or "none">
 
 Remaining:
-  - <open todo count or "none">
-  - <next steps for next session>
+  - <count of non-done units, per plan, or "none">
+  - <next steps for next session, from the session note's Next section>
 ```
+
+## Rules
+
+- **Writes only under `.rea/`.** No `lessons.md`, no auto-write to any project rules file, no native
+  memory writes — a suggestion in the report is as far as this command goes for anything outside
+  `.rea/`.
+- **Never commits.** `git status` (read) is fine; `git add` / `git commit` / `git push` are not — a
+  dirty tree is a suggestion to run `rea-ship`, never an automatic action here.
+- **Suggest, never force** — the commit suggestion (Step 4) and the architecture-rule suggestion
+  (Step 5) both stop at describing the change; a human decides whether to act on either.
+- **No heavy dedup.** Step 3 links existing notes; it does not merge, rewrite, or renumber them —
+  that reconciliation is `rea-tidy`'s job.
+- **Fault-tolerant.** If a step has nothing to do (clean tree, no plans directory, no architectural
+  finding), skip it and say so plainly in the report rather than treating it as a failure.
+- **Remaining-work count comes from `todo.md` `Status:` fields only** — never from a stale pointer,
+  never by re-deriving it from conversation memory.

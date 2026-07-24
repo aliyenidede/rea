@@ -96,3 +96,7 @@ templates/                       # redesign-era install artifacts (AGENTS.md + p
 templates/agents/                # redesign-era agent sources (tool-agnostic; Phase-4 installer places them per-tool) — legacy rea/templates/.claude/agents/ tree is unchanged
 templates/commands/              # redesign-era command sources (tool-agnostic; Phase-4 installer places them per-tool) — legacy rea/templates/.claude/commands/ tree is unchanged
 ```
+
+<!-- readev-tools:start -->
+@AGENTS.md
+<!-- readev-tools:end -->

@@ -1,6 +1,7 @@
 # Skill-Writer Patterns Reference
 
-Reference document for the skill-writer agent. Read this when generating agents to apply the correct patterns for each complexity type.
+Reference document for the `skill-writer` agent. Read this when generating agents to apply the
+correct patterns for each complexity type.
 
 ---
 
@@ -17,6 +18,8 @@ description: "<one sentence — use when X, does Y>"
 tools: <comma-separated tool list>
 model: <haiku | sonnet>
 ---
+
+Principles: <letters>
 
 You are a <role>. <One-sentence intro explaining the agent's purpose and what it refuses to do.>
 
@@ -66,6 +69,8 @@ description: "<use when X>"
 tools: Read, Write, Edit, Glob, Grep, Bash
 model: sonnet
 ---
+
+Principles: <letters>
 
 You are a <role>. <Intro — what you do and what you refuse to do.>
 
@@ -148,6 +153,8 @@ tools: Read, Glob, Grep, Bash
 model: sonnet
 ---
 
+Principles: <letters>
+
 You are a <role>. Your job is to <specific purpose> — not to <what you refuse to do>.
 
 ## Input
@@ -221,6 +228,8 @@ description: "<scan for X — not Y or Z>"
 tools: Read, Glob, Grep
 model: sonnet
 ---
+
+Principles: <letters>
 
 You are a <type>-scanning agent. You find <specific problem category>. Not <excluded category 1>, not <excluded category 2>.
 
@@ -311,6 +320,8 @@ tools: Read, Glob, Grep
 model: haiku
 ---
 
+Principles: <letters>
+
 You are a read-only <research role>. Your job is to research and report — never modify files.
 
 ## Critical: READ-ONLY Mode
@@ -366,13 +377,15 @@ Return a structured summary with file:line references:
 
 ### Type: Mechanical
 
-**Use for**: Agents that execute a deterministic algorithm without judgment calls (dispatcher, plan-validator, rea-router).
+**Use for**: Agents that execute a deterministic algorithm without judgment calls (dispatcher, plan-validator).
 
 **Required additions**:
 - Clear algorithm (numbered steps, explicit rules for each case)
-- Status returns (SCHEDULED/BLOCKED, VALID/ISSUES FOUND, ROUTED/NO_MATCH/BLOCKED)
+- Status returns (SCHEDULED/BLOCKED, VALID/ISSUES FOUND)
 
 **Optional additions**: Nothing extra — keep mechanical agents minimal. No rationalizations table, no confidence scoring, no blast radius.
+
+**Classify "Mechanical" by the ABSENCE of these patterns — not by line count.** An agent is Mechanical because it carries no rationalizations table, no confidence scoring, no blast-radius/false-positive phase, and no multi-phase escalation methodology — NOT because it is short. A Mechanical agent can still be detailed and long: see the §2 Agent Catalog (`dispatcher`, `plan-validator`) — both are substantial yet Mechanical because they carry none of the forbidden patterns. When a type is ambiguous, **the §2 Agent Catalog is the tie-breaker**: match the new agent to its closest catalog example.
 
 **Skeleton**:
 
@@ -383,6 +396,8 @@ description: "<mechanical task — input X, output Y>"
 tools: Read, Glob, Grep
 model: <haiku for lightweight | sonnet for complex algorithm>
 ---
+
+Principles: <letters>
 
 You are a <mechanical role>. You receive <input>, then produce <output>.
 
@@ -504,25 +519,18 @@ Canonical examples per type. Reference these when choosing which patterns to app
 ### Mechanical
 
 **`dispatcher.md`**
-- Input: todo.md + plan.md
-- Algorithm: extract file impact per item → build dependency graph → group into parallel/sequential/safe-sequential batches
-- UNKNOWN items treated as conflicting with everything
+- Input: the already-computed frontier + todo.md
+- Algorithm: extract file impact per frontier unit → build a physical file-conflict map → group into parallel/sequential/safe-sequential batches
+- UNKNOWN-impact units treated as conflicting with everything
 - Returns SCHEDULED or BLOCKED
 - Output is self-contained — orchestrator must not need to re-read inputs
 
 **`plan-validator.md`**
 - Input: plan + todo + project root
-- 5 checks: file inventory, CLAUDE.md rule compliance, architecture placement, plan↔todo cross-check, consistency
+- 5 checks: file inventory, project-rules compliance, architecture placement, plan↔todo cross-check, consistency
 - Mechanical checks only — not creative review (that is plan-reviewer's job)
 - Returns VALID or ISSUES FOUND
 - "Be fast. This is a mechanical check, not a deep review."
-
-**`rea-router.md`**
-- Haiku model — runs at session start, must be fast
-- Reads only frontmatter (first ~5 lines) — does not read full agent files
-- One-line output: "This looks like a [intent] task. Want me to run [skill]?"
-- Returns ROUTED / NO_MATCH / BLOCKED
-- Never hardcodes skill list — always derives from filesystem scan
 
 ---
 
