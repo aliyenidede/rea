@@ -28,9 +28,13 @@ agents directory", "the commands directory", or "the patterns reference".
   `.rea/.rea-manifest.json` and its `ownedFiles` array. The agents directory is the directory of an
   owned entry matching `*/agents/*`; the commands directory is the directory of an owned entry
   matching `*/commands/*`. `skill-writer-patterns.md` is placed alongside the agents, so the
-  patterns reference is `skill-writer-patterns.md` inside the agents directory in both modes. If the
-  manifest does not exist, or neither pattern matches, stop — do not fall back to any specific
-  tool's folder name.
+  patterns reference is `skill-writer-patterns.md` inside the agents directory in both modes.
+
+**Host-mode preflight (resolve before deriving any path):** if `.rea/.rea-manifest.json` does not
+exist, fails to parse, or parses but has no `ownedFiles` entry matching the requested skill type
+(no `*/agents/*` entry for an agent, no `*/commands/*` entry for a command), return BLOCKED: the
+mechanical layer has not been installed, or is incomplete — run `npx readev-tools setup` first. Do
+not fall back to any specific tool's folder name.
 
 ## Process
 
@@ -78,7 +82,30 @@ From the reference files, identify: frontmatter format, the bare `Principles:` l
 - Full path: Agent → `<name>.md` in the agents directory, Command → `rea-<name>.md` in the commands
   directory (see Mode above)
 
-Confirm the file does not already exist. If it does, return BLOCKED.
+Before writing, check for three distinct collision reasons. Each returns BLOCKED, but they are not
+the same risk — report the one that actually matched:
+
+- **On disk.** Confirm the file does not already exist at the derived path. If it does, return
+  BLOCKED.
+- **Manifest-owned (host mode).** If the derived path equals an entry in the manifest's
+  `ownedFiles`, return BLOCKED: the next `npx readev-tools setup` would overwrite this file, because
+  it is installer-owned. This holds even when nothing is on disk yet locally — ownership, not
+  current disk state, is the durable risk.
+- **Retired name.** Compare the requested stem (the file name, without extension) against
+  `retired-list.js`'s entries, matched by **stem plus skill type** — never full path, never a bare
+  stem across both types:
+  - Retired agent stems: `rea-router`, `skill-writer-patterns` (the latter is retired at
+    `.claude/skill-writer-patterns.md`, which has no `/agents/` segment — a full-path match would
+    miss it, so treat it as an agent-side retired name by stem alone).
+  - Retired command stems: `rea-brainstorm`, `rea-commit`, `rea-update`, `rea-verify`,
+    `rea-worktree`.
+  - The match is type-scoped: a command named `router` is NOT refused by this check — it collides
+    only with the retired *agent* `rea-router`, a different skill type.
+  If the requested name's stem matches the type-appropriate retired set, return BLOCKED: avoid this
+  name — a checkout of this project that lacks the manifest (for example a fresh clone where `.rea/`
+  is untracked) would read this filename as a leftover legacy skill, and its one-time legacy bridge
+  would delete it on that checkout's first `setup`. It is not at risk on THIS host, where the
+  manifest already exists — never claim the bridge fires here.
 
 ### 4. Generate the file content
 
@@ -148,7 +175,9 @@ Cannot return DONE without completing this verification and reporting decisions.
 ## Return Status
 
 - **DONE** — file written and verified. Include: file path, skill type, one-sentence summary, and decision report.
-- **BLOCKED** — cannot proceed (file exists, missing input, conflicting requirements).
+- **BLOCKED** — cannot proceed: file exists, missing input, conflicting requirements, host-mode
+  manifest missing/unreadable/incomplete, destination is manifest-owned, or requested name collides
+  with a retired name.
 
 ## Rules
 
