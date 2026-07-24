@@ -1,8 +1,9 @@
 ---
 name: scaffold-readme-ownership-drops-on-resetup
 description: A second `setup` drops the four .rea/<type>/README.md scaffold files from manifest ownership; they survive on disk because prune's deny-list protects .rea/ memory. Benign manifest cosmetic, not data loss.
-metadata:
-  type: reference
+type: reference
+links:
+  - installer-testing-and-tooling
 ---
 
 # Scaffold READMEs drop out of `ownedFiles` on a second `setup`
