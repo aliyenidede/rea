@@ -3,9 +3,14 @@ from pathlib import Path
 from typer.testing import CliRunner
 
 from rea import __version__
-from rea.cli import TEMPLATES_DIR, app
+from rea.cli import app
 
 runner = CliRunner()
+
+# The legacy 0.7.x template tree. It is kept in the repo as the record of what
+# rea-dev 0.7.1/0.7.2 shipped, but 0.7.3 no longer copies it and the wheel no
+# longer carries it — so this path is resolved from the repo, not the package.
+TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "rea" / "templates"
 
 
 # --- version command ---
@@ -24,157 +29,83 @@ def test_version_shows_current_version():
     assert __version__ in result.output
 
 
-# --- init command: directory structure ---
+# --- setup command: the signpost ---
 
 
-def test_init_creates_claude_commands_dir(tmp_path: Path):
-    runner.invoke(app, ["setup", str(tmp_path)])
-    assert (tmp_path / ".claude" / "commands").is_dir()
-
-
-def test_init_creates_claude_agents_dir(tmp_path: Path):
-    runner.invoke(app, ["setup", str(tmp_path)])
-    assert (tmp_path / ".claude" / "agents").is_dir()
-
-
-def test_init_creates_rea_log_dir(tmp_path: Path):
-    runner.invoke(app, ["setup", str(tmp_path)])
-    assert (tmp_path / ".rea" / "log").is_dir()
-
-
-def test_init_creates_rea_plans_dir(tmp_path: Path):
-    runner.invoke(app, ["setup", str(tmp_path)])
-    assert (tmp_path / ".rea" / "plans").is_dir()
-
-
-# --- init command: template files ---
-
-
-def test_init_copies_all_command_templates(tmp_path: Path):
-    runner.invoke(app, ["setup", str(tmp_path)])
-    src_commands = list((TEMPLATES_DIR / ".claude" / "commands").iterdir())
-    dst_commands = list((tmp_path / ".claude" / "commands").iterdir())
-    assert len(dst_commands) == len(src_commands)
-    src_names = {f.name for f in src_commands}
-    dst_names = {f.name for f in dst_commands}
-    assert dst_names == src_names
-
-
-def test_init_copies_all_agent_templates(tmp_path: Path):
-    runner.invoke(app, ["setup", str(tmp_path)])
-    src_agents = list((TEMPLATES_DIR / ".claude" / "agents").iterdir())
-    dst_agents = list((tmp_path / ".claude" / "agents").iterdir())
-    assert len(dst_agents) == len(src_agents)
-    src_names = {f.name for f in src_agents}
-    dst_names = {f.name for f in dst_agents}
-    assert dst_names == src_names
-
-
-def test_init_copied_files_match_source_content(tmp_path: Path):
-    runner.invoke(app, ["setup", str(tmp_path)])
-    for dirname in ["commands", "agents"]:
-        src_dir = TEMPLATES_DIR / ".claude" / dirname
-        for src_file in src_dir.iterdir():
-            dst_file = tmp_path / ".claude" / dirname / src_file.name
-            assert dst_file.read_text(encoding="utf-8") == src_file.read_text(
-                encoding="utf-8"
-            ), f"Content mismatch: {src_file.name}"
-
-
-# --- init command: idempotency ---
-
-
-def test_init_is_idempotent(tmp_path: Path):
-    runner.invoke(app, ["setup", str(tmp_path)])
+def test_setup_exits_non_zero(tmp_path: Path):
+    # A script that still calls `rea setup` must fail loudly rather than look
+    # like it installed something.
     result = runner.invoke(app, ["setup", str(tmp_path)])
-    assert result.exit_code == 0
-
-    src_commands = list((TEMPLATES_DIR / ".claude" / "commands").iterdir())
-    dst_commands = list((tmp_path / ".claude" / "commands").iterdir())
-    assert len(dst_commands) == len(src_commands)
-
-
-def test_init_updates_existing_files(tmp_path: Path):
-    runner.invoke(app, ["setup", str(tmp_path)])
-
-    # Modify a copied file
-    target_file = tmp_path / ".claude" / "commands" / "rea-plan.md"
-    target_file.write_text("modified content")
-
-    # Re-run init
-    runner.invoke(app, ["setup", str(tmp_path)])
-
-    # Should be overwritten with source content
-    src_file = TEMPLATES_DIR / ".claude" / "commands" / "rea-plan.md"
-    assert target_file.read_text() == src_file.read_text()
-
-
-def test_init_preserves_extra_user_files(tmp_path: Path):
-    runner.invoke(app, ["setup", str(tmp_path)])
-
-    # User adds their own command
-    user_file = tmp_path / ".claude" / "commands" / "my-custom.md"
-    user_file.write_text("custom command")
-
-    # Re-run init
-    runner.invoke(app, ["setup", str(tmp_path)])
-
-    # User's file should still be there
-    assert user_file.read_text() == "custom command"
-
-
-# --- init command: output messages ---
-
-
-def test_init_shows_copied_files_on_fresh_init(tmp_path: Path):
-    result = runner.invoke(app, ["setup", str(tmp_path)])
-    assert "+" in result.output
-    assert "files synced" in result.output
-
-
-def test_init_shows_updated_files_on_reinit(tmp_path: Path):
-    runner.invoke(app, ["setup", str(tmp_path)])
-    result = runner.invoke(app, ["setup", str(tmp_path)])
-    assert "~" in result.output
-    assert "files synced" in result.output
-
-
-def test_init_shows_next_step(tmp_path: Path):
-    result = runner.invoke(app, ["setup", str(tmp_path)])
-    assert "/rea-init" in result.output
-
-
-# --- init command: error handling ---
-
-
-def test_init_fails_on_nonexistent_path(tmp_path: Path):
-    bad_path = tmp_path / "does-not-exist"
-    result = runner.invoke(app, ["setup", str(bad_path)])
     assert result.exit_code == 1
-    assert "Error" in result.output
 
 
-# --- deprecation notice ---
+def test_setup_writes_nothing(tmp_path: Path):
+    runner.invoke(app, ["setup", str(tmp_path)])
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_setup_creates_no_claude_dir(tmp_path: Path):
+    runner.invoke(app, ["setup", str(tmp_path)])
+    assert not (tmp_path / ".claude").exists()
+
+
+def test_setup_creates_no_rea_dir(tmp_path: Path):
+    runner.invoke(app, ["setup", str(tmp_path)])
+    assert not (tmp_path / ".rea").exists()
 
 
 def test_setup_prints_deprecation_notice(tmp_path: Path):
     result = runner.invoke(app, ["setup", str(tmp_path)])
     assert "Deprecation notice" in result.output
+
+
+def test_setup_points_at_the_npx_installer(tmp_path: Path):
+    result = runner.invoke(app, ["setup", str(tmp_path)])
     assert "npx readev-tools setup" in result.output
 
 
-def test_setup_still_performs_copy_after_notice(tmp_path: Path):
+def test_setup_mentions_the_migrate_path(tmp_path: Path):
     result = runner.invoke(app, ["setup", str(tmp_path)])
-    assert result.exit_code == 0
-    assert (tmp_path / ".claude" / "commands").is_dir()
-    assert (tmp_path / ".claude" / "agents").is_dir()
-    assert any((tmp_path / ".claude" / "commands").iterdir())
+    assert "npx readev-tools migrate" in result.output
+
+
+def test_setup_names_the_pinned_fallback(tmp_path: Path):
+    # The rollback plan (.rea/decisions/0001) pins 0.7.1 as the frozen
+    # fallback — the signpost must say so, or removing the copy behaviour
+    # leaves users with no route back.
+    result = runner.invoke(app, ["setup", str(tmp_path)])
+    assert "rea-dev==0.7.1" in result.output
+
+
+def test_setup_without_a_path_still_only_prints(tmp_path: Path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    result = runner.invoke(app, ["setup"])
+    assert result.exit_code == 1
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_cli_module_is_ascii_only():
+    # A legacy Windows console (cp1252) cannot encode characters like the em
+    # dash or the arrow: rich raises UnicodeEncodeError mid-render and the
+    # user gets a traceback instead of the signpost. Found by running the
+    # built wheel in cmd.exe before publishing 0.7.3.
+    #
+    # The assertion is on the source, not on rendered output: rich picks its
+    # own box-drawing characters from the terminal (Unicode on a modern one,
+    # ASCII on a legacy console), so only the strings we author are ours to
+    # keep encodable.
+    import rea.cli
+
+    source = Path(rea.cli.__file__).read_text(encoding="utf-8")
+    source.encode("ascii")
 
 
 def test_setup_never_raises_on_normal_invocation(tmp_path: Path):
     result = runner.invoke(app, ["setup", str(tmp_path)])
-    assert result.exception is None
-    assert result.exit_code == 0
+    assert result.exception is None or isinstance(result.exception, SystemExit)
+
+
+# --- bare invocation ---
 
 
 def test_bare_invocation_prints_deprecation_notice():
@@ -183,7 +114,14 @@ def test_bare_invocation_prints_deprecation_notice():
     assert "npx readev-tools setup" in result.output
 
 
-# --- template integrity ---
+def test_bare_invocation_does_not_advertise_rea_setup():
+    # The old panel walked the user through `rea setup .` — that instruction
+    # is now wrong and must not survive anywhere in the output.
+    result = runner.invoke(app, [])
+    assert "rea setup ." not in result.output
+
+
+# --- legacy template tree (repo record; no longer shipped or copied) ---
 
 
 def test_templates_dir_exists():
@@ -214,35 +152,3 @@ def test_agent_templates_specify_model():
     for f in agents_dir.iterdir():
         content = f.read_text(encoding="utf-8")
         assert "model:" in content.lower(), f"{f.name} missing model field"
-
-
-def test_expected_commands_exist():
-    commands_dir = TEMPLATES_DIR / ".claude" / "commands"
-    expected = {
-        "rea-init.md",
-        "rea-plan.md",
-        "rea-commit.md",
-        "rea-verify.md",
-        "rea-brainstorm.md",
-        "rea-execute.md",
-        "rea-worktree.md",
-        "rea-write-skill.md",
-    }
-    actual = {f.name for f in commands_dir.iterdir()}
-    assert expected.issubset(actual), f"Missing: {expected - actual}"
-
-
-def test_expected_agents_exist():
-    agents_dir = TEMPLATES_DIR / ".claude" / "agents"
-    expected = {
-        "explorer.md",
-        "implementer.md",
-        "spec-reviewer.md",
-        "code-reviewer.md",
-        "debugger.md",
-        "plan-reviewer.md",
-        "dispatcher.md",
-        "skill-writer.md",
-    }
-    actual = {f.name for f in agents_dir.iterdir()}
-    assert expected.issubset(actual), f"Missing: {expected - actual}"
