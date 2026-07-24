@@ -1,317 +1,130 @@
-# REA
+# readev-tools
 
-A portable development toolkit that bootstraps a structured Claude Code workflow into any project.
+**A portable, disciplined AI-coding workflow — delivered into whichever coding tool you already use.**
+
+readev-tools drops a battle-tested methodology (planning, review, memory, branch discipline) into any
+project as plain files your AI coding tool reads: an `AGENTS.md`, a set of slash commands, composable
+review agents, and a typed `.rea/` memory graph. The installer is mechanical — it copies files. All the
+intelligence runs through your model.
 
 ![CI](https://github.com/aliyenidede/rea/actions/workflows/ci.yml/badge.svg)
-![Node.js](https://img.shields.io/badge/node.js-required-brightgreen)
-
-> **Shared foundation (`core/`):** a redesign is underway — `core/` holds the tool-agnostic foundation (principles, craft checklist, schema) shared by both the future readev-tools and rea-cli products. See [docs/rea-target-state.md](docs/rea-target-state.md) §9.
-
-> **Install artifacts (`templates/`):** a new top-level `templates/` holds the redesign-era files the future installer places into a host project — `AGENTS.md`, per-tool shims (`CLAUDE.md` = `@AGENTS.md`, Gemini `settings.json`), and the `.rea/` typed scaffold. See [docs/rea-roadmap.md](docs/rea-roadmap.md) §4 (Phase 1).
+![npm](https://img.shields.io/npm/v/readev-tools)
+![node](https://img.shields.io/badge/node-%E2%89%A520-brightgreen)
+![license](https://img.shields.io/badge/license-MIT-blue)
 
 ```bash
-npx readev-tools setup <project>   # copies slash commands + agents + creates .rea/ dirs
-# open your coding tool (Claude Code, etc.) → /rea-init
+npx readev-tools setup <project>     # place commands + agents + core/ + .rea/ + shims
+# then open your coding tool in that project and run:  /rea-init
 ```
+
+That's it — no install, always latest, cross-platform (Windows first-class).
 
 ---
 
-## The problem
+## Why
 
-Claude Code is powerful but stateless. Each session starts cold: no memory of past decisions, no consistent workflow, no plan files, no branch discipline. You rebuild context every time.
+AI coding tools are powerful but start every session cold: no memory of past decisions, no consistent
+plan format, no review discipline, no branch rules. You rebuild context every time, and quality drifts
+with your attention.
 
-REA solves this by giving Claude a fixed structure to operate inside — the same commands, the same plan format, the same branch rules — across every project and every session.
+readev-tools gives the model a **fixed structure to operate inside** — the same grill→plan→execute→ship
+pipeline, the same typed memory, the same craft checklist — across every project and every session. The
+moat is the **methodology**, not the plumbing.
 
----
-
-## What it does
-
-REA installs slash commands, composable agents, and a structured plan/log system into your project. The CLI is mechanical — it copies files. All intelligence runs through Claude.
-
-### Commands
-
-```
-npx readev-tools setup  → copies .claude/commands/ + .claude/agents/ + creates .rea/ (re-run to update)
-/rea-init            → scans project, installs missing config, sets up GitHub
-/rea-plan            → full planning pipeline with interrogation + adversarial review
-/rea-execute         → agent-driven implementation with parallel dispatch
-/rea-commit          → detects branch, opens PR to correct target
-/rea-verify          → health check, reports missing pieces with fix commands
-/rea-brainstorm      → collaborative design exploration before planning
-/rea-wrap            → session wrap-up — log, lessons, context for next session
-/rea-worktree        → isolated git worktree for parallel work
-/rea-write-skill     → create new agents or commands
-```
-
-### Agents
-
-Agents are composable building blocks that commands orchestrate. Each agent has a single responsibility and can also be called standalone.
-
-| Agent | Model | Purpose |
-|-------|-------|---------|
-| `explorer` | Haiku | Read-only codebase research |
-| `implementer` | Sonnet | TDD-driven implementation (RED-GREEN-REFACTOR) |
-| `spec-reviewer` | Sonnet | Verifies implementation matches requirements |
-| `code-reviewer` | Sonnet | Code quality assessment (SRP, DRY, testability) |
-| `debugger` | Sonnet | 4-phase root cause debugging |
-| `plan-reviewer` | Sonnet | Adversarial plan review — finds gaps before execution |
-| `plan-validator` | Sonnet | Mechanical plan checks — rules, file placement, coverage |
-| `dispatcher` | Sonnet | Groups todo items into parallel/sequential batches |
-| `bug-scanner` | Sonnet | Logic bugs, edge cases, error handling gaps |
-| `security-scanner` | Sonnet | Security vulnerabilities, OWASP top 10 |
-| `skill-writer` | Sonnet | Creates new agents or commands matching REA conventions |
+**Cross-tool by design.** The methodology is plain files (`AGENTS.md` + `.rea/`) that every major tool
+reads, so you can switch **Claude Code ↔ Codex ↔ Gemini ↔ Cursor** mid-work and continue. The installer
+writes each tool's shim (`CLAUDE.md = @AGENTS.md`, Gemini `settings.json`) and never blind-overwrites your
+files — user content is preserved via managed markers.
 
 ---
 
-## Quickstart
+## The pipeline
 
-**Requirements:** Node.js (for `npx`), `gh` CLI authenticated (with `workflow` scope), git repo with GitHub remote.
+`talk` is a behaviour (a thinking engineer + curious researcher, anti-sycophantic) — always on, not a
+command. The commands are the ritual:
 
-```bash
-# 1. Add REA to your project
-npx readev-tools setup /path/to/project
+| Step | Command | What happens |
+|---|---|---|
+| **Bootstrap** | `/rea-init` | Tiered setup — quick (no GitHub) or `--full` (CI + branch protection) |
+| **Interrogate** | `/rea-grill` | Codebase-aware interview, one question at a time, → `brief.md` |
+| **Plan** | `/rea-plan` | Spec (destination) / plan (dependency graph) / todo (sized slices); you approve |
+| **Execute** | `/rea-execute` | AFK: parallel `implementer`s (TDD → scoped tests → commit) → fresh-context review → loop |
+| **Ship** | `/rea-ship` | Situation-aware commit / PR / deploy — detects state, never forces |
+| **Wrap** | `/rea-wrap` | Light session summary into `.rea/` |
+| Bypass | `/rea-fix` | Lightweight debug→fix→review→ship; escalates to the full path if scope grows |
+| Reconcile | `/rea-tidy` | Reconcile memory + shims + rules; dry-run → you approve |
+| Utility | `/rea-write-skill` | Author a new agent/command matching conventions |
 
-# 2. Open your coding tool (Claude Code, etc.) in that project and run
-/rea-init
-```
-
-> `rea-dev` on PyPI is a frozen legacy fallback (`pip install rea-dev`, last release 0.7.1) — the maintained path is `npx readev-tools setup`.
-
-`/rea-init` detects your stack (Node/pnpm, Python, etc.) and installs:
-- `.claude/settings.json` — allowed commands
-- `.claude/hooks/post-tool-use.sh` — auto-lint on every file write
-- `.github/workflows/ci.yml` — test + lint on every PR
-- `.github/workflows/claude-review.yml` — `@claude` PR review via Anthropic API
-- `.gitattributes` — consistent line endings across platforms
-- `staging` branch + GitHub branch protection
-
-Required GitHub secrets after setup:
-```bash
-gh secret set ANTHROPIC_API_KEY
-gh secret set COOLIFY_STAGING_WEBHOOK_URL    # if using Coolify
-gh secret set COOLIFY_PRODUCTION_WEBHOOK_URL # if using Coolify
-```
+Human gates are deliberate: you approve the plan, and you review the diff before ship. Execute is the
+only AFK stretch.
 
 ---
 
-## Plan pipeline
+## Agents
 
-The most important part of REA. Before writing any code, you run:
+Composable building blocks — commands orchestrate them; **agents never call other agents**, and each also
+works standalone.
 
-```
-/rea-plan "add stripe billing"
-```
-
-Claude doesn't immediately start coding. It:
-
-1. Researches the relevant files and functions in your project
-2. Drafts a technical requirements doc — no code, no PM sections
-3. Runs an interrogation loop: *"100% sure this plan is right?"* — finds real problems before they hit production
-4. Surfaces decisions with trade-offs and waits for your input
-5. Runs **adversarial review** via `plan-reviewer` agent — catches gaps, inconsistencies, and unresolved decisions
-6. Writes three files to `.rea/plans/0001-stripe-billing/`:
-   - `spec.md` — what and why
-   - `plan.md` — technical requirements
-   - `todo.md` — step-by-step execution with a `NEXT:` marker
-7. Creates a log entry in `.rea/log/`
-
-The `NEXT:` marker in `todo.md` marks the first incomplete step. Next session, `/rea-plan` finds it and asks to resume — no re-reading the full plan.
+| Agent | Purpose |
+|---|---|
+| `explorer` | Read-only codebase research (facts, no opinions) |
+| `implementer` | TDD implementation — a test before every commit, scoped feedback gate |
+| `spec-reviewer` | Does the diff match the requirement? |
+| `code-reviewer` | Quality (deep modules, DRY, test quality) — cites the shared craft checklist |
+| `bug-scanner` | Logic bugs, edge cases, races — confidence-scored |
+| `security-scanner` | Injection, auth bypass, data exposure — OWASP, attack-path validated |
+| `plan-reviewer` | Adversarial plan review — forces gaps into the open before execution |
+| `plan-validator` | Mechanical plan checks — rules, file placement, coverage |
+| `dispatcher` | Groups work into parallel/sequential batches by file conflict |
+| `debugger` | 4-phase root-cause debugging with escalation rules |
 
 ---
 
-## Execution pipeline
+## Memory — the `.rea/` typed graph
 
-After planning, run:
-
-```
-/rea-execute
-```
-
-The execution pipeline:
-
-1. Loads the active plan and todo list
-2. Calls `dispatcher` agent to analyze dependencies and group items into parallel/sequential batches
-3. Executes items using `implementer` agent (with TDD: write test → make it pass → refactor)
-4. Runs `spec-reviewer` and `code-reviewer` after each batch
-5. Loops until all items are complete
-6. Detects recurring patterns and suggests new skills via `skill-writer`
-
----
-
-## Plan file structure
+Durable state lives in plain markdown under `.rea/`, tool-agnostic and Obsidian-renderable:
 
 ```
 .rea/
-├── log/
-│   └── 2026-03-14-0001-stripe-billing.md
-└── plans/
-    └── 0001-stripe-billing/
-        ├── spec.md    ← what and why
-        ├── plan.md    ← technical requirements
-        └── todo.md    ← step-by-step with NEXT: marker
+├── knowledge/   # semantic — what we know (1 note per module / gotcha / concept)
+├── decisions/   # ADRs — why (numbered, append-only, supersede-never-overwrite)
+├── sessions/    # episodic — what happened, when (timestamped)
+└── plans/       # active work (NNNN-slug/{brief,spec,plan,todo}.md)
 ```
+
+A `capture` reflex writes to it during work (a correction, a non-obvious decision, a bug's root cause),
+gated by a filter: record what a *different tool opening this project* would need — not the tool's own
+operational chatter. Switch tools, and the next one reads the same graph and continues.
 
 ---
 
-## Branch strategy
+## Install & update
 
-```
-main      → production
-staging   → pre-production
-feature/* → PR to staging
-hotfix/*  → PR to main
+```bash
+npx readev-tools setup <project>     # first run and every update — idempotent re-sync
+npx readev-tools verify <project>    # read-only health check (files present? shims intact?)
+npx readev-tools migrate <project>   # one-time v0.7.x → redesign bridge (archives legacy, never deletes)
 ```
 
-`/rea-commit` detects the current branch and opens the PR to the right target automatically.
+- **REA-owned files** (commands / agents / `core/`) are overwritten with the current version on every run
+  — customise via *separate* files, never by editing REA files, so re-sync is always safe.
+- **Obsolete files** are pruned via a manifest; **your content** (`CLAUDE.md`, `settings.json`) is
+  merged, never blind-overwritten.
+- **Legacy note:** `rea-dev` on PyPI (Python CLI, last release 0.7.x) is a frozen deprecation shim — the
+  maintained path is `npx readev-tools`.
+
+Requires Node.js ≥ 20. Placement is first-class for Claude Code today (`.claude/`); other markdown-command
+tools get the same files in their own folder, and every tool gets the `AGENTS.md` steering.
 
 ---
 
-## CLAUDE.md hierarchy
+## Scope & philosophy
 
-```
-~/.claude/CLAUDE.md           ← global rules (all projects)
-project/CLAUDE.md             ← project architecture + stack
-project/features/x/CLAUDE.md ← feature-specific rules (created by /rea-plan when needed)
-```
-
-`/rea-plan` creates a feature-level `CLAUDE.md` when the task opens a new domain (auth, billing, webhooks) or spans multiple sessions.
-
----
-
-## How REA differs
-
-Most AI coding tools focus on a single step — write code, fix bugs, or run tests. REA covers the full development lifecycle:
-
-| What | How |
-|------|-----|
-| **Before coding** | `/rea-plan` writes a spec, runs adversarial review, waits for your approval |
-| **During coding** | Parallel agents implement, with spec review + code review after every change |
-| **After coding** | `/rea-commit` opens PRs to the right branch, CI gates the merge |
-| **Across sessions** | Plans persist in `.rea/plans/`, resume from `NEXT:` marker |
-| **Project setup** | `/rea-init` installs CI, branch protection, hooks — one command |
-| **Self-extending** | `/rea-write-skill` creates new agents/commands from a description |
-
-REA is **co-pilot, not autonomous** — you stay in control. Claude does the heavy lifting, you make the decisions.
-
----
-
-## Architecture
-
-```
-Commands (orchestrators)          Agents (building blocks)
-┌─────────────────────┐          ┌──────────────────────┐
-│ /rea-plan           │───calls──│ explorer             │
-│                     │───calls──│ plan-reviewer         │
-│ /rea-execute        │───calls──│ dispatcher            │
-│                     │───calls──│ implementer           │
-│                     │───calls──│ spec-reviewer         │
-│                     │───calls──│ code-reviewer         │
-│                     │───calls──│ skill-writer          │
-│ /rea-brainstorm     │───calls──│ explorer             │
-│ /rea-write-skill    │───calls──│ skill-writer          │
-└─────────────────────┘          └──────────────────────┘
-
-```
-
-Key rule: **agents never call other agents** — only commands orchestrate agent calls.
-
----
-
-## Flowchart
-
-```mermaid
-flowchart TD
-    A([Developer]) --> B["npx readev-tools setup (one time) — copies commands + creates .rea/"]
-    B --> D["Open your coding tool"]
-    D --> E["/rea-init"]
-
-    %% INIT
-    E --> F{"gh CLI auth OK?"}
-    F -->|No| G["Run gh auth login, then retry"]
-    F -->|Yes| H{CLAUDE.md exists?}
-    H -->|"No — Greenfield"| I["Ask questions, generate CLAUDE.md"]
-    H -->|"Yes — Brownfield"| J["Scan existing structure, detect missing"]
-    I --> K[Install missing files]
-    J --> K
-    K --> L[".claude/settings.json + hooks + .github/workflows/"]
-    L --> M["Create staging branch"]
-    M --> N["Set up GitHub branch protection"]
-    N --> O["/rea-verify"]
-    O --> P{Issues found?}
-    P -->|Yes| Q["Report issues with fix commands"]
-    Q --> O
-    P -->|No| R([Project ready])
-
-    %% PLAN PIPELINE
-    R --> S["/rea-plan — describe task"]
-    S --> S0{"NEXT: marker found?"}
-    S0 -->|Yes| S1["Ask: resume or new plan?"]
-    S1 -->|Resume| AG
-    S1 -->|New| T
-    S0 -->|No| T
-    T[Draft plan]
-    T --> U{"100% sure?"}
-    U -->|No| V[Find real problems]
-    V --> W{"Sure about the problems?"}
-    W -->|No| X[Find root problems]
-    X --> Y{"Sure now?"}
-    Y -->|No| X
-    Y -->|Yes| Z[List solutions]
-    U -->|Yes| Z
-    W -->|Yes| Z
-    Z --> AA{Decision needed?}
-    AA -->|Yes| AB["Explain trade-offs, you decide"]
-    AB --> AC[Lock plan]
-    AA -->|No| AC
-    AC --> AD["Adversarial review via plan-reviewer"]
-    AD --> AD2{Review passed?}
-    AD2 -->|No| T
-    AD2 -->|Yes| AE0[".rea/plans/NNNN-task/ spec+plan+todo, update log"]
-    AE0 --> AE{"New domain? Complex? Multi-session?"}
-    AE -->|Yes| AF["Create features/x/CLAUDE.md"]
-    AE -->|No| AG
-    AF --> AG
-
-    %% EXECUTE PIPELINE
-    AG["/rea-execute"] --> AG1["dispatcher groups todo into batches"]
-    AG1 --> AG2["Parallel batch: run implementers concurrently"]
-    AG2 --> AG3["Sequential batch: run one at a time"]
-    AG3 --> AG4["spec-reviewer + code-reviewer after each batch"]
-    AG4 --> AG5{All items done?}
-    AG5 -->|No| AG2
-    AG5 -->|Yes| AH["Pattern detection → suggest new skills"]
-    AH --> AI["/rea-commit"]
-    AI --> AJ{Current branch?}
-    AJ -->|"feature/*"| AK["Open PR → staging"]
-    AJ -->|"hotfix/*"| AL["Open PR → main"]
-
-    %% CI/CD
-    AK --> AM["CI: test + lint"]
-    AL --> AM
-    AM --> AN{CI passed?}
-    AN -->|No| AO["@claude why did CI fail, fix it"]
-    AO --> AM
-    AN -->|Yes| AP["@claude review"]
-    AP --> AQ{Review passed?}
-    AQ -->|No| AR[Apply feedback]
-    AR --> AG
-    AQ -->|Yes| AS{Target branch?}
-    AS -->|staging| AT["Merge to staging — deploy to staging"]
-    AS -->|main| AU["Merge to main — deploy to production"]
-    AT --> AV["Test on staging"]
-    AV --> AW{OK?}
-    AW -->|No| AX[Bug fix]
-    AX --> AG
-    AW -->|Yes| AY["Open PR → main"]
-    AY --> AU
-
-    %% SELF IMPROVEMENT
-    AU --> AZ{Lesson learned?}
-    AZ -->|Universal| BA["Update ~/.claude/CLAUDE.md — you approve"]
-    AZ -->|Project-specific| BB["Update project/CLAUDE.md"]
-    BA --> BC([Next project starts smarter])
-    BB --> BC
-```
+- **Co-pilot, not autonomous.** The model does the heavy lifting; you make the architecture and QA calls.
+- **CLI is dumb, model is smart.** The installer only moves files — every decision lives in the prompts.
+- **Battle-tested by dogfooding** on live production codebases, not designed in the abstract.
+- **Two products, one brain.** `readev-tools` (this — the methodology as a guest in your tool) and a
+  future `rea-cli` (the same methodology as its own standalone agent) share one core, so they never drift.
 
 ---
 
