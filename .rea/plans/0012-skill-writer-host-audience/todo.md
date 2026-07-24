@@ -22,7 +22,7 @@ the mode rule and no longer contradicts host mode; the body stays tool-agnostic 
 `.claude/` literal, sibling skills by bare name); `core/` references stay project-root-relative; the
 `Principles:` line is unchanged.
 Size: 1 smart-zone
-Status: todo
+Status: done
 
 ### U2 — Refusal cases in `skill-writer`
 
@@ -39,7 +39,7 @@ retired-name message states the true risk — a checkout without a manifest trea
 evidence of a legacy install (`detectLegacyPresent`), which makes the one-time bridge delete it — and
 does **not** claim the bridge will fire on the current host, where a manifest already exists.
 Size: 1 smart-zone
-Status: todo
+Status: done
 
 ### U3 — `rea-write-skill` orchestration matches the new agent behaviour
 
@@ -52,7 +52,7 @@ unreadable manifest, owned-path collision, retired name) and gives the concrete 
 Step 5's "show the exact path" text works for both modes; no `Claude`/`.claude/` literal enters the
 body; the `skill-writer` agent is still referenced by bare name.
 Size: 1 smart-zone
-Status: todo
+Status: done
 
 ### U4 — Ship the agent: drop the placement exclusion, invert its tests
 
@@ -64,7 +64,7 @@ are inverted to require presence and recording; `node --test --test-concurrency=
 green, including `templates.test.js`'s host-layout link resolution now that a previously unplaced file
 participates in it.
 Size: 1 smart-zone
-Status: todo
+Status: done
 
 ### U5 — Live host run: exercise the agent, not just the installer
 
@@ -83,7 +83,7 @@ first gate the agent hits, and the one branch that would otherwise ship never ha
 confirmed unbroken by authoring a throwaway skill in this repo, seeing it land under `templates/`, then
 deleting it.
 Size: 1 smart-zone
-Status: todo
+Status: done
 
 ### U6 — Doc sync
 
@@ -93,4 +93,4 @@ and recorded it as owned in `.rea/.rea-manifest.json`; `docs/rea-roadmap.md`'s 4
 split — prompt-length trim deferred to ADR 0007, host-audience half delivered by plan 0012; full suite
 green (`npm test`, `pytest`, `ruff check`).
 Size: 1 smart-zone
-Status: todo
+Status: done
