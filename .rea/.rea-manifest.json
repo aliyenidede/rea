@@ -20,6 +20,7 @@
     ".claude/agents/plan-validator.md",
     ".claude/agents/security-scanner.md",
     ".claude/agents/skill-writer-patterns.md",
+    ".claude/agents/skill-writer.md",
     ".claude/agents/spec-reviewer.md",
     "core/craft-checklist.md",
     "core/principles.md",

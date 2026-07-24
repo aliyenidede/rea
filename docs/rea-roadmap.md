@@ -146,8 +146,12 @@ Pipeline: `talk` (behaviour, not a command) → `rea-grill` → `rea-plan` → `
 `verify` + `migrate` bridge (0010, `9a6cf58`), and the safe-path/CWE-59 security gate (0011, `a83b216`)
 all executed and committed; the residual source-side CWE-59 hole (`rea-archive` FIX D) closed 2026-07-24
 (FIX F). `node --test`: 169 pass / 3 win32-EPERM skips / 0 fail. **Only user-gated `npm publish`
-(+ optional PyPI 0.7.2 shim) remains** — see §9. Non-gating polish (long-agent trim, skill-writer
-audience prose) parked as 4e → a later plan 0012.
+(+ optional PyPI 0.7.2 shim) remains** — see §9. Non-gating polish "4e" was split: the long-agent
+prompt-length trim is **deferred with a re-open trigger** (ADR 0007 — no eval instrument exists to
+tell a good trim from a bad one; trim one agent only once its own behaviour shows it is
+over-instructed), and the **skill-writer host-audience half is delivered by plan 0012** (the agent now
+picks source vs host mode, refuses names a later `setup` would overwrite or the legacy bridge would
+delete, and finally ships into host projects).
 **Delivered:**
 - ✅ `npx readev-tools setup` (JS installer; **PyPI dropped**, D1) — quick/full tiers. _(Mechanical verb is
   `setup`, not `init` — 0009 Decision 1, avoids the `rea init`↔`/rea-init` collision; overrides D1's
