@@ -13,7 +13,19 @@ venv/
 .mypy_cache/
 
 # REA runtime
-.rea/log/
+.rea/sessions/
 
 # Internal planning notes
 docs/rea-planning-notes.md
+
+# Research scratch (cloned repos for inspection — not source of truth)
+docs/researches/temp/
+
+# Playwright MCP cache and local screenshots
+.playwright-mcp/
+/providers-desktop.png
+/repo-detail-desktop.png
+/repos-mobile.png
+/settings-desktop.png
+/settings-modal-desktop.png
+/settings-repo-desktop.png

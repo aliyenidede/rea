@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rea-dev"
-version = "0.7.1"
+version = "0.7.2"
 description = "Development toolkit — bootstraps structured Claude Code workflow (commands, agents, plans, CI) into any project"
 readme = "PYPI.md"
 requires-python = ">=3.11"
 license = "MIT"
 authors = [
-    { name = "readev", email = "readevb@gmail.com" },
+    { name = "aliyenidede", email = "aliyenidede@gmail.com" },
 ]
 keywords = ["claude", "claude-code", "ai", "development", "toolkit", "agents", "workflow"]
 classifiers = [
@@ -34,9 +34,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/readevb/rea"
-Repository = "https://github.com/readevb/rea"
-Issues = "https://github.com/readevb/rea/issues"
+Homepage = "https://github.com/aliyenidede/rea"
+Repository = "https://github.com/aliyenidede/rea"
+Issues = "https://github.com/aliyenidede/rea/issues"
 
 [project.scripts]
 rea = "rea.cli:app"

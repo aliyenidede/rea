@@ -22,3 +22,8 @@ jobs:
         run: ruff format --check .
       - name: Test
         run: pytest
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: JS test
+        run: npm test

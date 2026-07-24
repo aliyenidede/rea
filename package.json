@@ -1,0 +1,41 @@
+{
+  "name": "readev-tools",
+  "version": "0.1.0",
+  "description": "Portable, cross-tool methodology installer for the REA workflow (npx readev-tools setup)",
+  "license": "MIT",
+  "author": "aliyenidede",
+  "homepage": "https://github.com/aliyenidede/rea",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aliyenidede/rea.git"
+  },
+  "bugs": {
+    "url": "https://github.com/aliyenidede/rea/issues"
+  },
+  "keywords": [
+    "rea",
+    "claude",
+    "claude-code",
+    "ai",
+    "development",
+    "toolkit",
+    "workflow",
+    "installer"
+  ],
+  "bin": {
+    "readev-tools": "bin/readev-tools.js"
+  },
+  "files": [
+    "templates/**",
+    "core/**",
+    "bin/**",
+    "src/**",
+    "README*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test --test-concurrency=1 test/*.test.js"
+  }
+}

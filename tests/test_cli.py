@@ -15,6 +15,8 @@ def test_version():
     result = runner.invoke(app, ["version"])
     assert result.exit_code == 0
     assert "rea" in result.output
+    # `rea version` must stay clean of the setup deprecation notice (4a-2 invariant).
+    assert "Deprecation notice" not in result.output
 
 
 def test_version_shows_current_version():
@@ -150,6 +152,35 @@ def test_init_fails_on_nonexistent_path(tmp_path: Path):
     result = runner.invoke(app, ["setup", str(bad_path)])
     assert result.exit_code == 1
     assert "Error" in result.output
+
+
+# --- deprecation notice ---
+
+
+def test_setup_prints_deprecation_notice(tmp_path: Path):
+    result = runner.invoke(app, ["setup", str(tmp_path)])
+    assert "Deprecation notice" in result.output
+    assert "npx readev-tools setup" in result.output
+
+
+def test_setup_still_performs_copy_after_notice(tmp_path: Path):
+    result = runner.invoke(app, ["setup", str(tmp_path)])
+    assert result.exit_code == 0
+    assert (tmp_path / ".claude" / "commands").is_dir()
+    assert (tmp_path / ".claude" / "agents").is_dir()
+    assert any((tmp_path / ".claude" / "commands").iterdir())
+
+
+def test_setup_never_raises_on_normal_invocation(tmp_path: Path):
+    result = runner.invoke(app, ["setup", str(tmp_path)])
+    assert result.exception is None
+    assert result.exit_code == 0
+
+
+def test_bare_invocation_prints_deprecation_notice():
+    result = runner.invoke(app, [])
+    assert "Deprecation notice" in result.output
+    assert "npx readev-tools setup" in result.output
 
 
 # --- template integrity ---
