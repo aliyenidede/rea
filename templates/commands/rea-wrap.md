@@ -16,7 +16,7 @@ final report rather than stopping the whole ritual.
 ## Step 1 — Determine the session's dominant theme
 
 Look at this session's commits, file changes, and conversation topics. Pick the dominant theme and
-reduce it to a 2-3 word kebab-case slug (e.g. `coolify-setup`, `auth-refactor`). This slug names the
+reduce it to a 2-3 word kebab-case slug (e.g. `payment-webhook`, `auth-refactor`). This slug names the
 session note and anchors the summary in Step 2.
 
 If no single theme stands out (the session touched several unrelated things), pick the theme that
@@ -26,7 +26,7 @@ summary instead of forcing a single label onto everything.
 ## Step 2 — Write the session log
 
 **File:** `.rea/sessions/YYYY-MM-DD-HHMM-<slug>.md` — use the actual current date and time, no
-separators in the time part (e.g. `2026-03-17-1830-coolify-setup.md`), per the `sessions/` naming
+separators in the time part (e.g. `2026-03-17-1830-payment-webhook.md`), per the `sessions/` naming
 rule in `core/rea-schema.md`. The timestamp makes the filename unique on its own — no collision
 check is needed for this note type.
 

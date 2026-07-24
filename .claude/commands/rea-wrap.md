@@ -17,7 +17,7 @@ If there are no changes, skip.
 
 **File name:** `.rea/log/YYYY-MM-DD-HHmm-session-<session-name>.md`
 
-Use the actual current date and time (24h format, no separators in time). `<session-name>` is a 2-3 word kebab-case summary of what was done this session. Example: `2026-03-17-1830-session-coolify-setup.md`
+Use the actual current date and time (24h format, no separators in time). `<session-name>` is a 2-3 word kebab-case summary of what was done this session. Example: `2026-03-17-1830-session-payment-webhook.md`
 
 To determine the session name: look at commits, changes, and conversation topics — pick the dominant theme.
 
