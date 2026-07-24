@@ -1,11 +1,8 @@
 # readev-tools
 
-**A portable, disciplined AI-coding workflow — delivered into whichever coding tool you already use.**
-
-readev-tools drops a battle-tested methodology (planning, review, memory, branch discipline) into any
-project as plain files your AI coding tool reads: an `AGENTS.md`, a set of slash commands, composable
-review agents, and a typed `.rea/` memory graph. The installer is mechanical — it copies files. All the
-intelligence runs through your model.
+Bootstraps a structured AI-coding workflow into any project: slash commands, review agents, a plan and
+memory system, and branch rules. The installer copies files; the workflow runs inside your AI coding tool
+(Claude Code today, and any tool that reads `AGENTS.md`).
 
 ![CI](https://github.com/aliyenidede/rea/actions/workflows/ci.yml/badge.svg)
 ![npm](https://img.shields.io/npm/v/readev-tools)
@@ -13,120 +10,121 @@ intelligence runs through your model.
 ![license](https://img.shields.io/badge/license-MIT-blue)
 
 ```bash
-npx readev-tools setup <project>     # place commands + agents + core/ + .rea/ + shims
-# then open your coding tool in that project and run:  /rea-init
+npx readev-tools setup <project>   # place commands, agents, core/, .rea/, and shims
+# then open the project in your coding tool and run:  /rea-init
 ```
 
-That's it — no install, always latest, cross-platform (Windows first-class).
+## The problem
 
----
+AI coding tools start every session cold. No memory of past decisions, no fixed plan format, no review
+step, no branch rules. You re-explain context each time, and output quality tracks how closely you are
+watching.
 
-## Why
+readev-tools gives the tool a fixed structure — the same commands, plan format, memory layout, and review
+agents across every project and session. State lives in files (`AGENTS.md` + `.rea/`), so it survives a
+session restart and moves between tools.
 
-AI coding tools are powerful but start every session cold: no memory of past decisions, no consistent
-plan format, no review discipline, no branch rules. You rebuild context every time, and quality drifts
-with your attention.
+## What it installs
 
-readev-tools gives the model a **fixed structure to operate inside** — the same grill→plan→execute→ship
-pipeline, the same typed memory, the same craft checklist — across every project and every session. The
-moat is the **methodology**, not the plumbing.
+Slash commands — you run these in your coding tool:
 
-**Cross-tool by design.** The methodology is plain files (`AGENTS.md` + `.rea/`) that every major tool
-reads, so you can switch **Claude Code ↔ Codex ↔ Gemini ↔ Cursor** mid-work and continue. The installer
-writes each tool's shim (`CLAUDE.md = @AGENTS.md`, Gemini `settings.json`) and never blind-overwrites your
-files — user content is preserved via managed markers.
+| Command | What it does |
+|---|---|
+| `/rea-init` | Sets up the project. Quick = commands + `.rea/`; `--full` also adds CI and branch protection. |
+| `/rea-grill` | Interviews you about the task, one question at a time, aware of the codebase, and writes `brief.md`. |
+| `/rea-plan` | Turns the brief into `spec.md` (what and why), `plan.md` (dependency graph), `todo.md` (sized steps). You approve before any code. |
+| `/rea-execute` | Runs the plan: groups independent steps, implements each test-first, reviews after each batch, loops until done. Resumable. |
+| `/rea-ship` | Commits, opens a PR, or deploys — after detecting the repo's actual state. Asks before acting. |
+| `/rea-fix` | Short path for a small fix: debug → fix with a test → review → ship. Escalates to the full pipeline if the fix grows. |
+| `/rea-wrap` | Writes a short session note to `.rea/`. |
+| `/rea-tidy` | Reconciles memory, shims, and rules. Dry-run first, then you approve. |
 
----
+Agents — building blocks the commands call, each also runnable on its own:
+
+| Agent | What it does |
+|---|---|
+| `explorer` | Read-only research: finds files, traces data flow, reports facts. |
+| `implementer` | Writes a failing test, makes it pass, commits. Runs affected tests + lint before returning. |
+| `spec-reviewer` | Checks the diff against the requirement. |
+| `code-reviewer` | Reviews quality against a bundled craft checklist (deep modules, DRY, test quality). |
+| `bug-scanner` | Logic bugs, edge cases, races — each with a confidence score. |
+| `security-scanner` | Injection, auth bypass, data exposure — each needs a concrete attack path or it is dropped. |
+| `plan-reviewer` | Reads a plan adversarially and turns every gap into a decision you answer. |
+| `plan-validator` | Mechanical checks: file paths exist, rules followed, todo covers the plan. |
+| `dispatcher` | Groups todo items into parallel and sequential batches by file conflict. |
+| `debugger` | Four-phase root-cause debugging, with an escalation rule after three failed fixes. |
+
+Commands orchestrate agents; agents never call other agents.
 
 ## The pipeline
 
-`talk` is a behaviour (a thinking engineer + curious researcher, anti-sycophantic) — always on, not a
-command. The commands are the ritual:
+```
+/rea-grill  →  /rea-plan  →  /rea-execute  →  /rea-ship
+ interview      spec/plan/     build + review    commit / PR /
+                todo           loop (AFK)         deploy
+```
 
-| Step | Command | What happens |
-|---|---|---|
-| **Bootstrap** | `/rea-init` | Tiered setup — quick (no GitHub) or `--full` (CI + branch protection) |
-| **Interrogate** | `/rea-grill` | Codebase-aware interview, one question at a time, → `brief.md` |
-| **Plan** | `/rea-plan` | Spec (destination) / plan (dependency graph) / todo (sized slices); you approve |
-| **Execute** | `/rea-execute` | AFK: parallel `implementer`s (TDD → scoped tests → commit) → fresh-context review → loop |
-| **Ship** | `/rea-ship` | Situation-aware commit / PR / deploy — detects state, never forces |
-| **Wrap** | `/rea-wrap` | Light session summary into `.rea/` |
-| Bypass | `/rea-fix` | Lightweight debug→fix→review→ship; escalates to the full path if scope grows |
-| Reconcile | `/rea-tidy` | Reconcile memory + shims + rules; dry-run → you approve |
-| Utility | `/rea-write-skill` | Author a new agent/command matching conventions |
+You stay in the loop at two points: you approve the plan, and you review the diff before ship.
+`/rea-execute` is the one stretch that runs on its own.
 
-Human gates are deliberate: you approve the plan, and you review the diff before ship. Execute is the
-only AFK stretch.
+What `/rea-plan` does, after a grill on "add stripe billing":
 
----
+1. Reads the brief and the relevant files.
+2. Writes `.rea/plans/0001-stripe-billing/`: `spec.md` (what and why), `plan.md` (steps as a dependency
+   graph), `todo.md` (vertical slices, each sized to fit one context window).
+3. Waits for your approval.
 
-## Agents
+Then `/rea-execute`:
 
-Composable building blocks — commands orchestrate them; **agents never call other agents**, and each also
-works standalone.
+1. Reads `todo.md`, works out which steps are unblocked, and asks `dispatcher` to group them.
+2. Runs `implementer` on each — test first, then code, then commit — several in parallel when they touch
+   different files.
+3. After each batch, runs the review agents over the new commits in a fresh context.
+4. Loops until every step is done, then runs the full test suite once.
 
-| Agent | Purpose |
-|---|---|
-| `explorer` | Read-only codebase research (facts, no opinions) |
-| `implementer` | TDD implementation — a test before every commit, scoped feedback gate |
-| `spec-reviewer` | Does the diff match the requirement? |
-| `code-reviewer` | Quality (deep modules, DRY, test quality) — cites the shared craft checklist |
-| `bug-scanner` | Logic bugs, edge cases, races — confidence-scored |
-| `security-scanner` | Injection, auth bypass, data exposure — OWASP, attack-path validated |
-| `plan-reviewer` | Adversarial plan review — forces gaps into the open before execution |
-| `plan-validator` | Mechanical plan checks — rules, file placement, coverage |
-| `dispatcher` | Groups work into parallel/sequential batches by file conflict |
-| `debugger` | 4-phase root-cause debugging with escalation rules |
+Interrupt any time; re-running `/rea-execute` picks up from the steps still marked incomplete.
 
----
-
-## Memory — the `.rea/` typed graph
-
-Durable state lives in plain markdown under `.rea/`, tool-agnostic and Obsidian-renderable:
+## Memory — the `.rea/` graph
 
 ```
 .rea/
-├── knowledge/   # semantic — what we know (1 note per module / gotcha / concept)
-├── decisions/   # ADRs — why (numbered, append-only, supersede-never-overwrite)
-├── sessions/    # episodic — what happened, when (timestamped)
-└── plans/       # active work (NNNN-slug/{brief,spec,plan,todo}.md)
+├── knowledge/   # what we know — one note per module, gotcha, or concept
+├── decisions/   # why — numbered ADRs, append-only
+├── sessions/    # what happened — timestamped notes
+└── plans/       # active work — NNNN-slug/{brief,spec,plan,todo}.md
 ```
 
-A `capture` reflex writes to it during work (a correction, a non-obvious decision, a bug's root cause),
-gated by a filter: record what a *different tool opening this project* would need — not the tool's own
-operational chatter. Switch tools, and the next one reads the same graph and continues.
+The tool writes here during work on three triggers: a correction, a non-obvious decision, or a bug's root
+cause. A filter keeps out its own operational chatter — a note goes in only if a different tool opening the
+project would need it. Open the project in another tool and it reads the same notes.
 
----
-
-## Install & update
+## Install and update
 
 ```bash
-npx readev-tools setup <project>     # first run and every update — idempotent re-sync
-npx readev-tools verify <project>    # read-only health check (files present? shims intact?)
-npx readev-tools migrate <project>   # one-time v0.7.x → redesign bridge (archives legacy, never deletes)
+npx readev-tools setup <project>    # first run and every update — safe to re-run
+npx readev-tools verify <project>   # read-only: are the files, shims, and CI in place?
+npx readev-tools migrate <project>  # one-time move off the old 0.7.x layout (archives, never deletes)
 ```
 
-- **REA-owned files** (commands / agents / `core/`) are overwritten with the current version on every run
-  — customise via *separate* files, never by editing REA files, so re-sync is always safe.
-- **Obsolete files** are pruned via a manifest; **your content** (`CLAUDE.md`, `settings.json`) is
-  merged, never blind-overwritten.
-- **Legacy note:** `rea-dev` on PyPI (Python CLI, last release 0.7.x) is a frozen deprecation shim — the
-  maintained path is `npx readev-tools`.
+Re-running `setup` overwrites the files it owns (commands, agents, `core/`) with the current version and
+prunes ones that were removed. It never overwrites yours: `CLAUDE.md` and `settings.json` are edited only
+between managed markers, and everything outside them is left alone. Customize by adding your own files, not
+by editing installed ones.
 
-Requires Node.js ≥ 20. Placement is first-class for Claude Code today (`.claude/`); other markdown-command
-tools get the same files in their own folder, and every tool gets the `AGENTS.md` steering.
+Needs Node.js 20 or later. Placement is complete for Claude Code (`.claude/`); other markdown-command tools
+get the commands in their own folder, and every tool gets the `AGENTS.md` steering.
 
----
+## Across tools
 
-## Scope & philosophy
+`AGENTS.md` and `.rea/` are plain files that Claude Code, Codex, Cursor, and Gemini all read. The installer
+writes each tool's pointer to `AGENTS.md` — `CLAUDE.md` imports it, Gemini's `settings.json` lists it —
+without touching your other settings. Switch tools mid-task and the next one picks up the same instructions
+and memory.
 
-- **Co-pilot, not autonomous.** The model does the heavy lifting; you make the architecture and QA calls.
-- **CLI is dumb, model is smart.** The installer only moves files — every decision lives in the prompts.
-- **Battle-tested by dogfooding** on live production codebases, not designed in the abstract.
-- **Two products, one brain.** `readev-tools` (this — the methodology as a guest in your tool) and a
-  future `rea-cli` (the same methodology as its own standalone agent) share one core, so they never drift.
+## Legacy
 
----
+`rea-dev` on PyPI (Python, last release 0.7.x) is a frozen shim that prints a notice pointing here.
+`npx readev-tools` is the maintained path. The pre-redesign version is tagged `pre-redesign-v0.7.1`.
 
 ## License
 
