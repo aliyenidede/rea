@@ -26,7 +26,7 @@ function listFiles(dirAbs) {
     .map((e) => e.name);
 }
 
-test('place() copies commands, agents (minus skill-writer.md), core trio, and the .rea scaffold; records the manifest', () => {
+test('place() copies commands, agents (minus README.md), core trio, and the .rea scaffold; records the manifest', () => {
   const targetRoot = makeTmpRoot();
   try {
     const m = manifest.load(targetRoot);
@@ -45,14 +45,14 @@ test('place() copies commands, agents (minus skill-writer.md), core trio, and th
       }
     }
 
-    // --- agents: every templates/agents/* file EXCEPT skill-writer.md and README.md ---
+    // --- agents: every templates/agents/* file EXCEPT README.md ---
     const sourceAgentFiles = listFiles(path.join(SOURCE_ROOT, 'templates', 'agents'));
     assert.ok(sourceAgentFiles.includes('skill-writer.md'), 'sanity: source has skill-writer.md');
     assert.ok(sourceAgentFiles.includes('README.md'), 'sanity: source agents dir has README.md');
     for (const fileName of sourceAgentFiles) {
       const destPath = path.join(targetRoot, '.claude', 'agents', fileName);
-      if (fileName === 'skill-writer.md' || fileName === 'README.md') {
-        assert.equal(fs.existsSync(destPath), false, `${fileName} must NOT be placed`);
+      if (fileName === 'README.md') {
+        assert.equal(fs.existsSync(destPath), false, 'README.md must NOT be placed');
       } else {
         assert.ok(fs.existsSync(destPath), `expected ${destPath} to exist`);
       }
@@ -104,8 +104,8 @@ test('place() copies commands, agents (minus skill-writer.md), core trio, and th
       'manifest should record skill-writer-patterns.md'
     );
     assert.ok(
-      !owned.some((p) => p.endsWith('/skill-writer.md')),
-      'manifest must NOT record skill-writer.md'
+      owned.includes('.claude/agents/skill-writer.md'),
+      'manifest should record .claude/agents/skill-writer.md'
     );
     assert.ok(owned.includes('core/principles.md'), 'manifest should record core/principles.md');
     assert.ok(
