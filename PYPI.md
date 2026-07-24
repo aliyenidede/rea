@@ -1,6 +1,6 @@
-# rea-dev — deprecated, frozen at 0.7.2
+# rea-dev — deprecated, installs nothing
 
-This Python CLI is no longer developed. It is replaced by **[readev-tools](https://www.npmjs.com/package/readev-tools)**, an npx installer that does the same job — and works with any AI coding tool that reads `AGENTS.md`, not only Claude Code.
+This Python CLI is no longer developed, and as of 0.7.3 it no longer installs anything: `rea setup` prints where to go and exits non-zero. It is replaced by **[readev-tools](https://www.npmjs.com/package/readev-tools)**, an npx installer that does the same job — and works with any AI coding tool that reads `AGENTS.md`, not only Claude Code.
 
 ```bash
 npx readev-tools setup <project>
@@ -30,9 +30,12 @@ Command mapping:
 | `/rea-init` `/rea-plan` `/rea-execute` `/rea-wrap` `/rea-write-skill` | same names, rewritten |
 | — | new: `/rea-fix` (short path for a small fix), `/rea-tidy` (reconcile memory, shims, rules) |
 
-## What 0.7.2 does
+## What 0.7.3 does
 
-Same behaviour as 0.7.1 — `rea setup <path>` copies the old Claude Code command and agent templates — plus a deprecation notice pointing at `npx readev-tools`. No new features will land here.
+Nothing to your project. `rea setup <path>` prints the notice above and exits 1 — it does not create directories or copy templates, and the wheel no longer carries them. A script that still calls it fails loudly instead of quietly installing a command set retired back in Phase 3.
+
+- 0.7.2 and earlier: copied the old Claude Code command and agent templates.
+- 0.7.3: signpost only.
 
 ## Staying on the old version
 
@@ -40,7 +43,7 @@ Same behaviour as 0.7.1 — `rea setup <path>` copies the old Claude Code comman
 pip install rea-dev==0.7.1
 ```
 
-0.7.1 stays installable as a frozen fallback. The matching source tree is tagged `pre-redesign-v0.7.1` in the repository.
+0.7.1 still installs the old templates and stays available as the frozen fallback. The matching source tree is tagged `pre-redesign-v0.7.1` in the repository.
 
 ## Why the move
 

@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rea-dev"
-version = "0.7.2"
-description = "Deprecated — frozen at 0.7.2. Replaced by `npx readev-tools`, which installs the same workflow for any AI coding tool"
+version = "0.7.3"
+description = "Deprecated — installs nothing. Points at `npx readev-tools`, which places the same workflow into any AI coding tool"
 readme = "PYPI.md"
 requires-python = ">=3.11"
 license = "MIT"
@@ -45,5 +45,7 @@ rea = "rea.cli:app"
 where = ["."]
 include = ["rea*"]
 
-[tool.setuptools.package-data]
-"rea" = ["templates/**/*", "templates/**/.claude/**/*", "templates/**/.claude/agents/*", "templates/**/.github/**/*"]
+# No package-data: 0.7.3 installs nothing, so the wheel no longer carries the
+# retired 0.7.x template tree. It stays in the repo as the record of what
+# 0.7.1/0.7.2 shipped, and 0.7.1 on PyPI still ships it for anyone who pins
+# that fallback.
