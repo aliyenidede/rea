@@ -80,6 +80,17 @@ When adding a verb, two holes bite (both hit `migrate`, caught by review not by 
   reads) goes through it; don't re-derive containment per module. Why: [[0002-safe-path-hardening]],
   [[plans/0011-safe-path-hardening/plan]].
 
+## Smoke-testing a publish: never run `npx` from this repo
+
+`npx readev-tools@<version> …` executed with the cwd **inside this repo** fails with
+`'readev-tools' is not recognized as an internal or external command`. `npm exec` sees the local
+project (`package.json` name `readev-tools`), decides it already satisfies the spec, skips the
+registry install, and then looks for the bin in `node_modules/.bin` — which this repo does not have
+(zero runtime deps, never `npm install`ed). It looks exactly like a broken publish and is not one:
+the same command from any other directory works. Verify a release from a scratch dir, and use a
+version the local `package.json` does **not** match if you want to be sure the registry copy ran.
+(2026-07-24, chased during the 0.1.1 publish)
+
 ## Auditing this tree with Grep — brace-glob false negative
 
 A `Grep` with a **brace-expansion glob** (`000{6,7,8}-*/todo.md`) **combined with a path prefix** can
