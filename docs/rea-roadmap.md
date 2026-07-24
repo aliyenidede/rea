@@ -171,10 +171,20 @@ audience prose) parked as 4e → a later plan 0012.
 - **✓ Resolved (Phase 4d):** the one-time **v0.7.1 → redesign migration UX** — the `npx readev-tools migrate`
   verb; see §10.
 
-### Phase 5 — Private migration ⬜ (personal, not shipped)
-Distil this repo's old-format `.rea/` (flat `log/` + `lessons.md` + `plans/0001-0004`) into the new
-typed graph (lessons → knowledge/ + decisions/, logs → sessions/, wikilinked). Old `.rea/` archived,
-not deleted. May take 2–3 sessions.
+### Phase 5 — Private migration ✅ (personal, not shipped)
+**Status:** done 2026-07-24 (2 sessions). Distilled this repo's old-format `.rea/` into the new typed graph.
+- **logs → `sessions/`** (Session A) — 35 recaps relocated `log/` → `sessions/`, **kept gitignored-local**
+  (a scan found production infra in several — Hetzner IP, hostname, secret names, admin email — and this
+  repo is heading open-source, so raw recaps must not enter git history; the committed/portable memory is
+  `knowledge/` + `decisions/` + `plans/`).
+- **`lessons.md` → `knowledge/` + `decisions/`** (Session B) — applied REA's own memory-write filter
+  (`AGENTS.md`) to all 85 lessons → 5 `knowledge/` notes + ADR 0004 (rea-cli runtime/auth) + Batch-4
+  routing (AGENTS.md/skill-writer/patterns edits, personal reflexes → auto-memory). **Most lessons stayed
+  in `lessons.md` by design** (behavioural / already-shipped / one-off operational / readev-context) — a
+  lean deduped graph, not a restatement of `principles.md`. `lessons.md` kept as the living capture log.
+- **old `.rea/` archived, not deleted** — pre-redesign `plans/0001-0004` (old paths + dropped skills,
+  superseded decisions) moved to `.rea/_archive/plans/`; redesign-era `plans/0005-0011` stay. See
+  `.rea/_archive/README.md`.
 
 ---
 
