@@ -55,9 +55,16 @@ Invoke `skill-writer` with:
 Pass all inputs. Do not proceed until it returns.
 
 - **DONE** → continue to Step 4.
-- **BLOCKED** → show the reason to the user (a file already exists at that path, a missing input, a
-  conflicting requirement). Resolve it with the user (a new name, a fuller description) and retry,
-  or stop here if the user prefers to abandon.
+- **BLOCKED** → show the reason to the user, with the concrete next step for that reason:
+  - No or unreadable manifest (host mode) — the mechanical layer is missing or damaged; run
+    `npx readev-tools setup`, then retry.
+  - The resolved destination is already an installer-owned file — the next `setup` would overwrite
+    it; choose a different name.
+  - The requested name collides with a retired legacy skill name — a manifest-less checkout of the
+    project could delete it as a legacy leftover; choose a different name.
+  - A file already exists at that path, or an input was missing or conflicting — resolve it with the
+    user (a new name, a fuller description) and retry.
+  Stop here instead if the user prefers to abandon.
 
 ## Step 4 — Show generated file for review
 
@@ -72,14 +79,19 @@ with the updated description. Repeat until the user approves.
 
 Once the user approves the file:
 
-Confirm the file has been written (show the exact path).
+Confirm the file has been written — show the exact path `skill-writer` resolved (the project's own
+tool folder in host mode, this repository's template source in source mode).
 
-## Step 6 — Note the placement boundary
+## Step 6 — Report where the file lives
 
-The new file now lives at its neutral `templates/` path — that is the source of truth. Placing it
-into a specific host tool's own command/agent folder so it becomes live in a session is a separate,
-later concern this command does not handle; mention that boundary to the user rather than
-performing or promising that placement here.
+Tell the user what actually happened, mode-dependent:
+
+- **Host mode** — the skill is already live in this project's own tool folder; `skill-writer` wrote
+  it directly into the manifest-derived agents or commands directory. It is usable in this project
+  immediately — no separate placement step is needed.
+- **Source mode** — the file is repository source under this repository's template tree. It ships to
+  host projects on the next readev-tools release; it does not become live in any host project until
+  that release is installed.
 
 ## Rules
 

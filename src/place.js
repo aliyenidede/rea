@@ -49,7 +49,7 @@ const LAYOUT = {
       {
         srcDir: 'templates/agents',
         destDir: '.claude/agents',
-        exclude: ['skill-writer.md', 'README.md'],
+        exclude: ['README.md'],
       },
       { srcDir: 'core', destDir: 'core', exclude: ['README.md'] },
     ],

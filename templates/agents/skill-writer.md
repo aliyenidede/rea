@@ -1,6 +1,6 @@
 ---
 name: skill-writer
-description: "Creates new agent or command files that match REA's conventions. Use when a project needs a new skill added to its tool-agnostic templates/ source tree."
+description: "Creates a new agent or command file that matches REA's conventions, deriving where to read references from and where to write the result from the layout it detects itself running in."
 tools: Read, Write, Edit, Glob, Grep
 model: sonnet
 ---
@@ -16,13 +16,33 @@ You will receive:
 2. **Complexity type** (agents only) — `Strict`, `Review`, `Exploratory`, or `Mechanical`. Omitted for commands.
 3. **Description** — what the new skill should do (purpose, behavior, inputs, outputs)
 
+## Mode: source or host
+
+Before Step 1, determine which mode this run is in — every step below refers back to it as "the
+agents directory", "the commands directory", or "the patterns reference".
+
+- **Source mode** — `templates/agents/` and `templates/commands/` both exist at the project root
+  (this repo, authoring its own source). The agents directory is `templates/agents/`; the commands
+  directory is `templates/commands/`.
+- **Host mode** — otherwise (a project readev-tools has installed into). Read
+  `.rea/.rea-manifest.json` and its `ownedFiles` array. The agents directory is the directory of an
+  owned entry matching `*/agents/*`; the commands directory is the directory of an owned entry
+  matching `*/commands/*`. `skill-writer-patterns.md` is placed alongside the agents, so the
+  patterns reference is `skill-writer-patterns.md` inside the agents directory in both modes.
+
+**Host-mode preflight (resolve before deriving any path):** if `.rea/.rea-manifest.json` does not
+exist, fails to parse, or parses but has no `ownedFiles` entry matching the requested skill type
+(no `*/agents/*` entry for an agent, no `*/commands/*` entry for a command), return BLOCKED: the
+mechanical layer has not been installed, or is incomplete — run `npx readev-tools setup` first. Do
+not fall back to any specific tool's folder name.
+
 ## Process
 
 ### 1. Locate reference files
 
 Determine the target directory based on skill type:
-- Agent → `templates/agents/`
-- Command → `templates/commands/`
+- Agent → the agents directory (see Mode above)
+- Command → the commands directory (see Mode above)
 
 Read 2-3 existing files from that directory as reference. Choose files that match the requested complexity type:
 - Strict → read `implementer.md` and `debugger.md`
@@ -31,7 +51,7 @@ Read 2-3 existing files from that directory as reference. Choose files that matc
 - Mechanical → read `dispatcher.md` and `plan-validator.md`
 - Commands → read `rea-plan.md` and one other command
 
-Also read `templates/agents/skill-writer-patterns.md` — the patterns reference. Select the section matching the complexity type.
+Also read the patterns reference (see Mode above) — select the section matching the complexity type.
 
 ### 2. Extract conventions and classify
 
@@ -59,13 +79,37 @@ From the reference files, identify: frontmatter format, the bare `Principles:` l
 
 - File name: lowercase, hyphenated (e.g. `my-skill.md`)
 - Commands: `rea-<verb>.md`
-- Full path: Agent → `templates/agents/<name>.md`, Command → `templates/commands/rea-<name>.md`
+- Full path: Agent → `<name>.md` in the agents directory, Command → `rea-<name>.md` in the commands
+  directory (see Mode above)
 
-Confirm the file does not already exist. If it does, return BLOCKED.
+Before writing, check for three distinct collision reasons. Each returns BLOCKED, but they are not
+the same risk — report the one that actually matched:
+
+- **On disk.** Confirm the file does not already exist at the derived path. If it does, return
+  BLOCKED.
+- **Manifest-owned (host mode).** If the derived path equals an entry in the manifest's
+  `ownedFiles`, return BLOCKED: the next `npx readev-tools setup` would overwrite this file, because
+  it is installer-owned. This holds even when nothing is on disk yet locally — ownership, not
+  current disk state, is the durable risk.
+- **Retired name.** Compare the requested stem (the file name, without extension) against
+  `retired-list.js`'s entries, matched by **stem plus skill type** — never full path, never a bare
+  stem across both types:
+  - Retired agent stems: `rea-router`, `skill-writer-patterns` (the latter is retired at
+    `.claude/skill-writer-patterns.md`, which has no `/agents/` segment — a full-path match would
+    miss it, so treat it as an agent-side retired name by stem alone).
+  - Retired command stems: `rea-brainstorm`, `rea-commit`, `rea-update`, `rea-verify`,
+    `rea-worktree`.
+  - The match is type-scoped: a command named `router` is NOT refused by this check — it collides
+    only with the retired *agent* `rea-router`, a different skill type.
+  If the requested name's stem matches the type-appropriate retired set, return BLOCKED: avoid this
+  name — a checkout of this project that lacks the manifest (for example a fresh clone where `.rea/`
+  is untracked) would read this filename as a leftover legacy skill, and its one-time legacy bridge
+  would delete it on that checkout's first `setup`. It is not at risk on THIS host, where the
+  manifest already exists — never claim the bridge fires here.
 
 ### 4. Generate the file content
 
-**For agents:** Generate content for the identified complexity type — use the template and required elements from `templates/agents/skill-writer-patterns.md`. Apply all required patterns for the type; omit optional patterns unless the description specifically warrants them. Every agent carries a bare `Principles: <letters>` line right after its frontmatter, naming the `core/principles.md` letters the skill serves — derive the letters from the description; never invent new ones. **Trace the COMPLETE set the skill's behaviour serves, not only the headline principle — under-filling the tag to a single letter when the skill actually serves several is the recurring defect.**
+**For agents:** Generate content for the identified complexity type — use the template and required elements from the patterns reference (see Mode above). Apply all required patterns for the type; omit optional patterns unless the description specifically warrants them. Every agent carries a bare `Principles: <letters>` line right after its frontmatter, naming the `core/principles.md` letters the skill serves — derive the letters from the description; never invent new ones. **Trace the COMPLETE set the skill's behaviour serves, not only the headline principle — under-filling the tag to a single letter when the skill actually serves several is the recurring defect.**
 
 **For commands:**
 ```
@@ -107,7 +151,7 @@ Write the generated content to the derived path.
 
 ### 6. Verify and report decisions (mandatory, non-skippable)
 
-Read the written file back. Then read `templates/agents/skill-writer-patterns.md` and verify against the relevant type:
+Read the written file back. Then read the patterns reference (see Mode above) and verify against the relevant type:
 
 **For agents — check required patterns:**
 - Strict: Has phased methodology? Escalation rules? Rationalizations to reject table?
@@ -131,13 +175,16 @@ Cannot return DONE without completing this verification and reporting decisions.
 ## Return Status
 
 - **DONE** — file written and verified. Include: file path, skill type, one-sentence summary, and decision report.
-- **BLOCKED** — cannot proceed (file exists, missing input, conflicting requirements).
+- **BLOCKED** — cannot proceed: file exists, missing input, conflicting requirements, host-mode
+  manifest missing/unreadable/incomplete, destination is manifest-owned, or requested name collides
+  with a retired name.
 
 ## Rules
 
-- Never invent a format. Derive conventions from reference files and `templates/agents/skill-writer-patterns.md`.
+- Never invent a format. Derive conventions from reference files and the patterns reference (see Mode above).
 - Description field: one short sentence, not a paragraph.
 - Do not overwrite existing files.
 - Generated file must be self-contained — works when invoked directly or as part of a command.
-- Every generated file's source lives under the neutral `templates/` tree — never write into a specific host tool's own folder; per-tool placement is a later, separate concern this agent does not handle.
+- Write to the path resolved in Mode above — never hardcode a specific host tool's own folder name;
+  source mode and host mode resolve to different directories on purpose.
 - Conciseness: every line must earn its place. Don't restate what the model already knows.

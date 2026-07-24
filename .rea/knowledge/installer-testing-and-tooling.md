@@ -80,6 +80,22 @@ When adding a verb, two holes bite (both hit `migrate`, caught by review not by 
   reads) goes through it; don't re-derive containment per module. Why: [[0002-safe-path-hardening]],
   [[plans/0011-safe-path-hardening/plan]].
 
+## The legacy bridge fires on filenames, and only on a manifest-less host
+
+`setup.js:115` sets `isBridge = legacyPresent && !hasManifest`, and `detectLegacyPresent`
+(`setup.js:84-86`) is purely `RETIRED_FILES.some(exists)` — it asks "is any retired *filename* on
+disk", nothing more. Two consequences that are easy to get backwards:
+
+- **Once a host has a manifest, the bridge can never fire again for it** — `retired-list.js`'s own
+  docstring says the list goes inert after the first run. Any warning that tells a user "the bridge
+  will delete this" about a manifest-carrying host is false.
+- **A user's own file can impersonate a legacy install.** Someone naming their command
+  `.claude/commands/rea-commit.md` in a repo where `.rea/` is untracked hands the next fresh clone a
+  retired filename with no manifest beside it — `detectLegacyPresent` matches, the bridge runs, and
+  prune deletes their file. This is the real reason to refuse retired names when authoring a skill,
+  not any risk on the current host.
+  (2026-07-24, caught by `plan-reviewer` on plan 0012)
+
 ## Smoke-testing a publish: never run `npx` from this repo
 
 `npx readev-tools@<version> …` executed with the cwd **inside this repo** fails with
