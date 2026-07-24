@@ -9,7 +9,8 @@
  *
  * Orchestrator contract: setup.run(targetRoot, { full }) -> a result object
  * ({placed, pruned, failed, isBridge, full}), never a number. `handleSetup`
- * maps that object to a numeric exit code (0 ok, 1 if `failed` is
+ * prints that object as a report (`printSetupReport`) and maps it to a
+ * numeric exit code (0 ok, 1 if `failed` is
  * non-empty) before returning, since `cli()`'s return value is assigned
  * straight to `process.exitCode` by bin/readev-tools.js, which requires an
  * integer. verify.js's contract: verify(targetRoot) -> {checks, ok}, which
@@ -42,8 +43,9 @@ const KNOWN_FLAGS = new Set(['--full', '--dry-run']);
  * object. Pure function — no IO, no process.exit. The first non-flag token
  * is the verb; the second non-flag token (if any) is the target path
  * (defaults to `process.cwd()` when omitted); `--full` sets full=true;
- * `--dry-run` sets dryRun=true (consumed by the `migrate` verb only — the
- * `setup`/`verify` handlers simply ignore it).
+ * `--dry-run` sets dryRun=true (consumed by the `migrate` verb only — `cli()`
+ * refuses it outright for any other verb rather than letting a write happen
+ * under a flag that promises otherwise).
  *
  * Note: this parser does not validate options — a mistyped flag (e.g.
  * `-full`) would be treated as a positional here. `cli()` guards against
@@ -168,7 +170,46 @@ function handleSetup(target, full) {
   // object through. Null-safe: a stub/older run() that returns a bare object
   // without a `.failed` array must still yield 0, not throw.
   const result = s.run(target, { full });
+  printSetupReport(result);
   return result && Array.isArray(result.failed) && result.failed.length > 0 ? 1 : 0;
+}
+
+/**
+ * Prints what a setup run placed, pruned, and failed to remove. `setup` was
+ * the one verb that reported nothing — a successful install exited 0 in
+ * silence, leaving no way to see what landed or what was deleted. Every
+ * pruned path is named rather than only counted (a deletion the user cannot
+ * see is the one worth showing); failures are counted here because setup.js
+ * already warns with their full list.
+ *
+ * Null-safe by design: a stub or older `run()` may return a bare object with
+ * no `placed`/`pruned`/`failed` fields, and that must print nothing at all
+ * rather than "placed undefined file(s)".
+ */
+function printSetupReport(result) {
+  if (!result || typeof result !== 'object') {
+    return;
+  }
+  const placed = typeof result.placed === 'number' ? result.placed : null;
+  const pruned = Array.isArray(result.pruned) ? result.pruned : [];
+  const failed = Array.isArray(result.failed) ? result.failed : [];
+  if (placed === null && pruned.length === 0 && failed.length === 0) {
+    return;
+  }
+
+  const parts = [];
+  if (placed !== null) {
+    parts.push(`placed ${placed} file(s)`);
+  }
+  parts.push(`pruned ${pruned.length}`);
+  if (failed.length > 0) {
+    parts.push(`failed ${failed.length}`);
+  }
+  const suffix = result.isBridge ? ' — first run on a legacy install' : '';
+  console.log(`readev-tools setup: ${parts.join(', ')}${suffix}`);
+  for (const relPath of pruned) {
+    console.log(`  pruned  ${relPath}`);
+  }
 }
 
 /**
@@ -233,7 +274,12 @@ function handleMigrate(target, { dryRun } = {}) {
  */
 function printUsage() {
   console.error(
-    ['Usage: readev-tools <setup|verify|migrate> [target] [--full] [--dry-run]'].join('\n')
+    [
+      'Usage: readev-tools <setup|verify|migrate> [target]',
+      '  setup   [target] [--full]     place or refresh the toolkit (always writes)',
+      '  verify  [target]              read-only health check',
+      '  migrate [target] [--dry-run]  one-time v0.7.1 -> redesign bridge',
+    ].join('\n')
   );
 }
 
@@ -260,6 +306,17 @@ function cli(argv) {
   const { verb, target, full, dryRun } = parseArgs(argv);
   const handler = DISPATCH[verb];
   if (!handler) {
+    printUsage();
+    return 1;
+  }
+  // `--dry-run` is migrate's flag alone. It used to be accepted globally and
+  // then ignored, so `setup <target> --dry-run` performed a full, silent
+  // install — a flag that promises "change nothing" must never be absorbed
+  // by a verb that writes. Refuse rather than guess which one was meant.
+  if (dryRun && verb !== 'migrate') {
+    console.error(
+      `readev-tools: --dry-run is supported by the 'migrate' verb only; '${verb}' always writes.`
+    );
     printUsage();
     return 1;
   }

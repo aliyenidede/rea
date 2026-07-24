@@ -380,6 +380,10 @@ module.exports = {
   MARKER_END,
   CLAUDE_SHIM_PREFIX,
   applyMarkerBlock,
+  // Exported so verify.js can apply this module's own "exactly one pair"
+  // rule when reporting on a managed file, instead of keeping a second copy
+  // of the counting logic that could drift from the write path's.
+  countOccurrences,
   mergeGeminiSettings,
   writeShims,
 };
