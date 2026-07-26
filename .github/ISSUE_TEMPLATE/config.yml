@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and usage help
+    url: https://github.com/aliyenidede/rea/discussions
+    about: Ask how to use readev-tools, share feedback, or discuss ideas before filing an issue.
+  - name: Documentation and FAQ
+    url: https://github.com/aliyenidede/rea/blob/main/docs/faq.md
+    about: Check the FAQ first — it covers what setup writes, uninstalling, updating, and more.
+  - name: Report a security vulnerability
+    url: https://github.com/aliyenidede/rea/security
+    about: Do not file a public issue for a security vulnerability — use private reporting instead.

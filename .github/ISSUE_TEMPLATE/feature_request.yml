@@ -1,0 +1,49 @@
+name: Feature request
+description: Suggest something the installer, a command, or an agent should do differently.
+title: "[feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before filing: is this a change to installer mechanics (`src/`), or to workflow content
+        (a command in `templates/commands/`, an agent in `templates/agents/`, or `core/`)? Say
+        which — it changes where the fix would land. See `CONTRIBUTING.md` for the split.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: What are you trying to do that's currently awkward, missing, or impossible?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What would you like to happen instead?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which area does this touch?
+      options:
+        - Installer mechanics (src/)
+        - A slash command (templates/commands/)
+        - An agent (templates/agents/)
+        - Shared workflow content (core/)
+        - Documentation
+        - Not sure
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any other approaches you thought about, and why you'd prefer this one.
+    validations:
+      required: false
