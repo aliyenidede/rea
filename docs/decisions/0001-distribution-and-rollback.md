@@ -34,7 +34,7 @@ that decision.
 - **This repo** keeps its name (`rea`) and its git history. It publishes the **`rea-tools`** npm
   package (`npx rea-tools setup`). The repo name and the package name are intentionally
   independent — no rename, no `packages/` restructuring. (The package was later renamed
-  `readev-tools`; see the npm package naming decision.)
+  `readev-tools` after an npm naming collision with `react-tools`/`rc-tools`.)
 - **`rea-cli`** (brand: `readev`) is a **separate, greenfield repo**. It is not created by this
   decision; it is scaffolded later, in its own future phase, and it **vendors Layer 1** (`core/`) as
   a one-way dependency — `rea-cli` pulls from `rea-tools`'s published `core/` trio, `rea-tools` never

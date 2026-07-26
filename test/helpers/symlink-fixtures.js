@@ -11,8 +11,8 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 
 /**
- * ASYMMETRIC skip rule (per the safe-path hardening plan's "Cross-platform
- * symlink testing" section): on win32, a permission failure
+ * ASYMMETRIC skip rule (see the safe-path hardening ADR,
+ * `docs/decisions/0002-safe-path-hardening.md`): on win32, a permission failure
  * (EPERM/ENOSYS — symlink/junction creation needs admin/Developer Mode
  * without it) is a LOUD `t.skip(...)`; on every OTHER platform (including
  * CI-Linux, the real coverage backstop for this security regression), the
