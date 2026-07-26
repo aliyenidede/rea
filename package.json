@@ -13,14 +13,20 @@
     "url": "https://github.com/aliyenidede/rea/issues"
   },
   "keywords": [
-    "rea",
     "claude",
     "claude-code",
-    "ai",
-    "development",
-    "toolkit",
+    "cursor",
+    "agents",
+    "ai-coding",
+    "coding-agent",
+    "developer-tools",
+    "npx",
+    "memory",
+    "code-review",
+    "tdd",
     "workflow",
-    "installer"
+    "installer",
+    "rea"
   ],
   "bin": {
     "readev-tools": "bin/readev-tools.js"

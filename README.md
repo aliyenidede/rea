@@ -4,10 +4,10 @@ Bootstraps a structured AI-coding workflow into any project: slash commands, rev
 memory system, and branch rules. The installer copies files; the workflow runs inside your AI coding tool
 (Claude Code today, and any tool that reads `AGENTS.md`).
 
-![CI](https://github.com/aliyenidede/rea/actions/workflows/ci.yml/badge.svg)
-![npm](https://img.shields.io/npm/v/readev-tools)
-![node](https://img.shields.io/badge/node-%E2%89%A520-brightgreen)
-![license](https://img.shields.io/badge/license-MIT-blue)
+[![CI](https://github.com/aliyenidede/rea/actions/workflows/ci.yml/badge.svg)](https://github.com/aliyenidede/rea/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/readev-tools)](https://www.npmjs.com/package/readev-tools)
+[![node](https://img.shields.io/node/v/readev-tools)](https://www.npmjs.com/package/readev-tools)
+[![license](https://img.shields.io/npm/l/readev-tools)](LICENSE)
 
 ```bash
 npx readev-tools setup <project>   # place commands, agents, core/, .rea/, and shims
@@ -24,6 +24,9 @@ readev-tools gives the tool a fixed structure — the same commands, plan format
 agents across every project and session. State lives in files (`AGENTS.md` + `.rea/`), so it survives a
 session restart and moves between tools.
 
+Naming, for reference: the GitHub repo is `rea`, the npm package is `readev-tools`, the product brand is
+**readev**, the retired PyPI shim is `rea-dev`, and a planned standalone agent CLI is `rea-cli`.
+
 ## What it installs
 
 Slash commands — you run these in your coding tool:
@@ -38,6 +41,7 @@ Slash commands — you run these in your coding tool:
 | `/rea-fix` | Short path for a small fix: debug → fix with a test → review → ship. Escalates to the full pipeline if the fix grows. |
 | `/rea-wrap` | Writes a short session note to `.rea/`. |
 | `/rea-tidy` | Reconciles memory, shims, and rules. Dry-run first, then you approve. |
+| `/rea-write-skill` | Adds a new agent or command to the project, matching REA's conventions, via the `skill-writer` agent. |
 
 Agents — building blocks the commands call, each also runnable on its own:
 
@@ -53,6 +57,7 @@ Agents — building blocks the commands call, each also runnable on its own:
 | `plan-validator` | Mechanical checks: file paths exist, rules followed, todo covers the plan. |
 | `dispatcher` | Groups todo items into parallel and sequential batches by file conflict. |
 | `debugger` | Four-phase root-cause debugging, with an escalation rule after three failed fixes. |
+| `skill-writer` | Authors a new agent or command file matching REA's conventions — the agent behind `/rea-write-skill`. |
 
 Commands orchestrate agents; agents never call other agents.
 
@@ -125,6 +130,12 @@ and memory.
 
 `rea-dev` on PyPI (Python, last release 0.7.x) is a frozen shim that prints a notice pointing here.
 `npx readev-tools` is the maintained path. The pre-redesign version is tagged `pre-redesign-v0.7.1`.
+
+## Common questions & contributing
+
+What `setup` writes, whether it overwrites your files, what `.rea/` is, how to update, and how to
+uninstall or roll back — all answered in [docs/faq.md](docs/faq.md). To propose a change, run the
+test suite, or find the branch/PR workflow, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
