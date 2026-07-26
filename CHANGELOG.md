@@ -6,6 +6,34 @@ All notable changes to `readev-tools` are documented in this file. The format fo
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-07-26
+
+### Added
+
+- `readev-tools --help` / `-h` and `readev-tools --version` — print the usage and the package
+  version to stdout and exit 0. Both short-circuit before the unknown-option check and verb dispatch.
+- Contributor and transparency scaffolding: `CONTRIBUTING.md`, `SECURITY.md` (private vulnerability
+  reporting), `CODE_OF_CONDUCT.md`, GitHub issue/PR templates, `.editorconfig`, and a user-facing
+  `docs/` entry point (`docs/README.md` index + `docs/faq.md`).
+
+### Removed
+
+- `setup --full` — the flag looked like it mirrored the `/rea-init --full` slash command but never
+  did CI/branch-protection work; it only changed what `setup` printed. The CLI now rejects `--full`
+  with usage plus a one-line pointer to `/rea-init --full` inside the AI tool.
+
+### Security
+
+- The `claude-review` GitHub Actions workflow now runs only when the comment author is trusted
+  (`OWNER`/`MEMBER`/`COLLABORATOR`), so an arbitrary public commenter can no longer trigger the paid,
+  write-scoped action.
+
+### Changed
+
+- README front door: the command and agent tables now match the shipped set (nine commands, eleven
+  agents), badges are dynamic and clickable, and a name-map plus learn-more links were added.
+  `package.json` and `pyproject.toml` `keywords` were aligned to one discovery vocabulary.
+
 ## [0.1.2] - 2026-07-25
 
 ### Fixed
@@ -61,7 +89,8 @@ All notable changes to `readev-tools` are documented in this file. The format fo
 - Supersedes the `rea-dev` PyPI Python CLI as the project's distribution channel; `rea-dev` is now
   frozen at 0.7.2 as a deprecation notice.
 
-[Unreleased]: https://github.com/aliyenidede/rea/compare/readev-tools-v0.1.2...HEAD
+[Unreleased]: https://github.com/aliyenidede/rea/compare/readev-tools-v0.1.3...HEAD
+[0.1.3]: https://github.com/aliyenidede/rea/compare/readev-tools-v0.1.2...readev-tools-v0.1.3
 [0.1.2]: https://github.com/aliyenidede/rea/compare/readev-tools-v0.1.1...readev-tools-v0.1.2
 [0.1.1]: https://github.com/aliyenidede/rea/compare/readev-tools-v0.1.0...readev-tools-v0.1.1
 [0.1.0]: https://github.com/aliyenidede/rea/releases/tag/readev-tools-v0.1.0
