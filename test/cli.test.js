@@ -284,24 +284,19 @@ function captureConsole(fn) {
   }
 }
 
-test('parseArgs(["setup", "/tmp/x"]) resolves verb=setup, target=/tmp/x, full=false', () => {
+test('parseArgs(["setup", "/tmp/x"]) resolves verb=setup, target=/tmp/x, dryRun=false', () => {
   const parsed = cliModule.parseArgs(['setup', '/tmp/x']);
-  assert.deepEqual(parsed, { verb: 'setup', target: '/tmp/x', full: false, dryRun: false });
-});
-
-test('parseArgs(["setup", "/tmp/x", "--full"]) resolves full=true', () => {
-  const parsed = cliModule.parseArgs(['setup', '/tmp/x', '--full']);
-  assert.deepEqual(parsed, { verb: 'setup', target: '/tmp/x', full: true, dryRun: false });
+  assert.deepEqual(parsed, { verb: 'setup', target: '/tmp/x', dryRun: false });
 });
 
 test('parseArgs(["verify"]) defaults target to process.cwd()', () => {
   const parsed = cliModule.parseArgs(['verify']);
-  assert.deepEqual(parsed, { verb: 'verify', target: process.cwd(), full: false, dryRun: false });
+  assert.deepEqual(parsed, { verb: 'verify', target: process.cwd(), dryRun: false });
 });
 
 test('parseArgs(["migrate", "/tmp/x", "--dry-run"]) resolves dryRun=true', () => {
   const parsed = cliModule.parseArgs(['migrate', '/tmp/x', '--dry-run']);
-  assert.deepEqual(parsed, { verb: 'migrate', target: '/tmp/x', full: false, dryRun: true });
+  assert.deepEqual(parsed, { verb: 'migrate', target: '/tmp/x', dryRun: true });
 });
 
 test('cli(["verify", "."]) with verify.js absent prints the graceful stub and returns 0', () => {
@@ -457,37 +452,40 @@ test('cli(["setup", "."]) with setup.js absent prints the graceful stub and retu
   });
 });
 
-test('cli(["setup", "-full"]) rejects the mistyped single-dash flag instead of treating it as target', () => {
+test('cli(["setup", "-full"]) rejects the mistyped single-dash flag and shows the /rea-init --full hint', () => {
   const { result, out, err } = captureConsole(() =>
     cliModule.cli(['setup', '-full'])
   );
   assert.notEqual(result, 0);
   const combined = `${out}\n${err}`;
   assert.match(combined, /usage/i);
+  assert.match(combined, /rea-init --full/, 'the -full/--full-specific hint must be shown');
 });
 
-test('cli(["setup", "--bogus"]) rejects an unrecognized long flag', () => {
+test('cli(["setup", "--bogus"]) rejects an unrecognized long flag WITHOUT the --full-specific hint', () => {
   const { result, out, err } = captureConsole(() =>
     cliModule.cli(['setup', '--bogus'])
   );
   assert.notEqual(result, 0);
   const combined = `${out}\n${err}`;
   assert.match(combined, /usage/i);
+  assert.doesNotMatch(
+    combined,
+    /rea-init --full/,
+    'the --full hint must only ever fire for the --full/-full token, never for an arbitrary unknown flag'
+  );
 });
 
-test('cli(["setup", "/tmp/x", "--full"]) still parses full:true with target /tmp/x, dispatches to a present setup.js, and returns the mapped numeric exit code (not the raw result object)', () => {
-  // The stub run() records its call args into a call-log file the test can
-  // read back afterward (a plain closure variable would not survive across
-  // the fresh module load withTempSetup triggers), so this still proves the
-  // dispatch args (target, {full:true}) while asserting cli()'s return
-  // value is the mapped numeric exit code, not the raw {target, opts}
-  // object a naive `return s.run(...)` would produce. Forward slashes only,
-  // so the path is embeddable in the generated stub source without any
-  // Windows backslash-escaping gymnastics — fs accepts forward slashes on
-  // Windows too. Lives under the OS temp dir (never inside the repo) so a
-  // crash mid-test can never leave a stray file in the working tree.
+test('cli(["setup", "/tmp/x", "--full"]) is rejected — --full was removed from the CLI, usage + hint on stderr, setup.run() never reached', () => {
+  // --full used to be silently accepted (KNOWN_FLAGS) and dispatched through
+  // to setup.run({full: true}). Now it must be rejected by the same
+  // findUnknownOption path as any other unrecognized flag, plus the
+  // one-line /rea-init --full hint (this exact token), and — critically —
+  // the real orchestrator must never be reached. Proven the same way the old
+  // dispatch test proved the opposite: a stub run() that records to a
+  // call-log file must never be invoked.
   const callLogPath = path
-    .join(os.tmpdir(), `rea-cli-test-call-log-${process.pid}.json`)
+    .join(os.tmpdir(), `rea-cli-test-full-rejected-${process.pid}.json`)
     .replace(/\\/g, '/');
   fs.rmSync(callLogPath, { force: true });
   withTempSetup(
@@ -497,17 +495,25 @@ test('cli(["setup", "/tmp/x", "--full"]) still parses full:true with target /tmp
       'module.exports = {',
       '  run(target, opts) {',
       `    fs.writeFileSync('${callLogPath}', JSON.stringify({ target, opts }));`,
-      '    return { placed: 1, pruned: [], failed: [], isBridge: false, full: opts.full };',
+      '    return { placed: 1, pruned: [], failed: [], isBridge: false };',
       '  },',
       '};',
       '',
     ].join('\n'),
     () => {
       try {
-        const result = cliModule.cli(['setup', '/tmp/x', '--full']);
-        assert.equal(result, 0, 'cli() must return the numeric exit code, not the raw result object');
-        const recorded = JSON.parse(fs.readFileSync(callLogPath, 'utf8'));
-        assert.deepEqual(recorded, { target: '/tmp/x', opts: { full: true } });
+        const { result, out, err } = captureConsole(() =>
+          cliModule.cli(['setup', '/tmp/x', '--full'])
+        );
+        assert.notEqual(result, 0, "'setup --full' must now be rejected, not dispatched");
+        const combined = `${out}\n${err}`;
+        assert.match(combined, /usage/i);
+        assert.match(combined, /rea-init --full/);
+        assert.equal(
+          fs.existsSync(callLogPath),
+          false,
+          'setup.run() must never be reached when --full is passed'
+        );
       } finally {
         fs.rmSync(callLogPath, { force: true });
       }
@@ -515,9 +521,82 @@ test('cli(["setup", "/tmp/x", "--full"]) still parses full:true with target /tmp
   );
 });
 
+test('cli(["--help"]) prints usage to stdout and returns 0', () => {
+  const { result, out, err } = captureConsole(() => cliModule.cli(['--help']));
+  assert.equal(result, 0);
+  assert.match(out, /usage/i);
+  assert.equal(err, '', '--help must print to stdout, never stderr');
+});
+
+test('cli(["-h"]) prints usage to stdout and returns 0', () => {
+  const { result, out, err } = captureConsole(() => cliModule.cli(['-h']));
+  assert.equal(result, 0);
+  assert.match(out, /usage/i);
+  assert.equal(err, '');
+});
+
+test('cli(["--bogus", "--help"]) still short-circuits to help — checked before the unknown-option scan', () => {
+  const { result, out, err } = captureConsole(() => cliModule.cli(['--bogus', '--help']));
+  assert.equal(result, 0);
+  assert.match(out, /usage/i);
+  assert.equal(err, '');
+});
+
+test('cli(["setup", "/tmp/x", "--help"]) short-circuits to help before dispatching to setup.run()', () => {
+  const callLogPath = path
+    .join(os.tmpdir(), `rea-cli-test-help-short-circuit-${process.pid}.json`)
+    .replace(/\\/g, '/');
+  fs.rmSync(callLogPath, { force: true });
+  withTempSetup(
+    [
+      "'use strict';",
+      'const fs = require("node:fs");',
+      'module.exports = {',
+      '  run(target, opts) {',
+      `    fs.writeFileSync('${callLogPath}', JSON.stringify({ target, opts }));`,
+      '    return { placed: 1, pruned: [], failed: [], isBridge: false };',
+      '  },',
+      '};',
+      '',
+    ].join('\n'),
+    () => {
+      try {
+        const { result, out } = captureConsole(() =>
+          cliModule.cli(['setup', '/tmp/x', '--help'])
+        );
+        assert.equal(result, 0);
+        assert.match(out, /usage/i);
+        assert.equal(
+          fs.existsSync(callLogPath),
+          false,
+          'setup.run() must never be reached when --help is passed'
+        );
+      } finally {
+        fs.rmSync(callLogPath, { force: true });
+      }
+    }
+  );
+});
+
+test('cli(["--version"]) prints the package.json version to stdout and returns 0', () => {
+  const pkg = require('../package.json');
+  const { result, out, err } = captureConsole(() => cliModule.cli(['--version']));
+  assert.equal(result, 0);
+  assert.match(out, new RegExp(pkg.version.replace(/\./g, '\\.')));
+  assert.equal(err, '', '--version must print to stdout, never stderr');
+});
+
+test('cli(["--bogus", "--version"]) still short-circuits to version — checked before the unknown-option scan and before dispatch', () => {
+  const pkg = require('../package.json');
+  const { result, out, err } = captureConsole(() => cliModule.cli(['--bogus', '--version']));
+  assert.equal(result, 0);
+  assert.match(out, new RegExp(pkg.version.replace(/\./g, '\\.')));
+  assert.equal(err, '');
+});
+
 test('cli(["setup", "/tmp/x"]) returns 0 (not a thrown error) when the stub run() returns a bare object without a .failed array', () => {
   // Null-safe fallback: an older/stub run() might not return the full
-  // {placed, pruned, failed, isBridge, full} shape. handleSetup must still
+  // {placed, pruned, failed, isBridge} shape. handleSetup must still
   // degrade to 0 rather than throwing on a missing `.failed`.
   withTempSetup(
     "'use strict';\nmodule.exports = { run() { return {}; } };\n",
@@ -591,7 +670,7 @@ test('cli(["setup", "/tmp/x"]) prints what it placed and pruned', () => {
   // user could not see what landed or what was removed.
   withTempSetup(
     "'use strict';\nmodule.exports = { run() { return " +
-      "{ placed: 23, pruned: ['.claude/commands/rea-commit.md'], failed: [], isBridge: false, full: false }; " +
+      "{ placed: 23, pruned: ['.claude/commands/rea-commit.md'], failed: [], isBridge: false }; " +
       '} };\n',
     () => {
       const { result, out } = captureConsole(() => cliModule.cli(['setup', '/tmp/x']));
@@ -606,7 +685,7 @@ test('cli(["setup", "/tmp/x"]) prints what it placed and pruned', () => {
 test('cli(["setup", "/tmp/x"]) reports the failed count alongside the exit code', () => {
   withTempSetup(
     "'use strict';\nmodule.exports = { run() { return " +
-      "{ placed: 2, pruned: [], failed: ['.claude/commands/locked.md'], isBridge: false, full: false }; } };\n",
+      "{ placed: 2, pruned: [], failed: ['.claude/commands/locked.md'], isBridge: false }; } };\n",
     () => {
       const { result, out } = captureConsole(() => cliModule.cli(['setup', '/tmp/x']));
       assert.equal(result, 1);

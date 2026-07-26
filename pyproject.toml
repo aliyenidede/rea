@@ -12,7 +12,7 @@ license = "MIT"
 authors = [
     { name = "aliyenidede", email = "aliyenidede@gmail.com" },
 ]
-keywords = ["claude", "claude-code", "ai", "development", "toolkit", "agents", "workflow"]
+keywords = ["claude", "claude-code", "cursor", "agents", "ai-coding", "coding-agent", "developer-tools", "npx", "memory", "code-review", "tdd", "workflow", "rea"]
 classifiers = [
     "Development Status :: 7 - Inactive",
     "Environment :: Console",

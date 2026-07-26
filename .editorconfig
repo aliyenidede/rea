@@ -1,0 +1,20 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+
+[*.{js,json,md,yml,yaml}]
+indent_size = 2
+
+[*.py]
+# Mirrors ruff's defaults (no [tool.ruff] override in pyproject.toml): 4-space indent, 88-col lines.
+indent_size = 4
+max_line_length = 88
+
+[*.md]
+# Markdown tables and hard-wrapped prose rely on trailing spaces for line breaks.
+trim_trailing_whitespace = false

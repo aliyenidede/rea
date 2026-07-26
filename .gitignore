@@ -17,15 +17,17 @@ node_modules/
 *.tgz
 npm-debug.log*
 
-# REA runtime
-.rea/sessions/
+# REA runtime — the maintainer's own memory graph, kept local like a host project's
+# (anchored to repo root: templates/.rea/ is shipped product content and must stay trackable)
+/.rea/
 
 # Internal planning notes
 docs/rea-planning-notes.md
 docs/open-source-roadmap.md
-
-# Research scratch (cloned repos for inspection — not source of truth)
-docs/researches/temp/
+docs/rea-roadmap.md
+docs/rea-target-state.md
+docs/harness-research/
+docs/researches/
 
 # Playwright MCP cache
 .playwright-mcp/

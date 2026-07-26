@@ -22,11 +22,11 @@
  *      crash before this step leaves the OLD manifest on disk, so a retry
  *      keeps the correct previously-owned basis.
  *
- * `run()`'s only side-effecting choice of its own is *when* to print the two
- * one-off notices (the legacy pip-uninstall notice on the bridge; the
- * `/rea-init --full` GitHub/CI hand-off when `--full` was passed) — the
- * installer itself never touches GitHub or CI; "quick" (default) setup is
- * the mechanical placement + shims + prune + manifest only.
+ * `run()`'s only side-effecting choice of its own is *when* to print the
+ * one-off legacy pip-uninstall notice on the bridge — the installer itself
+ * never touches GitHub or CI; setup is the mechanical placement + shims +
+ * prune + manifest only. GitHub/CI wiring lives in `/rea-init --full`
+ * inside the AI coding tool, never in this CLI.
  *
  * Node built-ins only, plus the sibling modules listed above.
  *
@@ -37,7 +37,7 @@
  *                               place.js's LAYOUT table plus this
  *                               descriptor — never a scattered layout
  *                               literal in this file.
- *   run(targetRoot, opts)    - opts: { full = false, sourceRoot =
+ *   run(targetRoot, opts)    - opts: { sourceRoot =
  *                               path.resolve(__dirname, '..') }. Runs the
  *                               full setup pipeline against targetRoot,
  *                               reading source content from sourceRoot (the
@@ -45,7 +45,7 @@
  *                               package's own root so a normal CLI install
  *                               needs no override; tests inject a fixture
  *                               sourceRoot). Returns { placed, pruned,
- *                               failed, isBridge, full } — placed is the
+ *                               failed, isBridge } — placed is the
  *                               count of files owned by this run, pruned/
  *                               failed are prune()'s deleted/failed arrays.
  */
@@ -72,10 +72,6 @@ const PIP_UNINSTALL_NOTICE =
   'Legacy rea-dev detected. You can now: pip uninstall rea-dev; ' +
   'run `npx readev-tools migrate` to finish the transition.';
 
-const FULL_HANDOFF_NOTICE =
-  'Quick setup complete. For GitHub/CI wiring, run `/rea-init --full` inside your AI coding tool ' +
-  '— readev-tools setup itself never touches GitHub.';
-
 /**
  * True if any hard-coded retired (pre-manifest, legacy v0.7.1) file exists
  * under targetRoot. Used only to detect the one-time legacy-host bridge —
@@ -93,16 +89,13 @@ function detectLegacyPresent(targetRoot) {
  *
  * @param {string} targetRoot - the host project root to set up.
  * @param {object} [opts]
- * @param {boolean} [opts.full] - when true, also prints the `/rea-init
- *   --full` GitHub/CI hand-off notice (this installer never does GitHub/CI
- *   itself).
  * @param {string} [opts.sourceRoot] - the readev-tools package root containing
  *   `templates/` and `core/`. Defaults to this package's own root; tests
  *   inject a fixture tree here.
  * @returns {{placed: number, pruned: string[], failed: string[], isBridge:
- *   boolean, full: boolean}}
+ *   boolean}}
  */
-function run(targetRoot, { full = false, sourceRoot = path.resolve(__dirname, '..') } = {}) {
+function run(targetRoot, { sourceRoot = path.resolve(__dirname, '..') } = {}) {
   targetRoot = path.resolve(targetRoot);
   sourceRoot = path.resolve(sourceRoot);
 
@@ -153,9 +146,6 @@ function run(targetRoot, { full = false, sourceRoot = path.resolve(__dirname, '.
   if (isBridge) {
     console.log(PIP_UNINSTALL_NOTICE);
   }
-  if (full) {
-    console.log(FULL_HANDOFF_NOTICE);
-  }
   if (pruneResult.failed.length > 0) {
     console.warn(
       `readev-tools setup: could not remove ${pruneResult.failed.length} obsolete file(s): ` +
@@ -168,7 +158,6 @@ function run(targetRoot, { full = false, sourceRoot = path.resolve(__dirname, '.
     pruned: pruneResult.deleted,
     failed: pruneResult.failed,
     isBridge,
-    full,
   };
 }
 
