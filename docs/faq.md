@@ -27,11 +27,17 @@ under the target project can't redirect a write outside it.
 
 Two different answers depending on which file:
 
-- **Owned files** — everything under `.claude/commands/`, `.claude/agents/`, `core/`, and the
-  `.rea/` scaffold's placeholder `README.md`s — are fully replaced with the current shipped
-  version on every `setup` run, and pruned outright if retired. Don't hand-edit these; edit the
-  source template and re-run `setup` instead, or your edits will be silently overwritten on the
-  next run.
+- **Owned files** — everything under `.claude/commands/`, `.claude/agents/`, and `core/` — are
+  fully replaced with the current shipped version on every `setup` run, and pruned outright if
+  retired. Don't hand-edit these; edit the source template and re-run `setup` instead, or your
+  edits will be silently overwritten on the next run.
+- **The `.rea/` scaffold's placeholder `README.md`s** behave differently from the files above:
+  each is written *once*, only when its typed dir (`knowledge/`, `decisions/`, `sessions/`,
+  `plans/`) is first created — missing or empty. Once that dir holds anything (even just the
+  placeholder), later `setup` runs never re-copy or touch it again, so a template update to that
+  README never reaches an already-set-up project. These dirs are also permanently protected from
+  pruning — `src/prune.js`'s deny-list blocks them outright, "no matter what the manifest or
+  retired list says."
 - **Shimmed files** — `AGENTS.md`, `CLAUDE.md`, `.gemini/settings.json` — are never overwritten
   wholesale. The two markdown files are only touched *inside* the
   `<!-- readev-tools:start -->` … `<!-- readev-tools:end -->` markers; everything you write outside
@@ -84,10 +90,11 @@ Partially, and precisely:
   that you point at it — gets the same steering and the same memory graph.
 - `.gemini/settings.json` gets `context.fileName` merged to include `AGENTS.md`, so Gemini picks
   it up automatically without you doing anything extra.
-- The nine slash commands (`/rea-grill`, `/rea-plan`, …) and ten agents are placed only into
-  `.claude/commands/` and `.claude/agents/` today — `src/place.js`'s layout table has one entry,
-  `claude`. A Cursor/Codex/other-tool user gets the `AGENTS.md` steering and `.rea/` memory, but
-  not the ready-made slash commands; per-tool command placement for other tools isn't built yet.
+- The nine slash commands (`/rea-grill`, `/rea-plan`, …) and every agent in `templates/agents/`
+  (eleven today) are placed only into `.claude/commands/` and `.claude/agents/` — `src/place.js`'s
+  layout table has one entry, `claude`. A Cursor/Codex/other-tool user gets the `AGENTS.md`
+  steering and `.rea/` memory, but not the ready-made slash commands; per-tool command placement
+  for other tools isn't built yet.
 
 ## `setup` vs `migrate` — which do I run?
 
