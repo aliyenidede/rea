@@ -104,7 +104,7 @@ templates/              # what the installer places: AGENTS.md, per-tool shims, 
   commands/              # the slash commands (the product)
   agents/                # agent prompts + skill-writer-patterns.md
 rea/, tests/            # frozen rea-dev 0.7.3 Python shim (PyPI signpost only, no new features)
-docs/                   # public decision record (docs/decisions/)
+docs/                   # adopter-facing docs (README, FAQ) + docs/decisions/ (public ADRs)
 ```
 
 If you're not sure whether a change belongs in `src/` (mechanics) or `templates/`/`core/`
