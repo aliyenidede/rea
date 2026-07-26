@@ -6,5 +6,3 @@ authored tool-agnostic. The Phase-4 `npx` installer places them into each host t
 TOML) is parked — this is a single-format markdown source for now.
 
 Models: `explorer` runs on haiku; every other agent runs on sonnet.
-
-See [`docs/rea-roadmap.md`](../../docs/rea-roadmap.md) §4 — Phase 2 for context.

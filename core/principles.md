@@ -1,10 +1,9 @@
 # REA Principles
 
 The twelve principles below are the foundation the REA methodology is built on. They were
-distilled from Matt Pocock's 20 AI-coding principles (documented in the readev-tools source repo under
-`docs/researches/ai-coding-principles.md`) and REA's own
-architecture rules, then owned through conversation — each one is kept because it earned its
-place, not because it was copied from a source.
+distilled from Matt Pocock's 20 AI-coding principles and REA's own architecture rules, then owned
+through conversation — each one is kept because it earned its place, not because it was copied from
+a source.
 
 Both readev-tools and rea-cli operate by these principles. Every skill, command, and agent should
 trace back to one or more of them; when a skill drifts from a principle, the skill is wrong, not

@@ -57,17 +57,18 @@ One methodology, two products:
   commands, agents, the `core/` trio, the `.rea/` scaffold, and per-tool shims. Live on npm since
   2026-07-24 (`npx readev-tools setup`).
 - **rea-cli** — the same methodology as a standalone agent CLI. Not built yet: separate greenfield
-  repo, vendors `core/` as a one-way dependency (`.rea/decisions/0001-distribution-and-rollback.md`).
+  repo, vendors `core/` as a one-way dependency (see
+  [docs/decisions/0001-distribution-and-rollback.md](docs/decisions/0001-distribution-and-rollback.md)).
 
-`rea-dev` on PyPI is the retired Python CLI this project started as. Frozen at 0.7.2 (a deprecation
-notice plus the 0.7.1 behaviour); `rea/` and `tests/` are its source and stay only for that.
-Channel detail: `.rea/knowledge/distribution-channels.md`.
+`rea-dev` on PyPI is the retired Python CLI this project started as. Frozen at 0.7.3 (signpost —
+installs nothing); `rea/` and `tests/` are its source and stay only for that.
 
 The installer is mechanical — it copies files, prunes what it owns, and edits shims between managed
 markers. All workflow intelligence lives in the prompts under `templates/`.
 
-Design record: [docs/rea-roadmap.md](docs/rea-roadmap.md) (master plan, phases 0–5 complete) and
-[docs/rea-target-state.md](docs/rea-target-state.md) (readev-tools design).
+Design record: the maintainer's local roadmap and target-state notes (kept out of the public tree)
+track phase-by-phase progress; the two ADRs cited above and below are the durable public record of
+what was decided and why.
 
 ## Tech stack
 
@@ -95,7 +96,8 @@ Design record: [docs/rea-roadmap.md](docs/rea-roadmap.md) (master plan, phases 0
 
 4. **Every filesystem mutation goes through `src/safe-path.js`** — realpath-aware containment that
    closed a CWE-59 symlink-escape class. A new write, move, or delete path that bypasses it is a
-   security regression, not a style issue (`.rea/decisions/0002-safe-path-hardening.md`).
+   security regression, not a style issue (see
+   [docs/decisions/0002-safe-path-hardening.md](docs/decisions/0002-safe-path-hardening.md)).
 
 5. **Composable agents** — agents are building blocks, commands are orchestrators. Agents never call
    other agents; every agent must work standalone and inside a command workflow.
@@ -105,7 +107,8 @@ Design record: [docs/rea-roadmap.md](docs/rea-roadmap.md) (master plan, phases 0
    protection requires it. `staging` exists but has been dormant since 2026-04.
 
 7. **Versioning** — `package.json` holds the released version (npm, semver). `pyproject.toml` is
-   frozen at 0.7.2; bump it only if PyPI ever needs another deprecation notice.
+   frozen at 0.7.3 (signpost — installs nothing); bump it only if PyPI ever needs another
+   deprecation notice.
 
 ## Commands
 
@@ -134,8 +137,10 @@ core/                 # tool-agnostic foundation shipped to hosts: principles, c
 templates/            # what the installer places: AGENTS.md, per-tool shims, .rea/ scaffold
   commands/           # the nine slash commands — the product
   agents/             # agent prompts + skill-writer-patterns.md
-rea/, tests/          # frozen rea-dev 0.7.2 Python shim (legacy templates live under rea/templates/)
-docs/                 # roadmap, target state, research
-.rea/                 # this project's own memory graph (dogfooded)
+rea/, tests/          # frozen rea-dev 0.7.3 Python shim (legacy templates live under rea/templates/)
+docs/                 # public decision record (docs/decisions/); maintainer's roadmap and
+                      # research notes stay local, gitignored
+.rea/                 # this project's own memory graph (dogfooded), gitignored — kept local like
+                      # a host project's runtime memory
 .claude/, .gemini/    # install output — generated, not hand-edited
 ```

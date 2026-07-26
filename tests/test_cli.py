@@ -70,9 +70,9 @@ def test_setup_mentions_the_migrate_path(tmp_path: Path):
 
 
 def test_setup_names_the_pinned_fallback(tmp_path: Path):
-    # The rollback plan (.rea/decisions/0001) pins 0.7.1 as the frozen
-    # fallback — the signpost must say so, or removing the copy behaviour
-    # leaves users with no route back.
+    # The rollback plan (docs/decisions/0001-distribution-and-rollback.md)
+    # pins 0.7.1 as the frozen fallback — the signpost must say so, or
+    # removing the copy behaviour leaves users with no route back.
     result = runner.invoke(app, ["setup", str(tmp_path)])
     assert "rea-dev==0.7.1" in result.output
 
