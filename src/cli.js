@@ -3,12 +3,16 @@
 /**
  * src/cli.js — CLI dispatcher + target resolution
  *
- * Parses argv into `{verb, target, full}` and dispatches to the handler for
- * that verb. This module has no file IO of its own — it only resolves
+ * Parses argv into `{verb, target, dryRun}` and dispatches to the handler
+ * for that verb. This module has no file IO of its own — it only resolves
  * arguments and delegates.
  *
- * Orchestrator contract: setup.run(targetRoot, { full }) -> a result object
- * ({placed, pruned, failed, isBridge, full}), never a number. `handleSetup`
+ * `--help`/`-h` and `--version` are handled entirely inside `cli()`, before
+ * the unknown-option check and before any verb dispatch: they print to
+ * stdout and return 0 regardless of what else is in argv.
+ *
+ * Orchestrator contract: setup.run(targetRoot, opts) -> a result object
+ * ({placed, pruned, failed, isBridge}), never a number. `handleSetup`
  * prints that object as a report (`printSetupReport`) and maps it to a
  * numeric exit code (0 ok, 1 if `failed` is
  * non-empty) before returning, since `cli()`'s return value is assigned
@@ -25,27 +29,38 @@
  * them is ever absent.
  *
  * Exported API:
- *   parseArgs(argv) - pure argv parser; returns {verb, target, full, dryRun}.
+ *   parseArgs(argv) - pure argv parser; returns {verb, target, dryRun}.
  *                      target defaults to process.cwd() when omitted.
  *   cli(argv)        - parses argv, dispatches to the matching verb handler,
  *                       returns an exit code (0 ok, non-zero error).
  */
 
 /**
+ * The published readev-tools version, printed by `--version`. Read from
+ * package.json rather than hard-coded so it can never drift from a release
+ * — npm always ships package.json in the tarball regardless of the `files`
+ * allow-list, so this resolves the same way from a source checkout and from
+ * an installed package.
+ */
+const PACKAGE_VERSION = require('../package.json').version;
+
+/**
  * Recognized flag tokens. Any argv token starting with one or more dashes
  * that is not in this set is treated as an unrecognized option by `cli()`
  * (see `findUnknownOption`), never silently absorbed as a positional.
+ * `--help`/`-h`/`--version` are NOT in this set — they are handled directly
+ * inside `cli()`, before this check ever runs (see cli()'s doc comment).
  */
-const KNOWN_FLAGS = new Set(['--full', '--dry-run']);
+const KNOWN_FLAGS = new Set(['--dry-run']);
 
 /**
  * Parses raw CLI argv (post `process.argv.slice(2)`) into a plain args
  * object. Pure function — no IO, no process.exit. The first non-flag token
  * is the verb; the second non-flag token (if any) is the target path
- * (defaults to `process.cwd()` when omitted); `--full` sets full=true;
- * `--dry-run` sets dryRun=true (consumed by the `migrate` verb only — `cli()`
- * refuses it outright for any other verb rather than letting a write happen
- * under a flag that promises otherwise).
+ * (defaults to `process.cwd()` when omitted); `--dry-run` sets dryRun=true
+ * (consumed by the `migrate` verb only — `cli()` refuses it outright for
+ * any other verb rather than letting a write happen under a flag that
+ * promises otherwise).
  *
  * Note: this parser does not validate options — a mistyped flag (e.g.
  * `-full`) would be treated as a positional here. `cli()` guards against
@@ -54,11 +69,10 @@ const KNOWN_FLAGS = new Set(['--full', '--dry-run']);
  */
 function parseArgs(argv) {
   const positional = argv.filter((a) => !a.startsWith('--'));
-  const full = argv.includes('--full');
   const dryRun = argv.includes('--dry-run');
   const verb = positional[0];
   const target = positional[1] !== undefined ? positional[1] : process.cwd();
-  return { verb, target, full, dryRun };
+  return { verb, target, dryRun };
 }
 
 /**
@@ -157,19 +171,19 @@ function loadMigrate() {
  * `setup` verb handler: dispatches to the setup orchestrator (4b-6) when
  * present, otherwise prints a graceful placeholder. Returns an exit code.
  */
-function handleSetup(target, full) {
+function handleSetup(target) {
   const s = loadSetup();
   if (!s) {
     console.log('readev-tools setup: orchestrator arrives in a later release');
     return 0;
   }
-  // s.run() returns a result OBJECT ({placed, pruned, failed, isBridge, full}),
+  // s.run() returns a result OBJECT ({placed, pruned, failed, isBridge}),
   // never a number — bin/readev-tools.js assigns this handler's return value
   // straight to process.exitCode, which Node requires to be an integer.
   // Map the result to a numeric exit code here rather than passing the
   // object through. Null-safe: a stub/older run() that returns a bare object
   // without a `.failed` array must still yield 0, not throw.
-  const result = s.run(target, { full });
+  const result = s.run(target);
   printSetupReport(result);
   return result && Array.isArray(result.failed) && result.failed.length > 0 ? 1 : 0;
 }
@@ -270,40 +284,84 @@ function handleMigrate(target, { dryRun } = {}) {
 }
 
 /**
- * Prints short usage help to stderr.
+ * Builds the short usage/help text — shared by the stderr error path
+ * (`printUsage`, below) and the stdout `--help` path in `cli()`, so the two
+ * can never drift apart.
  */
-function printUsage() {
-  console.error(
-    [
-      'Usage: readev-tools <setup|verify|migrate> [target]',
-      '  setup   [target] [--full]     place or refresh the toolkit (always writes)',
-      '  verify  [target]              read-only health check',
-      '  migrate [target] [--dry-run]  one-time v0.7.1 -> redesign bridge',
-    ].join('\n')
-  );
+function usageText() {
+  return [
+    'Usage: readev-tools <setup|verify|migrate> [target]',
+    '  setup   [target]              place or refresh the toolkit (always writes)',
+    '  verify  [target]              read-only health check',
+    '  migrate [target] [--dry-run]  one-time v0.7.1 -> redesign bridge',
+    '',
+    '  -h, --help                    show this help and exit',
+    '      --version                 show the installed version and exit',
+  ].join('\n');
 }
 
+/**
+ * Prints short usage help to stderr — the error path (unknown verb,
+ * unrecognized option). `--help`/`-h` print the same text to stdout instead
+ * (see `cli()`), since that is a successful, requested action, not an error.
+ */
+function printUsage() {
+  console.error(usageText());
+}
+
+/**
+ * Shown alongside usage ONLY when the specific rejected token is `--full`/
+ * `-full` — `setup --full` was removed from the CLI (it only ever flipped a
+ * GitHub/CI hand-off notice; the installer itself never touched GitHub or
+ * CI). This points the user at where that wiring actually lives, without
+ * adding noise to every other unrecognized-flag rejection.
+ */
+const FULL_FLAG_HINT =
+  "readev-tools: '--full' was removed from the CLI — for GitHub/CI wiring, run " +
+  '`/rea-init --full` inside your AI coding tool.';
+
 const DISPATCH = {
-  setup: (target, full) => handleSetup(target, full),
+  setup: (target) => handleSetup(target),
   verify: (target) => handleVerify(target),
-  migrate: (target, full, dryRun) => handleMigrate(target, { dryRun }),
+  migrate: (target, dryRun) => handleMigrate(target, { dryRun }),
 };
 
 /**
  * Parses `argv` and dispatches to the matching verb handler. Returns an
  * exit code (0 ok, non-zero on error/unknown verb/unrecognized option).
+ *
+ * `--help`/`-h` and `--version` are checked FIRST — before the
+ * unknown-option scan and before any verb dispatch — so `readev-tools
+ * --help` (no verb at all) and `readev-tools <anything> --help` both print
+ * usage to stdout and return 0, regardless of what else is in argv.
+ *
  * Rejects any unrecognized `-`/`--` option (e.g. a mistyped `-full`) before
  * dispatch, rather than letting `parseArgs` silently absorb it as the
- * `target` positional. Never throws for an unknown verb, an unrecognized
+ * `target` positional. `setup --full` (removed from the CLI — see
+ * `FULL_FLAG_HINT`) is rejected here too, with a one-line hint shown only
+ * for that specific token so every OTHER unrecognized flag stays a plain
+ * usage rejection. Never throws for an unknown verb, an unrecognized
  * option, or a missing orchestrator — only genuine internal errors
  * propagate.
  */
 function cli(argv) {
-  if (findUnknownOption(argv)) {
+  if (argv.includes('--help') || argv.includes('-h')) {
+    console.log(usageText());
+    return 0;
+  }
+  if (argv.includes('--version')) {
+    console.log(PACKAGE_VERSION);
+    return 0;
+  }
+  const unknown = findUnknownOption(argv);
+  if (unknown) {
     printUsage();
+    if (unknown === '--full' || unknown === '-full') {
+      console.error(FULL_FLAG_HINT);
+    }
     return 1;
   }
-  const { verb, target, full, dryRun } = parseArgs(argv);
+  const { verb, target, dryRun } = parseArgs(argv);
   const handler = DISPATCH[verb];
   if (!handler) {
     printUsage();
@@ -320,7 +378,7 @@ function cli(argv) {
     printUsage();
     return 1;
   }
-  return handler(target, full, dryRun);
+  return handler(target, dryRun);
 }
 
 module.exports = {

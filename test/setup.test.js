@@ -189,7 +189,7 @@ test('run(): legacy host bridge — places the redesign set, creates the .rea sc
     // Sanity: no manifest yet.
     assert.equal(fs.existsSync(path.join(targetRoot, manifest.MANIFEST_REL_PATH)), false);
 
-    const { result, out } = captureConsole(() => run(targetRoot, { full: false, sourceRoot: REPO_ROOT }));
+    const { result, out } = captureConsole(() => run(targetRoot, { sourceRoot: REPO_ROOT }));
 
     // A redesign command is placed.
     assert.ok(
@@ -229,7 +229,7 @@ test('run(): legacy host bridge — places the redesign set, creates the .rea sc
 
     // Return value sanity.
     assert.equal(result.isBridge, true);
-    assert.equal(result.full, false);
+    assert.ok(!('full' in result), 'the full concept was removed — run() must not return a `full` key');
     assert.ok(result.placed > 0);
   } finally {
     fs.rmSync(targetRoot, { recursive: true, force: true });
@@ -245,7 +245,7 @@ test('run(): second run after a template file is dropped prunes it via the manif
   const targetRoot = makeTmpRoot();
   try {
     // Run 1: both a.md and b.md are placed.
-    const run1 = run(targetRoot, { full: false, sourceRoot: fixtureRoot });
+    const run1 = run(targetRoot, { sourceRoot: fixtureRoot });
     assert.equal(run1.isBridge, false);
     assert.ok(fs.existsSync(path.join(targetRoot, '.claude', 'commands', 'a.md')));
     assert.ok(fs.existsSync(path.join(targetRoot, '.claude', 'commands', 'b.md')));
@@ -254,7 +254,7 @@ test('run(): second run after a template file is dropped prunes it via the manif
     fs.unlinkSync(path.join(fixtureRoot, 'templates', 'commands', 'b.md'));
 
     // Run 2: b.md was owned last run, absent this run -> pruned via the diff.
-    const run2 = run(targetRoot, { full: false, sourceRoot: fixtureRoot });
+    const run2 = run(targetRoot, { sourceRoot: fixtureRoot });
     assert.equal(run2.isBridge, false);
     assert.equal(
       fs.existsSync(path.join(targetRoot, '.claude', 'commands', 'b.md')),
@@ -290,7 +290,7 @@ test('run(): a file that fails to delete during prune is re-recorded as owned in
   const originalRmSync = fs.rmSync;
   try {
     // Run 1: both a.md and b.md are placed.
-    run(targetRoot, { full: false, sourceRoot: fixtureRoot });
+    run(targetRoot, { sourceRoot: fixtureRoot });
     const bPath = path.join(targetRoot, '.claude', 'commands', 'b.md');
     assert.ok(fs.existsSync(bPath));
 
@@ -309,7 +309,7 @@ test('run(): a file that fails to delete during prune is re-recorded as owned in
       return originalRmSync(target, options);
     };
 
-    const { result: run2 } = captureConsole(() => run(targetRoot, { full: false, sourceRoot: fixtureRoot }));
+    const { result: run2 } = captureConsole(() => run(targetRoot, { sourceRoot: fixtureRoot }));
 
     // The delete failed, so b.md is still on disk...
     assert.ok(fs.existsSync(bPath), 'b.md must still exist on disk — the simulated delete failed');
@@ -412,7 +412,7 @@ test('run(): a mid-run crash (ambiguous CLAUDE.md markers) throws, leaves no man
 
     // (a) run() throws (not swallowed).
     assert.throws(
-      () => run(targetRoot, { full: false, sourceRoot: fixtureRoot }),
+      () => run(targetRoot, { sourceRoot: fixtureRoot }),
       /[Aa]mbiguous/
     );
 
@@ -430,7 +430,7 @@ test('run(): a mid-run crash (ambiguous CLAUDE.md markers) throws, leaves no man
 
     // (c) a corrected retry converges: no throw, manifest now exists, and
     // the expected placed files are present.
-    const retryResult = run(targetRoot, { full: false, sourceRoot: fixtureRoot });
+    const retryResult = run(targetRoot, { sourceRoot: fixtureRoot });
     assert.ok(fs.existsSync(manifestPath), 'the manifest must now exist after a successful retry');
     assert.ok(fs.existsSync(path.join(targetRoot, '.claude', 'commands', 'a.md')));
     assert.ok(fs.existsSync(path.join(targetRoot, '.claude', 'commands', 'b.md')));
