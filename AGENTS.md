@@ -63,6 +63,11 @@ One methodology, two products:
 `rea-dev` on PyPI is the retired Python CLI this project started as. Frozen at 0.7.3 (signpost —
 installs nothing); `rea/` and `tests/` are its source and stay only for that.
 
+**Cross-tool reach — state it per layer, never flatly.** The methodology layer (`AGENTS.md` + the
+`.rea/` schema) ports to every tool today; the skill-files (commands + agents) are shared markdown
+but first-class only on markdown-command tools (Claude Code, oh-my-pi) — TOML tools (Gemini, Codex)
+are parked for command placement. Never claim "full cross-platform" unqualified; name the layer.
+
 The installer is mechanical — it copies files, prunes what it owns, and edits shims between managed
 markers. All workflow intelligence lives in the prompts under `templates/`.
 
